@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.scleropages.maldini.security.authc.mgmt;
+package org.scleropages.maldini.security.authc;
 
 import org.scleropages.core.util.RandomGenerator;
 import org.scleropages.maldini.security.authc.mgmt.model.Authentication;

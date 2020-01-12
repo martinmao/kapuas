@@ -15,7 +15,7 @@
  */
 package org.scleropages.maldini.security.authc.mgmt.web;
 
-import org.scleropages.maldini.security.authc.mgmt.AuthenticationManager;
+import org.scleropages.maldini.security.authc.AuthenticationManager;
 import org.scleropages.maldini.security.authc.mgmt.model.Authentication;
 import org.scleropages.maldini.security.authc.token.client.StatelessUsernamePasswordToken;
 import org.scleropages.maldini.security.authc.token.client.UsernamePasswordToken;

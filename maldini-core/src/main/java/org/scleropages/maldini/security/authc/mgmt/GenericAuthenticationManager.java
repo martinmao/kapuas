@@ -20,6 +20,7 @@ import org.scleropages.core.util.RandomGenerator;
 import org.scleropages.core.util.SecureRandomGenerator;
 import org.scleropages.crud.GenericManager;
 import org.scleropages.crud.orm.jpa.entity.EntityAware;
+import org.scleropages.maldini.security.authc.AuthenticationManager;
 import org.scleropages.maldini.security.authc.mgmt.entity.AuthenticationEntity;
 import org.scleropages.maldini.security.authc.mgmt.entity.AuthenticationEntityRepository;
 import org.scleropages.maldini.security.authc.mgmt.model.Authentication;

@@ -30,7 +30,7 @@ import org.scleropages.maldini.app.model.Application;
 import org.scleropages.maldini.app.model.ApplicationMapper;
 import org.scleropages.maldini.app.model.Secret;
 import org.scleropages.maldini.app.model.SecretMapper;
-import org.scleropages.maldini.security.authc.mgmt.AuthenticationManager;
+import org.scleropages.maldini.security.authc.AuthenticationManager;
 import org.scleropages.maldini.security.authc.mgmt.model.Authentication;
 import org.scleropages.maldini.security.authc.provider.Authenticating;
 import org.scleropages.maldini.security.authc.provider.AuthenticationDetailsProvider;
