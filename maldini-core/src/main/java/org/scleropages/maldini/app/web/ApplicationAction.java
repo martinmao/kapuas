@@ -19,7 +19,8 @@ import org.apache.commons.lang3.math.NumberUtils;
 import org.scleropages.crud.web.GenericAction;
 import org.scleropages.maldini.app.ApplicationManager;
 import org.scleropages.maldini.app.model.Application;
-import org.scleropages.maldini.app.model.Secret;
+import org.scleropages.maldini.security.crypto.CryptographyManager;
+import org.scleropages.maldini.security.crypto.model.Cryptography;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -39,6 +40,8 @@ public class ApplicationAction implements GenericAction {
 
     private ApplicationManager applicationManager;
 
+    private CryptographyManager cryptographyManager;
+
     @PostMapping
     public Application createApplication(@RequestBody Application application) {
         return applicationManager.create(application);
@@ -50,7 +53,7 @@ public class ApplicationAction implements GenericAction {
     }
 
     @GetMapping("{appId}")
-    public Application findApplication(@PathVariable("appId") String appId) {
+    public Application getApplication(@PathVariable("appId") String appId) {
         return applicationManager.getApplication(createApplicationFromRequestParam(appId));
     }
 
@@ -59,41 +62,39 @@ public class ApplicationAction implements GenericAction {
         return applicationManager.findApplicationPage(buildSearchFilterFromRequest(request), buildPageableFromRequest(request));
     }
 
-
-    @PostMapping("secret/{appId}")
-    public void createSecret(@PathVariable("appId") String appId, @RequestBody Secret secret) {
-        applicationManager.createSecret(createApplicationFromRequestParam(appId), secret);
+    @PostMapping("cryptography/{appId}")
+    public void createCryptography(@PathVariable("appId") String appId, @RequestBody Cryptography cryptography) {
+        populateApplicationInformation(createApplicationFromRequestParam(appId), cryptography);
+        cryptographyManager.save(cryptography);
     }
 
-    @PostMapping("secret/{appId}/hmac")
-    public void createHmacSecret(@PathVariable("appId") String appId, @RequestBody Secret secret) {
-        applicationManager.createHmacSha256Secret(createApplicationFromRequestParam(appId), secret);
+    @GetMapping("cryptography/{appId}/{name}")
+    public Object getCryptography(@PathVariable("appId") String appId, @PathVariable("name") String name) {
+        Application application = applicationManager.getApplication(createApplicationFromRequestParam(appId));
+        return cryptographyManager.findOne(applicationManager.getProviderId(), String.valueOf(application.getId()), name);
     }
 
-    @PostMapping("secret/{appId}/rsa")
-    public void createRsaSecret(@PathVariable("appId") String appId, @RequestBody Secret secret) {
-        applicationManager.createRSASecret(createApplicationFromRequestParam(appId), secret);
+    @GetMapping("cryptography/item/{id}")
+    public Object getCryptography(@PathVariable("id") Long id) {
+        Cryptography cryptography = new Cryptography();
+        cryptography.setId(id);
+        return cryptographyManager.findById(id);
+    }
+
+    @GetMapping("cryptography")
+    public Object findPageCryptography(HttpServletRequest request) {
+        return cryptographyManager.findPage(applicationManager.getProviderId(), buildPageableFromRequest(request));
+    }
+
+    @GetMapping("cryptography/{appId}")
+    public Object findPageCryptography(@PathVariable("appId") String appId, HttpServletRequest request) {
+        return cryptographyManager.findPage(applicationManager.getProviderId(), appId, buildPageableFromRequest(request));
     }
 
 
-    @GetMapping("secret/item/{secretId}")
-    public Object findSecret(@PathVariable("secretId") String secretId) {
-        return applicationManager.getSecret(createSecretFromPathVariable(secretId));
-    }
-
-
-    @GetMapping("secret/{appId}")
-    public Object findAllSecretsByApp(@PathVariable("appId") String appId) {
-        return applicationManager.findAllSecrets(createApplicationFromRequestParam(appId));
-    }
-
-    protected Secret createSecretFromPathVariable(String id) {
-        Secret secret = new Secret();
-        if (NumberUtils.isCreatable(id)) {
-            secret.setId(Long.valueOf(id));
-        }
-        secret.setSecretId(id);
-        return secret;
+    protected void populateApplicationInformation(Application application, Cryptography cryptography) {
+        cryptography.setAssociatedType(applicationManager.getProviderId());
+        cryptography.setAssociatedId(String.valueOf(application.getId()));
     }
 
     protected Application createApplicationFromRequestParam(String id) {
@@ -105,9 +106,13 @@ public class ApplicationAction implements GenericAction {
         return application;
     }
 
-
     @Autowired
     public void setApplicationManager(ApplicationManager applicationManager) {
         this.applicationManager = applicationManager;
+    }
+
+    @Autowired
+    public void setCryptographyManager(CryptographyManager cryptographyManager) {
+        this.cryptographyManager = cryptographyManager;
     }
 }

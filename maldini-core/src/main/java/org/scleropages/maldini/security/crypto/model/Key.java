@@ -17,7 +17,10 @@ package org.scleropages.maldini.security.crypto.model;
 
 import org.scleropages.crud.types.Available;
 
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Null;
 
 /**
@@ -26,8 +29,9 @@ import javax.validation.constraints.Null;
 public class Key implements Available {
 
     public static final int KEY_TYPE = 0;
-    public static final int KEY_PAIR_TYPE = 1;
-    public static final int KEY_STORE_TYPE = 2;
+    public static final int KEY_PAIR_TYPE_PRIVATE = 1;
+    public static final int KEY_PAIR_TYPE_PUBLIC = 2;
+    public static final int KEY_STORE_TYPE = 3;
 
     private Long id;
 
@@ -38,6 +42,10 @@ public class Key implements Available {
     private byte[] encoded;
 
     private String keyPassword;
+
+    private Integer keySize;
+
+    private Integer keyType;
 
     private Boolean enabled;
 
@@ -65,11 +73,22 @@ public class Key implements Available {
         return keyPassword;
     }
 
+    @NotNull
+    public Integer getKeySize() {
+        return keySize;
+    }
+
+    @NotNull
+    @Min(value = KEY_TYPE)
+    @Max(value = KEY_STORE_TYPE)
+    public Integer getKeyType() {
+        return keyType;
+    }
+
     @Null
     public Boolean getEnabled() {
         return enabled;
     }
-
 
     public void setId(Long id) {
         this.id = id;
@@ -93,6 +112,14 @@ public class Key implements Available {
 
     public void setEnabled(Boolean enabled) {
         this.enabled = enabled;
+    }
+
+    public void setKeySize(Integer keySize) {
+        this.keySize = keySize;
+    }
+
+    public void setKeyType(Integer keyType) {
+        this.keyType = keyType;
     }
 
     @Override

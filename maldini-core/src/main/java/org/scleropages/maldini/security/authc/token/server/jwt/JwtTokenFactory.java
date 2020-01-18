@@ -18,6 +18,7 @@ package org.scleropages.maldini.security.authc.token.server.jwt;
 
 import org.scleropages.core.util.RandomGenerator;
 import org.scleropages.maldini.security.authc.token.client.EncodedToken;
+import org.scleropages.maldini.security.authc.token.client.jwt.JwtEncodedToken;
 import org.scleropages.maldini.security.authc.token.server.EncodedTokenFactory;
 
 /**
@@ -69,12 +70,12 @@ public interface JwtTokenFactory extends EncodedTokenFactory<JwtToken> {
 
 
     @Override
-    default EncodedToken encode(byte[] signatureKey, JwtToken tokenObject) {
+    default JwtEncodedToken encode(byte[] signatureKey, JwtToken tokenObject) {
         return encode(ALGORITHM_HS256, signatureKey, tokenObject);
     }
 
 
-    EncodedToken encode(String algorithm, byte[] signatureKey, JwtToken tokenObject);
+    JwtEncodedToken encode(String algorithm, byte[] signatureKey, JwtToken tokenObject);
 
     JwtToken decode(EncodedToken encodedJwt, SignatureKeyProvider... signatureKeyProviders);
 }

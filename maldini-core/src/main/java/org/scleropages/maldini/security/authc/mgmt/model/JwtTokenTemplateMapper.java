@@ -13,21 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.scleropages.maldini.app.entity;
+package org.scleropages.maldini.security.authc.mgmt.model;
 
-import org.scleropages.crud.orm.jpa.GenericRepository;
-import org.scleropages.maldini.app.model.Secret;
-import org.scleropages.maldini.app.model.SecretMapper;
-import org.springframework.data.jpa.repository.EntityGraph;
+import org.mapstruct.Mapper;
+import org.scleropages.crud.orm.ModelMapper;
+import org.scleropages.maldini.security.authc.mgmt.entity.JwtTokenTemplateEntity;
 
 /**
  * @author <a href="mailto:martinmao@icloud.com">Martin Mao</a>
  */
-public interface SecretEntityRepository extends GenericRepository<Secret, SecretMapper, SecretEntity, Long> {
+@Mapper(config = ModelMapper.DefaultConfig.class)
+public interface JwtTokenTemplateMapper extends ModelMapper<JwtTokenTemplateEntity, JwtTokenTemplate> {
 
-
-    Iterable<SecretEntity> findAllByApplication_Id(Long applicationId);
-
-    @EntityGraph(attributePaths = "key")
-    SecretEntity findByIdOrSecretId(Long id, String secretId);
 }

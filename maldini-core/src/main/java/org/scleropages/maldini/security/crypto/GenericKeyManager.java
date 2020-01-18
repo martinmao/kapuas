@@ -30,10 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
 import javax.crypto.SecretKey;
-import javax.validation.Valid;
 import java.security.KeyPair;
-import java.security.PrivateKey;
-import java.security.PublicKey;
 import java.security.SecureRandom;
 import java.util.function.BiConsumer;
 
@@ -51,22 +48,60 @@ public class GenericKeyManager implements KeyManager, GenericManager<Key, Long, 
 
 
     @Override
-    public SecretKey createRandomKey(String algorithm, int keySize) {
-        return randomGenerator.consumeRandom(random -> SecretKeys.generateRandomKey(algorithm, keyGenerator -> {
+    public Long createRandomKey(String algorithm, int keySize) {
+        SecretKey created = randomGenerator.consumeRandom(random -> SecretKeys.generateRandomKey(algorithm, keyGenerator -> {
             if (keySize != -1)
                 keyGenerator.init(keySize, (SecureRandom) random);
             else
                 keyGenerator.init((SecureRandom) random);
         }));
+        KeyEntity keyEntity = new KeyEntity();
+        keyEntity.setKeyType(Key.KEY_TYPE);
+        mapKeyEntity(keyEntity, keySize, created);
+        return keyEntityRepository.save(keyEntity).getId();
     }
 
     @Override
-    public KeyPair createRandomKeyPair(String algorithm, int keySize) {
-        return randomGenerator.consumeRandom(random -> SecretKeys.generateRandomKeyPair(algorithm, keyPairGenerator -> {
+    public void createRandomKeyPair(String algorithm, int keySize, BiConsumer<Long, Long> consumer) {
+        KeyPair created = randomGenerator.consumeRandom(random -> SecretKeys.generateRandomKeyPair(algorithm, keyPairGenerator -> {
             if (keySize != -1)
                 keyPairGenerator.initialize(keySize, (SecureRandom) random);
         }));
+        KeyEntity privateKeyEntity = new KeyEntity();
+        privateKeyEntity.setKeyType(Key.KEY_PAIR_TYPE_PRIVATE);
+
+        KeyEntity publicKeyEntity = new KeyEntity();
+        publicKeyEntity.setKeyType(Key.KEY_PAIR_TYPE_PUBLIC);
+        mapKeyEntity(privateKeyEntity, keySize, created.getPrivate());
+        mapKeyEntity(publicKeyEntity, keySize, created.getPublic());
+
+        privateKeyEntity.setRefKey(publicKeyEntity);
+        publicKeyEntity.setRefKey(privateKeyEntity);
+        consumer.accept(keyEntityRepository.save(privateKeyEntity).getId(), keyEntityRepository.save(publicKeyEntity).getId());
     }
+
+    public void resetKeyEncoded(Long id) {
+        keyEntityRepository.findById(id).ifPresent(keyEntity -> {
+            if (keyEntity.getKeyType() == Key.KEY_TYPE) {
+                SecretKey created = randomGenerator.consumeRandom(random -> SecretKeys.generateRandomKey(keyEntity.getAlgorithm(), keyGenerator -> {
+                    if (keyEntity.getKeySize() != -1)
+                        keyGenerator.init(keyEntity.getKeySize(), (SecureRandom) random);
+                    else
+                        keyGenerator.init((SecureRandom) random);
+                }));
+                keyEntity.setEncoded(created.getEncoded());
+            } else if (keyEntity.getKeyType() == Key.KEY_PAIR_TYPE_PRIVATE) {
+                KeyPair created = randomGenerator.consumeRandom(random -> SecretKeys.generateRandomKeyPair(keyEntity.getAlgorithm(), keyPairGenerator -> {
+                    if (keyEntity.getKeySize() != -1)
+                        keyPairGenerator.initialize(keyEntity.getKeySize(), (SecureRandom) random);
+                }));
+                keyEntity.setEncoded(created.getPrivate().getEncoded());
+                keyEntity.getRefKey().setEncoded(created.getPublic().getEncoded());
+            } else
+                throw new IllegalArgumentException("unsupported key type for key encoded resetting: " + keyEntity.getKeyType());
+        });
+    }
+
 
     @Override
     public byte[] random(int length) {
@@ -75,54 +110,9 @@ public class GenericKeyManager implements KeyManager, GenericManager<Key, Long, 
 
     @Override
     @Transactional
-    public Long save(java.security.Key key) {
-        Key save = new Key();
-        mapLocalKey(key, save);
-        return saveAndRead(save).getId();
-    }
-
-    @Override
-    @Transactional
-    public void save(KeyPair keyPair, BiConsumer<Long, Long> consumer) {
-
-        PrivateKey privateKey = keyPair.getPrivate();
-        Key privateKeyModel = new Key();
-        mapLocalKey(privateKey, privateKeyModel);
-        privateKeyModel.enable();
-
-        PublicKey publicKey = keyPair.getPublic();
-        Key publicKeyModel = new Key();
-        mapLocalKey(publicKey, publicKeyModel);
-        publicKeyModel.enable();
-
-        KeyEntity savedPrivateKey = keyEntityRepository.save(getModelMapper().mapForSave(privateKeyModel));
-
-        KeyEntity savedPublicKey = keyEntityRepository.save(getModelMapper().mapForSave(publicKeyModel));
-
-        savedPrivateKey.setRefKey(savedPublicKey);
-        savedPublicKey.setRefKey(savedPrivateKey);
-
-        consumer.accept(savedPrivateKey.getId(), savedPublicKey.getId());
-    }
-
-    protected void mapLocalKey(java.security.Key source, Key target) {
-        target.setAlgorithm(source.getAlgorithm());
-        target.setFormat(source.getFormat());
-        target.setEncoded(source.getEncoded());
-    }
-
-    @Override
-    @Transactional
-    public void save(@Valid Key model) {
+    public void save(Key model) {
         model.enable();
         keyEntityRepository.save(getModelMapper().mapForSave(model));
-    }
-
-    @Override
-    @Transactional
-    public Key saveAndRead(@Valid Key model) {
-        model.enable();
-        return getModelMapper().mapForRead(keyEntityRepository.save(getModelMapper().mapForSave(model)));
     }
 
     @Override
@@ -140,6 +130,15 @@ public class GenericKeyManager implements KeyManager, GenericManager<Key, Long, 
      */
     public void awareKeyEntity(Long id, KeyEntityAware entityAware) {
         entityAware.setEntity(keyEntityRepository.findById(id).get());
+    }
+
+
+    protected void mapKeyEntity(KeyEntity keyEntity, int keySize, java.security.Key jcaKey) {
+        keyEntity.setAlgorithm(jcaKey.getAlgorithm());
+        keyEntity.setFormat(jcaKey.getFormat());
+        keyEntity.setKeySize(keySize);
+        keyEntity.setEncoded(jcaKey.getEncoded());
+        keyEntity.setEnabled(true);
     }
 
     @Autowired

@@ -15,6 +15,7 @@
  */
 package org.scleropages.maldini.security.provider.shiro;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.shiro.authc.AuthenticationException;
 import org.apache.shiro.authc.AuthenticationInfo;
 import org.apache.shiro.authc.AuthenticationToken;
@@ -35,6 +36,9 @@ import org.springframework.core.ResolvableType;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 
+import java.util.Collections;
+import java.util.List;
+
 /**
  * @author <a href="mailto:martinmao@icloud.com">Martin Mao</a>
  */
@@ -44,20 +48,21 @@ public abstract class AbstractShiroRealm<T extends AuthenticationToken> extends 
 
     private AuthenticationTokenManager authenticationTokenManager;
 
+    private List<AuthorizationManager> authorizationManagers = Collections.emptyList();
+
     private Class supportTokenType;
 
     @Override
     protected void onInit() {
         //do somethings
         super.onInit();
-
     }
 
     public AbstractShiroRealm() {
         try {
             this.supportTokenType = ResolvableType.forClass(AbstractShiroRealm.class, getClass()).getGeneric(0).resolve();
         } catch (Exception e) {
-            logger.warn("Can't determine support token type. if you see this message make sure your realm already implements supports(AuthenticationToken token) method.");
+            logger.warn("Can't determine generic type of support token. if you see this message make sure your realm already implements supports(AuthenticationToken token) method.");
         }
     }
 
@@ -68,7 +73,24 @@ public abstract class AbstractShiroRealm<T extends AuthenticationToken> extends 
 
     @Override
     protected AuthorizationInfo doGetAuthorizationInfo(PrincipalCollection principals) {
+
+        Authenticated authenticated = (Authenticated) principals.getPrimaryPrincipal();
         SimpleAuthorizationInfo simpleAuthorizationInfo = new SimpleAuthorizationInfo();
+        authorizationManagers.stream().forEachOrdered(authorizationManager -> {
+            if (authorizationManager.supports(authenticated)) {
+                if (logger.isDebugEnabled()) {
+                    logger.debug("Using... {} to populate AuthorizationInfo", authorizationManager.getClass().getSimpleName());
+                }
+                authorizationManager.populateAuthorizationInfo(simpleAuthorizationInfo, authenticated, authenticated.details());
+            }
+        });
+        if (logger.isDebugEnabled() &&
+                (CollectionUtils.isNotEmpty(simpleAuthorizationInfo.getRoles()) || CollectionUtils.isNotEmpty(simpleAuthorizationInfo.getStringPermissions()))) {
+            logger.info("successfully populate [{}] authorization info: with roles:{} and permissions: {}.",
+                    authenticated.principal(), simpleAuthorizationInfo.getRoles(), simpleAuthorizationInfo.getStringPermissions());
+        } else if (logger.isDebugEnabled()) {
+            logger.warn("no authorization info found or no matches AuthorizationManager found.");
+        }
         return simpleAuthorizationInfo;
     }
 
@@ -211,5 +233,9 @@ public abstract class AbstractShiroRealm<T extends AuthenticationToken> extends 
                 hashedCredentialsMatcher.setStoredCredentialsHexEncoded(true);
             setCredentialsMatcher(hashedCredentialsMatcher);
         }
+    }
+
+    public void setAuthorizationManagers(List<AuthorizationManager> authorizationManagers) {
+        this.authorizationManagers = authorizationManagers;
     }
 }

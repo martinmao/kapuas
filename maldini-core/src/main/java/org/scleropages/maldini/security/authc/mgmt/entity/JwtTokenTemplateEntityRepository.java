@@ -13,16 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.scleropages.maldini.app.model;
+package org.scleropages.maldini.security.authc.mgmt.entity;
 
-import org.mapstruct.Mapper;
-import org.scleropages.crud.orm.ModelMapper;
-import org.scleropages.maldini.app.entity.SecretEntity;
+import org.scleropages.crud.orm.jpa.GenericRepository;
+import org.scleropages.maldini.security.authc.mgmt.model.JwtTokenTemplate;
+import org.scleropages.maldini.security.authc.mgmt.model.JwtTokenTemplateMapper;
 
 /**
  * @author <a href="mailto:martinmao@icloud.com">Martin Mao</a>
  */
-@Mapper(config = ModelMapper.DefaultConfig.class)
-public interface SecretMapper extends ModelMapper<SecretEntity, Secret> {
+public interface JwtTokenTemplateEntityRepository extends GenericRepository<JwtTokenTemplate, JwtTokenTemplateMapper, JwtTokenTemplateEntity, Long> {
+
+    JwtTokenTemplateEntity findByAssociatedIdAndAssociatedType(String associatedId, Integer associatedType);
 
 }

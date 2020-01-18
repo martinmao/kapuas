@@ -40,6 +40,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
 import org.springframework.validation.annotation.Validated;
 
+import javax.validation.Valid;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
@@ -87,6 +88,12 @@ public class GenericAclManager implements AclManager {
 
         return getRequiredAclProvider(resourceModel).readPrincipalEntries(principal, resourceModel, permissionProvided ?
                 Optional.of(permissionModel) : Optional.empty(), pageable);
+    }
+
+
+    @Override
+    public boolean isAccessible(@Valid ResourceModel resource, @Valid AclPrincipalModel principal, PermissionModel permission) {
+        return readPrincipalEntries(principal, resource, permission, Pageable.unpaged()).isEmpty();
     }
 
     @Override

@@ -122,4 +122,14 @@ public interface AclManager {
      */
     void createAclEntry(@Valid ResourceModel resource, @Valid AclPrincipalModel grant, PermissionModel... permission);
 
+
+    /**
+     * Return true if given principal was granted permissions for given resource.
+     *
+     * @param resource   asserts resource.
+     * @param principal  grants principal.
+     * @param permission a group optional permissions.
+     */
+    boolean isAccessible(@Valid ResourceModel resource, @Valid AclPrincipalModel principal, PermissionModel permission);
+
 }

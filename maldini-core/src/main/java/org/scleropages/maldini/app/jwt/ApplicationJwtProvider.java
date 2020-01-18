@@ -44,10 +44,8 @@ import java.util.Map;
 public class ApplicationJwtProvider implements JwtProvider<Application> {
 
     private static final String JWT_HEADER_APP_AUTH_ID = "aau";
-    private static final String REQUEST_FUNCTION_NAME = "func";
 
-    private static final String ACL_RESOURCE_TYPE_FUNCTION = "app_func";
-    private static final String ACL_PERMISSION_NAME = "execute";
+    private static final String REQUEST_CONTEXT_PARAMETER_FUNCTION_NAME = "func";
 
 
     @Value("#{ @environment['jwt.token.app_auth.expiration'] ?: 1800000 }")
@@ -56,6 +54,10 @@ public class ApplicationJwtProvider implements JwtProvider<Application> {
     private String jwtTokenIssuer;
     @Value("#{ @environment['jwt.token.app_auth.not-before'] ?: 0 }")
     private long jwtTokenNotBefore;
+    @Value("#{ @environment['jwt.token.app_auth.acl_resource'] ?: 'app_function' }")
+    private String applicationJwtAclResourceType;
+    @Value("#{ @environment['jwt.token.app_auth.acl_permission'] ?: null }")
+    private String applicationJwtAclPermission;
 
 
     protected ApplicationManager applicationManager;
@@ -65,25 +67,24 @@ public class ApplicationJwtProvider implements JwtProvider<Application> {
     @Override
     public JwtEncodedToken build(Authenticated authenticated, JwtTokenFactory jwtTokenFactory, JwtToken.JwtTokenBuilder builder, final Map<String, String> requestContext) {
         assertAccessible(authenticated, requestContext);
-
         long now = System.currentTimeMillis();
         builder.withAudience(authenticated.host());
         builder.withExpiration(new Date(now + jwtTokenExpiration));
         builder.withIssuedAt(new Date(now));
         builder.withIssuer(jwtTokenIssuer);
-        builder.withSubject(String.valueOf(authenticated.principal()));
         builder.withNotBefore(new Date(now + jwtTokenNotBefore));
+        builder.withSubject(String.valueOf(authenticated.principal()));
 
         return null;
     }
 
     protected void assertAccessible(Authenticated authenticated, final Map<String, String> requestContext) {
         ResourceModel functionResource = new ResourceModel();
-        functionResource.setId(requestContext.get(REQUEST_FUNCTION_NAME));
-        functionResource.setType(ACL_RESOURCE_TYPE_FUNCTION);
+        functionResource.setId(requestContext.get(REQUEST_CONTEXT_PARAMETER_FUNCTION_NAME));
+        functionResource.setType(applicationJwtAclResourceType);
         AclPrincipalModel principal = new AclPrincipalModel();
         principal.setName(String.valueOf(authenticated.principal()));
-        Page<AclEntry> aclEntries = aclManager.readPrincipalEntries(principal, functionResource, new PermissionModel(ACL_PERMISSION_NAME), Pageable.unpaged());
+        Page<AclEntry> aclEntries = aclManager.readPrincipalEntries(principal, functionResource, new PermissionModel(applicationJwtAclPermission), Pageable.unpaged());
         Assert.isTrue(!aclEntries.isEmpty(), "access denied.");
     }
 

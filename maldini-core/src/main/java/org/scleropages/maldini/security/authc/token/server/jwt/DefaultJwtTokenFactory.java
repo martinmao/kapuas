@@ -119,7 +119,7 @@ public class DefaultJwtTokenFactory implements JwtTokenFactory {
     }
 
     @Override
-    public EncodedToken encode(String algorithm, byte[] signatureKey, JwtToken tokenObject) {
+    public JwtEncodedToken encode(String algorithm, byte[] signatureKey, JwtToken tokenObject) {
 
         Object nativeToken = tokenObject.getNativeToken();
         Assert.state(nativeToken instanceof Map, "Internal error: encoded jwt native token not an instanceof of java.util.Map implementation.");

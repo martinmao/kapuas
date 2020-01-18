@@ -43,6 +43,10 @@ public class KeyEntity extends IdEntity {
 
     private Boolean enabled;
 
+    private Integer keySize;
+
+    private Integer keyType;
+
     private KeyEntity refKey;//just used for keypair
 
     @Column(name = "alg_", nullable = false)
@@ -70,11 +74,22 @@ public class KeyEntity extends IdEntity {
         return keyPassword;
     }
 
+    @Column(name = "key_size", nullable = false)
+    public Integer getKeySize() {
+        return keySize;
+    }
+
+    @Column(name = "key_type", nullable = false)
+    public Integer getKeyType() {
+        return keyType;
+    }
+
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "ref_sec_key_id")
     public KeyEntity getRefKey() {
         return refKey;
     }
+
 
     public void setAlgorithm(String algorithm) {
         this.algorithm = algorithm;
@@ -96,6 +111,13 @@ public class KeyEntity extends IdEntity {
         this.keyPassword = keyPassword;
     }
 
+    public void setKeySize(Integer keySize) {
+        this.keySize = keySize;
+    }
+
+    public void setKeyType(Integer keyType) {
+        this.keyType = keyType;
+    }
 
     public void setRefKey(KeyEntity refKey) {
         this.refKey = refKey;

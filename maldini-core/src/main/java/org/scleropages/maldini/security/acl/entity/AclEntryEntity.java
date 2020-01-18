@@ -33,7 +33,7 @@ import javax.persistence.Table;
 @Table(name = "sec_acl_entries",
         indexes = {
                 @Index(columnList = "resource_id"),
-                @Index(columnList = "principal_")})
+                @Index(columnList = "principal_,resource_id")})
 @SequenceGenerator(name = "sec_acl_entries_id", sequenceName = "seq_sec_acl_entries", allocationSize = IdEntity.SEQ_DEFAULT_ALLOCATION_SIZE, initialValue = IdEntity.SEQ_DEFAULT_INITIAL_VALUE)
 public class AclEntryEntity extends AbstractAclEntryEntity {
 

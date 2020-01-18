@@ -23,4 +23,6 @@ import org.scleropages.maldini.security.crypto.model.KeyMapper;
  * @author <a href="mailto:martinmao@icloud.com">Martin Mao</a>
  */
 public interface KeyEntityRepository extends GenericRepository<Key, KeyMapper, KeyEntity, Long> {
+
+
 }

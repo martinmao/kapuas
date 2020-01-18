@@ -18,34 +18,33 @@ package org.scleropages.maldini.security.crypto;
 import org.scleropages.maldini.security.crypto.model.Key;
 
 import javax.crypto.SecretKey;
-import javax.validation.Valid;
 import java.security.KeyPair;
 import java.util.function.BiConsumer;
 
 /**
- * Manager used for java(x) security keys management.
+ * Manager used for java(jca,jce) security keys management.
  *
  * @author <a href="mailto:martinmao@icloud.com">Martin Mao</a>
  */
 public interface KeyManager {
 
     /**
-     * create a random {@link SecretKey} by given algorithm and key size.
+     * create and save a random {@link SecretKey} by given algorithm and key size.
      *
      * @param algorithm
-     * @param keySize
-     * @return
+     * @param keySize -1 use default key size by given algorithm.
+     * @return saved id.
      */
-    SecretKey createRandomKey(String algorithm, int keySize);
+    Long createRandomKey(String algorithm, int keySize);
 
     /**
-     * create a random {@link KeyPair} by given algorithm and key size.
+     * create and save a random {@link KeyPair} by given algorithm and key size.
      *
      * @param algorithm
-     * @param keySize
-     * @return
+     * @param keySize -1 use default key size by given algorithm
+     * @return consumer parameter first is private key id, and second is public key id.
      */
-    KeyPair createRandomKeyPair(String algorithm, int keySize);
+    void createRandomKeyPair(String algorithm, int keySize, BiConsumer<Long, Long> consumer);
 
     /**
      * return a random bytes by given bytes length.The {@link org.scleropages.core.util.RandomGenerator} is current implementation used.
@@ -54,37 +53,6 @@ public interface KeyManager {
      * @return
      */
     byte[] random(int length);
-
-    /**
-     * Save a Java {@link SecretKey}
-     *
-     * @param key {@link SecretKey} for saving.
-     * @return
-     */
-    Long save(java.security.Key key);
-
-    /**
-     * Save a Java {@link KeyPair}
-     *
-     * @param keyPair  {@link KeyPair} for saving
-     * @param consumer given arguments first is private key id, and second is public key id
-     */
-    void save(KeyPair keyPair, BiConsumer<Long, Long> consumer);
-
-    /**
-     * Save a key model.
-     *
-     * @param model
-     */
-    void save(@Valid Key model);
-
-    /**
-     * save and read a key model.
-     *
-     * @param model
-     * @return
-     */
-    Key saveAndRead(@Valid Key model);
 
     /**
      * find key by given id.
