@@ -25,4 +25,5 @@ org.springframework.boot.loader.PropertiesLauncher \
 --logging.level.org.apache.cxf.services=info \
 --logging.level.org.springframework.jdbc=info \
 --logging.level.org.springframework.data.elasticsearch.client.WIRE=info \
+--spring.jpa.show-sql=false \
 --server.port=18080 \
