@@ -15,18 +15,21 @@
  */
 package org.scleropages.maldini.security.authc.token.client;
 
+import com.google.common.collect.Maps;
+import org.scleropages.maldini.security.SecurityOption;
 import org.springframework.util.Assert;
+
+import java.util.Map;
 
 /**
  * @author <a href="mailto:martinmao@icloud.com">Martin Mao</a>
  */
 public abstract class AbstractAuthenticationToken implements AuthenticationToken {
 
-
     public static final String HOST_UNKNOWN = "UNKNOWN";
-
     private final boolean rememberMe;
     private final String host;
+    private final Map<SecurityOption, Object> authenticationOptions = Maps.newHashMap();
 
 
     public AbstractAuthenticationToken(boolean rememberMe, String host) {
@@ -53,4 +56,19 @@ public abstract class AbstractAuthenticationToken implements AuthenticationToken
         return host;
     }
 
+    @Override
+    public void addAuthenticationOption(SecurityOption securityOption, Object value) {
+        authenticationOptions.put(securityOption, value);
+    }
+
+
+    public Object getAuthenticationOption(SecurityOption securityOption) {
+        Object o = authenticationOptions.get(securityOption);
+        return null != o ? o : securityOption.getOption();
+    }
+
+    public Boolean getBooleanAuthenticationOption(SecurityOption securityOption) {
+        Object o = authenticationOptions.get(securityOption);
+        return null != o ? (Boolean) o : securityOption.getBooleanOption();
+    }
 }

@@ -30,7 +30,7 @@ public class JwtEncodedToken extends EncodedToken implements StatelessToken {
         super(encoded);
     }
 
-    public JwtEncodedToken(boolean rememberMe, String host, Serializable encoded) {
-        super(rememberMe, host, encoded);
+    public JwtEncodedToken(String host, Serializable encoded) {
+        super(host, encoded);
     }
 }

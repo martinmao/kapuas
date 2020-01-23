@@ -17,6 +17,8 @@ package org.scleropages.maldini.security.provider.shiro.realm;
 
 import com.google.common.collect.Maps;
 import org.apache.shiro.authc.UsernamePasswordToken;
+import org.scleropages.maldini.security.AuthenticationDetails;
+import org.scleropages.maldini.security.SecurityOption;
 import org.scleropages.maldini.security.authc.mgmt.GenericAuthenticationManager;
 import org.scleropages.maldini.security.authc.mgmt.model.Authentication;
 import org.scleropages.maldini.security.authc.provider.Authenticating;
@@ -62,11 +64,27 @@ public class DefaultTokenManager implements AuthenticationTokenManager<UsernameP
         Authenticating authenticating = new Authenticating(entity.getPrincipal(), entity.getCredentials(), entity.getSecureSalt(),
                 entity.getEnabled(), entity.getExpired(), entity.getLocked(), entity.getCredentialsExpired(), null);
 
+
         Integer associatedType = entity.getAssociatedType();
 
         AuthenticationDetailsProvider provider = authenticationDetailsProviders.get(associatedType);
 
         Assert.notNull(provider, "authentication details provider not found by given assignedTo:" + associatedType);
+
+        if (authenticationToken instanceof ShiroUsernamePasswordToken) {
+            ShiroUsernamePasswordToken shiroUsernamePasswordToken = (ShiroUsernamePasswordToken) authenticationToken;
+            Boolean autoLoadDetails = shiroUsernamePasswordToken.getNativeToken().getBooleanAuthenticationOption(SecurityOption.AUTHENTICATION_OPTION_AUTO_LOAD_DETAILS);
+            if (!autoLoadDetails) {
+                logger.debug("client authentication option[AUTHENTICATION_OPTION_AUTO_LOAD_DETAILS] is false. ignore authentication details.");
+                try {
+                    //details 必须提供，很多组件匹配执行可能都基于details类型的选择.即便不加载details也应该提供一个类型匹配的空对象实例.
+                    authenticating.setDetails((AuthenticationDetails) provider.getDetailsType().newInstance());
+                } catch (Exception e) {
+                    throw new IllegalArgumentException("Implementations of AuthenticationDetails must have a default constructor.", e);
+                }
+                return authenticating;
+            }
+        }
 
         authenticating.setDetails(provider.getAuthenticationDetails(authenticating, entity.getAssociatedId()));
 

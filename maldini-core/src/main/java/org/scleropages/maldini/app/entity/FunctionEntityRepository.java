@@ -18,6 +18,7 @@ package org.scleropages.maldini.app.entity;
 import org.scleropages.crud.orm.jpa.GenericRepository;
 import org.scleropages.maldini.app.model.Function;
 import org.scleropages.maldini.app.model.FunctionMapper;
+import org.springframework.data.jpa.repository.Query;
 
 /**
  * @author <a href="mailto:martinmao@icloud.com">Martin Mao</a>
@@ -26,4 +27,6 @@ public interface FunctionEntityRepository extends GenericRepository<Function, Fu
 
     Iterable<FunctionEntity> findAllByPackageEntity_Id(Long id);
 
+    @Query(nativeQuery = true, value = "select app_info.app_id from app_func,app_info where full_name=? and app_func.app_info_id=app_info.id")
+    String findAppIdByFunctionFullName(String fullName);
 }

@@ -39,6 +39,20 @@
            uses-template="heap-cache">
     </cache>
 
+    <cache alias="org.scleropages.maldini.security.acl.Permission">
+        <expiry>
+            <ttl unit="minutes">10</ttl>
+        </expiry>
+        <heap unit="MB">1</heap>
+    </cache>
+
+    <cache alias="org.scleropages.maldini.security.acl.AclEntry">
+        <expiry>
+            <ttl unit="minutes">10</ttl>
+        </expiry>
+        <heap unit="MB">20</heap>
+    </cache>
+
 
     <cache-template name="heap-cache">
         <expiry>

@@ -68,7 +68,7 @@ public abstract class JwtToken {
     public static final String JWT_HEADERS = "hdr";
 
 
-    public class JwtTokenBuilder {
+    public static class JwtTokenBuilder {
 
 
         private final Map<String, Object> tokenMap = Maps.newHashMap();
@@ -129,9 +129,7 @@ public abstract class JwtToken {
          * @return
          */
         public JwtTokenBuilder withExpiration(Date expiration) {
-            // The JWT RFC *mandates* NumericDate values are represented as seconds.
-            // Because Because java.util.Date requires milliseconds, we need to multiply by 1000:
-            tokenMap.put(EXPIRATION, expiration.getTime() / 1000);
+            tokenMap.put(EXPIRATION, expiration);
             return this;
         }
 
@@ -143,9 +141,7 @@ public abstract class JwtToken {
          * @return
          */
         public JwtTokenBuilder withNotBefore(Date notBefore) {
-            // The JWT RFC *mandates* NumericDate values are represented as seconds.
-            // Because Because java.util.Date requires milliseconds, we need to multiply by 1000:
-            tokenMap.put(NOT_BEFORE, notBefore.getTime() / 1000);
+            tokenMap.put(NOT_BEFORE, notBefore);
             return this;
         }
 
@@ -157,9 +153,7 @@ public abstract class JwtToken {
          * @return
          */
         public JwtTokenBuilder withIssuedAt(Date issuedAt) {
-            // The JWT RFC *mandates* NumericDate values are represented as seconds.
-            // Because Because java.util.Date requires milliseconds, we need to multiply by 1000:
-            tokenMap.put(ISSUED_AT, issuedAt.getTime() / 1000);
+            tokenMap.put(ISSUED_AT, issuedAt);
             return this;
         }
 
@@ -172,6 +166,13 @@ public abstract class JwtToken {
          */
         public JwtTokenBuilder withHeaders(Map<String, Object> header) {
             tokenMap.put(JWT_HEADERS, header);
+            return this;
+        }
+
+        public JwtTokenBuilder set(String name, Object value) {
+            if (tokenMap.containsKey(name))
+                throw new IllegalArgumentException("already exists.");
+            tokenMap.put(name, value);
             return this;
         }
 
@@ -189,32 +190,32 @@ public abstract class JwtToken {
 
                 @Override
                 public String getSubject() {
-                    return (String) tokenMap.get(ISSUER);
+                    return (String) tokenMap.get(SUBJECT);
                 }
 
                 @Override
                 public String getAudience() {
-                    return (String) tokenMap.get(ISSUER);
+                    return (String) tokenMap.get(AUDIENCE);
                 }
 
                 @Override
                 public String getId() {
-                    return (String) tokenMap.get(ISSUER);
+                    return (String) tokenMap.get(JWT_ID);
                 }
 
                 @Override
                 public Date getExpiration() {
-                    return (Date) tokenMap.get(ISSUER);
+                    return (Date) tokenMap.get(EXPIRATION);
                 }
 
                 @Override
                 public Date getNotBefore() {
-                    return (Date) tokenMap.get(ISSUER);
+                    return (Date) tokenMap.get(NOT_BEFORE);
                 }
 
                 @Override
                 public Date getIssuedAt() {
-                    return (Date) tokenMap.get(ISSUER);
+                    return (Date) tokenMap.get(ISSUED_AT);
                 }
 
                 @Override
@@ -237,7 +238,7 @@ public abstract class JwtToken {
      *
      * @return
      */
-    public JwtTokenBuilder newBuilder() {
+    public static JwtTokenBuilder newBuilder() {
         return new JwtTokenBuilder();
     }
 

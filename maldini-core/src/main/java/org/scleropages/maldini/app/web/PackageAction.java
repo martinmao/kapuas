@@ -63,7 +63,7 @@ public class PackageAction implements GenericAction {
     }
 
     @PostMapping("func/update")
-    public void updatePackage(@RequestBody Function function) {
+    public void updateFunction(@RequestBody Function function) {
         packageManager.save(function);
     }
 

@@ -16,7 +16,7 @@
 package org.scleropages.maldini.app.model;
 
 import org.scleropages.crud.types.Available;
-import org.scleropages.maldini.AuthenticationDetails;
+import org.scleropages.maldini.security.AuthenticationDetails;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;

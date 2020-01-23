@@ -23,6 +23,7 @@ import org.scleropages.maldini.security.authc.token.server.jwt.JwtToken;
 import org.scleropages.maldini.security.authc.token.server.jwt.JwtTokenFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.util.Assert;
 
 import java.util.Date;
 import java.util.Map;
@@ -30,32 +31,29 @@ import java.util.Map;
 /**
  * @author <a href="mailto:martinmao@icloud.com">Martin Mao</a>
  */
-public abstract class GenericJwtProvider<T> implements JwtProvider {
-
+public abstract class AbstractJwtTokenTemplateProvider<T> implements JwtProvider<T> {
 
     private static final String JWT_HEADER_AUTH_TYPE = "aut";
     private static final String JWT_HEADER_AUTH_ID = "aui";
 
-    @Value("#{ @environment['jwt.token.default.expiration'] ?: 1800000 }")
+    @Value("#{ @environment['jwt.token.template.expiration'] ?: 1800000 }")
     private long jwtTokenExpiration;
-    @Value("#{ @environment['jwt.token.default.not-before'] ?: 0 }")
+    @Value("#{ @environment['jwt.token.template.not-before'] ?: 0 }")
     private long jwtTokenNotBefore;
-
 
     private JwtTokenTemplateManager tokenTemplateManager;
 
-    abstract protected String jwtAssociatedId(Authenticated authenticated);
+    abstract protected String jwtAssociatedId(Authenticated authenticated, Map<String, Object> requestContext);
 
-    abstract protected Integer jwtAssociatedType(Authenticated authenticated);
+    abstract protected Integer jwtAssociatedType(Authenticated authenticated, Map<String, Object> requestContext);
 
-    protected void postJwtTokenBuild(JwtToken.JwtTokenBuilder tokenBuilder) {
-
-    }
 
     @Override
-    public JwtEncodedToken build(Authenticated authenticated, JwtTokenFactory jwtTokenFactory, JwtToken.JwtTokenBuilder tokenBuilder, Map requestContext) {
+    public JwtEncodedToken build(Authenticated authenticated, JwtTokenFactory jwtTokenFactory, JwtToken.JwtTokenBuilder tokenBuilder, Map<String, Object> requestContext) {
+        preJwtTokenBuild(authenticated, jwtTokenFactory, tokenBuilder, requestContext);
         long now = System.currentTimeMillis();
-        JwtTokenTemplate jwtTokenTemplate = tokenTemplateManager.find(jwtAssociatedId(authenticated), jwtAssociatedType(authenticated));
+        JwtTokenTemplate jwtTokenTemplate = tokenTemplateManager.find(jwtAssociatedId(authenticated, requestContext), jwtAssociatedType(authenticated, requestContext));
+        Assert.notNull(jwtTokenTemplate, "no jwt token template found.");
         Map<String, Object> jwtHeader = Maps.newHashMap();
         jwtHeader.put(JWT_HEADER_AUTH_TYPE, jwtTokenTemplate.getAssociatedType());
         jwtHeader.put(JWT_HEADER_AUTH_ID, jwtTokenTemplate.getAssociatedId());
@@ -66,20 +64,32 @@ public abstract class GenericJwtProvider<T> implements JwtProvider {
         tokenBuilder.withIssuedAt(new Date(now));
         tokenBuilder.withExpiration(new Date(now + jwtTokenExpiration));
         tokenBuilder.withNotBefore(new Date(now + jwtTokenNotBefore));
-        postJwtTokenBuild(tokenBuilder);
+        postJwtTokenBuild(authenticated, jwtTokenFactory, tokenBuilder, requestContext);
         return jwtTokenFactory.encode(jwtTokenTemplate.getAlgorithm(), jwtTokenTemplate.getSignKeyEncoded(), tokenBuilder.build());
     }
 
     @Override
     public byte[] resolveSignatureKey(JwtTokenFactory.JwtHeader jwtHeader) {
-        Integer jwtAssociatedType = Integer.parseInt(String.valueOf(jwtHeader.get(JWT_HEADER_AUTH_TYPE)));
+        Integer jwtAssociatedType;
+        try {
+            jwtAssociatedType = Integer.parseInt(String.valueOf(jwtHeader.get(JWT_HEADER_AUTH_TYPE)));
+        } catch (NumberFormatException e) {
+            throw new IllegalArgumentException(JWT_HEADER_AUTH_TYPE + " not a valid number.");
+        }
         String jwtAssociatedId = String.valueOf(jwtHeader.get(JWT_HEADER_AUTH_ID));
         JwtTokenTemplate jwtTokenTemplate = tokenTemplateManager.find(jwtAssociatedId, jwtAssociatedType);
-        if (null != jwtTokenTemplate) {
-            return jwtTokenTemplate.getVerifyKeyEncoded()
-                    != null ? jwtTokenTemplate.getVerifyKeyEncoded() : jwtTokenTemplate.getSignKeyEncoded();
-        }
-        return new byte[0];
+        Assert.notNull(jwtTokenTemplate, "no jwt token template found.");
+        return jwtTokenTemplate.getVerifyKeyEncoded()
+                != null ? jwtTokenTemplate.getVerifyKeyEncoded() : jwtTokenTemplate.getSignKeyEncoded();
+    }
+
+
+    protected void preJwtTokenBuild(Authenticated authenticated, JwtTokenFactory jwtTokenFactory, JwtToken.JwtTokenBuilder tokenBuilder, Map<String, Object> requestContext) {
+
+    }
+
+    protected void postJwtTokenBuild(Authenticated authenticated, JwtTokenFactory jwtTokenFactory, JwtToken.JwtTokenBuilder tokenBuilder, Map<String, Object> requestContext) {
+
     }
 
     @Override

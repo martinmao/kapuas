@@ -16,6 +16,7 @@
 package org.scleropages.maldini.security.authc.provider;
 
 import org.scleropages.core.util.GenericTypes;
+import org.scleropages.maldini.security.authc.token.client.EncodedToken;
 import org.scleropages.maldini.security.authc.token.client.jwt.JwtEncodedToken;
 import org.scleropages.maldini.security.authc.token.server.jwt.JwtToken;
 import org.scleropages.maldini.security.authc.token.server.jwt.JwtTokenFactory;
@@ -28,7 +29,7 @@ import java.util.Map;
  *
  * @author <a href="mailto:martinmao@icloud.com">Martin Mao</a>
  */
-public interface JwtProvider<T> extends JwtTokenFactory.SignatureKeyProvider {
+public interface JwtProvider<T> extends JwtTokenFactory.SignatureKeyProvider, EncodedTokenProvider {
 
 
     /**
@@ -40,7 +41,7 @@ public interface JwtProvider<T> extends JwtTokenFactory.SignatureKeyProvider {
      * @param requestContext  any request parameters
      * @return
      */
-    JwtEncodedToken build(final Authenticated authenticated, final JwtTokenFactory jwtTokenFactory, final JwtToken.JwtTokenBuilder tokenBuilder, final Map<String, String> requestContext);
+    JwtEncodedToken build(final Authenticated authenticated, final JwtTokenFactory jwtTokenFactory, final JwtToken.JwtTokenBuilder tokenBuilder, final Map<String, Object> requestContext);
 
 
     /**
@@ -89,5 +90,10 @@ public interface JwtProvider<T> extends JwtTokenFactory.SignatureKeyProvider {
         Class source = GenericTypes.getClassGenericType(getClass(), JwtProvider.class, 0);
         Assert.notNull(source, "implementation must defined Generic-type as source. or implementation getSource method.");
         return source;
+    }
+
+    @Override
+    default Class<? extends EncodedToken> encodedTokenType() {
+        return JwtEncodedToken.class;
     }
 }

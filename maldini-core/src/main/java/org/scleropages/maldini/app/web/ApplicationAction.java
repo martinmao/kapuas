@@ -19,8 +19,6 @@ import org.apache.commons.lang3.math.NumberUtils;
 import org.scleropages.crud.web.GenericAction;
 import org.scleropages.maldini.app.ApplicationManager;
 import org.scleropages.maldini.app.model.Application;
-import org.scleropages.maldini.security.crypto.CryptographyManager;
-import org.scleropages.maldini.security.crypto.model.Cryptography;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -39,8 +37,6 @@ import javax.servlet.http.HttpServletRequest;
 public class ApplicationAction implements GenericAction {
 
     private ApplicationManager applicationManager;
-
-    private CryptographyManager cryptographyManager;
 
     @PostMapping
     public Application createApplication(@RequestBody Application application) {
@@ -62,40 +58,6 @@ public class ApplicationAction implements GenericAction {
         return applicationManager.findApplicationPage(buildSearchFilterFromRequest(request), buildPageableFromRequest(request));
     }
 
-    @PostMapping("cryptography/{appId}")
-    public void createCryptography(@PathVariable("appId") String appId, @RequestBody Cryptography cryptography) {
-        populateApplicationInformation(createApplicationFromRequestParam(appId), cryptography);
-        cryptographyManager.save(cryptography);
-    }
-
-    @GetMapping("cryptography/{appId}/{name}")
-    public Object getCryptography(@PathVariable("appId") String appId, @PathVariable("name") String name) {
-        Application application = applicationManager.getApplication(createApplicationFromRequestParam(appId));
-        return cryptographyManager.findOne(applicationManager.getProviderId(), String.valueOf(application.getId()), name);
-    }
-
-    @GetMapping("cryptography/item/{id}")
-    public Object getCryptography(@PathVariable("id") Long id) {
-        Cryptography cryptography = new Cryptography();
-        cryptography.setId(id);
-        return cryptographyManager.findById(id);
-    }
-
-    @GetMapping("cryptography")
-    public Object findPageCryptography(HttpServletRequest request) {
-        return cryptographyManager.findPage(applicationManager.getProviderId(), buildPageableFromRequest(request));
-    }
-
-    @GetMapping("cryptography/{appId}")
-    public Object findPageCryptography(@PathVariable("appId") String appId, HttpServletRequest request) {
-        return cryptographyManager.findPage(applicationManager.getProviderId(), appId, buildPageableFromRequest(request));
-    }
-
-
-    protected void populateApplicationInformation(Application application, Cryptography cryptography) {
-        cryptography.setAssociatedType(applicationManager.getProviderId());
-        cryptography.setAssociatedId(String.valueOf(application.getId()));
-    }
 
     protected Application createApplicationFromRequestParam(String id) {
         Application application = new Application();
@@ -109,10 +71,5 @@ public class ApplicationAction implements GenericAction {
     @Autowired
     public void setApplicationManager(ApplicationManager applicationManager) {
         this.applicationManager = applicationManager;
-    }
-
-    @Autowired
-    public void setCryptographyManager(CryptographyManager cryptographyManager) {
-        this.cryptographyManager = cryptographyManager;
     }
 }

@@ -15,11 +15,15 @@
  */
 package org.scleropages.maldini.security.authc.mgmt.web;
 
+import org.scleropages.crud.web.Servlets;
+import org.scleropages.maldini.security.SecurityOption;
 import org.scleropages.maldini.security.authc.AuthenticationManager;
 import org.scleropages.maldini.security.authc.mgmt.model.Authentication;
 import org.scleropages.maldini.security.authc.token.client.StatelessUsernamePasswordToken;
 import org.scleropages.maldini.security.authc.token.client.UsernamePasswordToken;
+import org.scleropages.maldini.security.authc.token.client.jwt.JwtEncodedToken;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -31,27 +35,45 @@ import javax.servlet.http.HttpServletRequest;
  * @author <a href="mailto:martinmao@icloud.com">Martin Mao</a>
  */
 @RestController
-@RequestMapping("authc")
+@RequestMapping("auth")
 public class AuthenticationAction {
 
     private AuthenticationManager authenticationManager;
 
     @PostMapping
     public void authentication(@RequestParam String username, @RequestParam String password, HttpServletRequest request) {
-        authenticationManager.login(new StatelessUsernamePasswordToken(username, password, false, request.getRemoteHost()));
+        authenticationManager.authentication(new UsernamePasswordToken(username, password, false, Servlets.getRemoteAddr(request)));
+    }
+
+    @PostMapping("jwt")
+    public Object createJwtToken(@RequestParam String username, @RequestParam String password, HttpServletRequest request) {
+        return authenticationManager.createEncodedToken(
+                new StatelessUsernamePasswordToken(username, password, false, Servlets.getRemoteAddr(request)),
+                Servlets.getParametersStartingWith(request, "jwt_"), JwtEncodedToken.class);
+    }
+
+    @PostMapping("jwt/application")
+    public Object createApplicationJwtToken(@RequestParam String username, @RequestParam String password, HttpServletRequest request) {
+        StatelessUsernamePasswordToken statelessUsernamePasswordToken = new StatelessUsernamePasswordToken(username, password, false, Servlets.getRemoteAddr(request));
+        statelessUsernamePasswordToken.addAuthenticationOption(SecurityOption.AUTHENTICATION_OPTION_AUTO_LOAD_DETAILS, false);
+        return authenticationManager.createEncodedToken(statelessUsernamePasswordToken, Servlets.getParametersStartingWith(request, "jwt_"), JwtEncodedToken.class);
     }
 
     @PostMapping("login")
     public void login(@RequestParam String username, @RequestParam String password, boolean rememberMe, HttpServletRequest request) {
-        authenticationManager.login(new UsernamePasswordToken(username, password, rememberMe, request.getRemoteHost()));
+        authenticationManager.login(new UsernamePasswordToken(username, password, rememberMe, Servlets.getRemoteAddr(request)));
     }
 
 
     @PostMapping("create")
     public void create(Authentication authentication) {
-        authenticationManager.save(authentication);
+        authenticationManager.create(authentication);
     }
 
+    @PostMapping("credentials/reset/{id}")
+    public Object resetCredentials(@PathVariable("id") Long id) {
+        return authenticationManager.resetCredentials(id);
+    }
 
     @Autowired
     public void setAuthenticationManager(AuthenticationManager authenticationManager) {

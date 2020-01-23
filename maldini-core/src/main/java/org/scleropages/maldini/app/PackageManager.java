@@ -116,6 +116,13 @@ public class PackageManager implements GenericManager<Package, Long, PackageMapp
         return functionEntityRepository.findPage(searchFilters, pageable);
     }
 
+    @Transactional(readOnly = true)
+    public String getAppIdByFunctionFullName(String funcFullName){
+        return functionEntityRepository.findAppIdByFunctionFullName(funcFullName);
+    }
+
+
+
 
     @Override
     public Package findById(Long id) {

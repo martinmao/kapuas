@@ -15,7 +15,7 @@
  */
 package org.scleropages.maldini.security.authc.provider;
 
-import org.scleropages.maldini.AuthenticationDetails;
+import org.scleropages.maldini.security.AuthenticationDetails;
 import org.springframework.stereotype.Component;
 
 import java.io.Serializable;

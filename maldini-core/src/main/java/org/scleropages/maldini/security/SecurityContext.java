@@ -14,8 +14,10 @@
  * limitations under the License.
  */
 
-package org.scleropages.maldini;
+package org.scleropages.maldini.security;
 
+
+import org.scleropages.maldini.security.authc.provider.Authenticated;
 
 import java.io.Serializable;
 import java.security.Principal;
@@ -70,4 +72,10 @@ public interface SecurityContext extends Serializable, Principal {
      * @return
      */
     String getHost();
+
+    /**
+     * Return authenticated information.
+     * @return
+     */
+    Authenticated getAuthenticated();
 }

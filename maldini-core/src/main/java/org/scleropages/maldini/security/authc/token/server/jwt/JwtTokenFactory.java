@@ -26,7 +26,6 @@ import org.scleropages.maldini.security.authc.token.server.EncodedTokenFactory;
  */
 public interface JwtTokenFactory extends EncodedTokenFactory<JwtToken> {
 
-
     public static final String ALGORITHM_NONE = "NONE";
     public static final String ALGORITHM_HS256 = "HS256";
     public static final String ALGORITHM_HS384 = "HS384";
@@ -78,4 +77,8 @@ public interface JwtTokenFactory extends EncodedTokenFactory<JwtToken> {
     JwtEncodedToken encode(String algorithm, byte[] signatureKey, JwtToken tokenObject);
 
     JwtToken decode(EncodedToken encodedJwt, SignatureKeyProvider... signatureKeyProviders);
+
+
+    public static void main(String[] args) {
+    }
 }

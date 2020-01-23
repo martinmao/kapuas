@@ -13,33 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.scleropages.maldini.security.authc.token.client;
-
-import java.io.Serializable;
+package org.scleropages.maldini.security;
 
 /**
+ * Security option definitions.
+ *
  * @author <a href="mailto:martinmao@icloud.com">Martin Mao</a>
  */
-public abstract class EncodedToken {
+public enum SecurityOption {
 
-    private final Serializable encoded;
-    private String host;
+    /**
+     * Boolean value for authenticating determine whether auto load {@link AuthenticationDetails}.
+     * default is true.
+     */
+    AUTHENTICATION_OPTION_AUTO_LOAD_DETAILS(true);
 
-    public EncodedToken(Serializable encoded) {
-        super();
-        this.encoded = encoded;
+    private Object option;
+
+    SecurityOption(Object option) {
+        this.option = option;
     }
 
-    public EncodedToken(String host, Serializable encoded) {
-        this.host = host;
-        this.encoded = encoded;
+    public Object getOption() {
+        return option;
     }
 
-    public Serializable getEncoded() {
-        return encoded;
-    }
-
-    public String getHost() {
-        return host;
+    public Boolean getBooleanOption() {
+        return option instanceof Boolean ? (Boolean) option : false;
     }
 }

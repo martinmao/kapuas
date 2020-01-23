@@ -32,8 +32,9 @@ import javax.persistence.UniqueConstraint;
  * @author <a href="mailto:martinmao@icloud.com">Martin Mao</a>
  */
 @Entity
-@Table(name = "sec_jwtt", uniqueConstraints = {@UniqueConstraint(columnNames = "associated_id,associated_type")})
-@SequenceGenerator(name = "jwtt_id", sequenceName = "seq_sec_jwtt", allocationSize = IdEntity.SEQ_DEFAULT_ALLOCATION_SIZE, initialValue = IdEntity.SEQ_DEFAULT_INITIAL_VALUE)
+@Table(name = "sec_jwtt", uniqueConstraints = {
+        @UniqueConstraint(columnNames = {"associated_id", "associated_type"})})
+@SequenceGenerator(name = "sec_jwtt_id", sequenceName = "seq_sec_jwtt", allocationSize = IdEntity.SEQ_DEFAULT_ALLOCATION_SIZE, initialValue = IdEntity.SEQ_DEFAULT_INITIAL_VALUE)
 public class JwtTokenTemplateEntity extends IdEntity implements CryptographyManager.CryptographyEntityAware {
 
     private String algorithm;
@@ -120,6 +121,6 @@ public class JwtTokenTemplateEntity extends IdEntity implements CryptographyMana
 
     @Override
     public void setEntity(CryptographyEntity cryptographyEntity) {
-        setCryptography(cryptography);
+        setCryptography(cryptographyEntity);
     }
 }

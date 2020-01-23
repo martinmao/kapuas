@@ -25,7 +25,9 @@ import org.scleropages.maldini.security.authc.mgmt.entity.AuthenticationEntity;
 import org.scleropages.maldini.security.authc.mgmt.entity.AuthenticationEntityRepository;
 import org.scleropages.maldini.security.authc.mgmt.model.Authentication;
 import org.scleropages.maldini.security.authc.mgmt.model.AuthenticationMapper;
+import org.scleropages.maldini.security.authc.provider.Authenticator;
 import org.scleropages.maldini.security.authc.token.client.AuthenticationToken;
+import org.scleropages.maldini.security.authc.token.client.EncodedToken;
 import org.scleropages.maldini.security.authc.token.client.UsernamePasswordToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,6 +36,8 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
+
+import java.util.Map;
 
 /**
  * @author <a href="mailto:martinmao@icloud.com">Martin Mao</a>
@@ -69,6 +73,11 @@ public class GenericAuthenticationManager implements AuthenticationManager, Gene
     }
 
     @Override
+    public EncodedToken createEncodedToken(AuthenticationToken authenticationToken, Map<String, Object> requestContext, Class<? extends EncodedToken> encodedTokenType) {
+        return authenticator.createEncodedToken(authenticationToken, requestContext, encodedTokenType);
+    }
+
+    @Override
     public void login(AuthenticationToken authenticationToken) {
         authenticator.login(authenticationToken);
     }
@@ -88,7 +97,8 @@ public class GenericAuthenticationManager implements AuthenticationManager, Gene
 
     @Override
     @Transactional
-    public void save(Authentication authentication) {
+    @Validated(Authentication.CreateModel.class)
+    public void create(Authentication authentication) {
         AuthenticationEntity authenticationEntity = getModelMapper().mapForSave(authentication);
         hashPassword(authenticationEntity);
         authenticationEntityRepository.save(authenticationEntity);
@@ -104,6 +114,14 @@ public class GenericAuthenticationManager implements AuthenticationManager, Gene
     @Transactional(readOnly = true)
     public Authentication findOne(String principal) {
         return getModelMapper().mapForRead(authenticationEntityRepository.findByPrincipal(principal));
+    }
+
+    @Override
+    @Validated(Authentication.UpdateModel.class)
+    public void save(Authentication model) {
+        AuthenticationEntity authenticationEntity = getModelMapper().mapForSave(model);
+        hashPassword(authenticationEntity);
+        authenticationEntityRepository.save(authenticationEntity);
     }
 
     @Override
@@ -137,7 +155,11 @@ public class GenericAuthenticationManager implements AuthenticationManager, Gene
     public Authentication resetCredentials(Long id) {
         Authentication authentication = new Authentication();
         authenticationEntityRepository.findById(id).ifPresent(authenticationEntity -> {
-            authenticationEntity.setCredentials(Digests.encode(credentialsEncoded, randomGenerator.nextBytes()));
+            String reset = Digests.encode(credentialsEncoded, randomGenerator.nextBytes());
+            authentication.setCredentials(reset);
+            authentication.setPrincipal(authenticationEntity.getPrincipal());
+            authentication.setId(authenticationEntity.getId());
+            authenticationEntity.setCredentials(reset);
             hashPassword(authenticationEntity);
         });
         return authentication;
@@ -152,22 +174,6 @@ public class GenericAuthenticationManager implements AuthenticationManager, Gene
         entity.setCredentials(Digests.encode(credentialsEncoded,
                 Digests.plainTextToHashDigest(credentialsHashAlgorithmName, entity.getCredentials(), saltBytes, getCredentialsHashIterations())));
         entity.setSecureSalt(saltBytes);
-    }
-
-    @Autowired
-    public void setAuthenticationEntityRepository(AuthenticationEntityRepository authenticationEntityRepository) {
-        this.authenticationEntityRepository = authenticationEntityRepository;
-    }
-
-    @Autowired(required = false)
-    public void setRandomGenerator(RandomGenerator randomGenerator) {
-        this.randomGenerator = randomGenerator;
-    }
-
-
-    @Autowired
-    public void setAuthenticator(Authenticator authenticator) {
-        this.authenticator = authenticator;
     }
 
     @Override
@@ -210,6 +216,21 @@ public class GenericAuthenticationManager implements AuthenticationManager, Gene
         this.credentialsEncoded = credentialsEncoded;
     }
 
+
+    @Autowired
+    public void setAuthenticationEntityRepository(AuthenticationEntityRepository authenticationEntityRepository) {
+        this.authenticationEntityRepository = authenticationEntityRepository;
+    }
+
+    @Autowired(required = false)
+    public void setRandomGenerator(RandomGenerator randomGenerator) {
+        this.randomGenerator = randomGenerator;
+    }
+
+    @Autowired
+    public void setAuthenticator(Authenticator authenticator) {
+        this.authenticator = authenticator;
+    }
 
     interface AuthenticationEntityAware extends EntityAware<AuthenticationEntity> {
     }

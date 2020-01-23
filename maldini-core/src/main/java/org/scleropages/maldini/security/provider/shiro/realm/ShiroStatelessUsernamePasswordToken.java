@@ -15,13 +15,12 @@
  */
 package org.scleropages.maldini.security.provider.shiro.realm;
 
-import org.apache.shiro.authc.UsernamePasswordToken;
 import org.scleropages.maldini.session.StatelessToken;
 
 /**
  * @author <a href="mailto:martinmao@icloud.com">Martin Mao</a>
  */
-public class ShiroStatelessUsernamePasswordToken extends UsernamePasswordToken implements StatelessToken {
+public class ShiroStatelessUsernamePasswordToken extends ShiroUsernamePasswordToken implements StatelessToken {
 
     public ShiroStatelessUsernamePasswordToken() {
     }

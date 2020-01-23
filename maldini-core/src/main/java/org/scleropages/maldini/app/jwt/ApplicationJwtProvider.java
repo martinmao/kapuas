@@ -16,94 +16,92 @@
 package org.scleropages.maldini.app.jwt;
 
 import org.scleropages.maldini.app.ApplicationManager;
+import org.scleropages.maldini.app.PackageManager;
 import org.scleropages.maldini.app.model.Application;
-import org.scleropages.maldini.security.acl.AclEntry;
 import org.scleropages.maldini.security.acl.AclManager;
 import org.scleropages.maldini.security.acl.model.AclPrincipalModel;
 import org.scleropages.maldini.security.acl.model.PermissionModel;
 import org.scleropages.maldini.security.acl.model.ResourceModel;
+import org.scleropages.maldini.security.authc.provider.AbstractJwtTokenTemplateProvider;
 import org.scleropages.maldini.security.authc.provider.Authenticated;
-import org.scleropages.maldini.security.authc.provider.JwtProvider;
-import org.scleropages.maldini.security.authc.token.client.jwt.JwtEncodedToken;
 import org.scleropages.maldini.security.authc.token.server.jwt.JwtToken;
 import org.scleropages.maldini.security.authc.token.server.jwt.JwtTokenFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Component;
 import org.springframework.util.Assert;
 
-import java.util.Date;
 import java.util.Map;
 
 /**
  * @author <a href="mailto:martinmao@icloud.com">Martin Mao</a>
  */
 @Component
-public class ApplicationJwtProvider implements JwtProvider<Application> {
+public class ApplicationJwtProvider extends AbstractJwtTokenTemplateProvider<Application> {
 
-    private static final String JWT_HEADER_APP_AUTH_ID = "aau";
+    private static final String REQUEST_CONTEXT_PARAMETER_FUNCTION_NAME = "app_func";
 
-    private static final String REQUEST_CONTEXT_PARAMETER_FUNCTION_NAME = "func";
-
-
-    @Value("#{ @environment['jwt.token.app_auth.expiration'] ?: 1800000 }")
-    private long jwtTokenExpiration;
-    @Value("#{ @environment['jwt.token.app_auth.issuer'] ?: 'app_auth' }")
-    private String jwtTokenIssuer;
-    @Value("#{ @environment['jwt.token.app_auth.not-before'] ?: 0 }")
-    private long jwtTokenNotBefore;
     @Value("#{ @environment['jwt.token.app_auth.acl_resource'] ?: 'app_function' }")
     private String applicationJwtAclResourceType;
     @Value("#{ @environment['jwt.token.app_auth.acl_permission'] ?: null }")
     private String applicationJwtAclPermission;
 
+    private AclManager aclManager;
 
-    protected ApplicationManager applicationManager;
+    private PackageManager packageManager;
 
-    protected AclManager aclManager;
+    private ApplicationManager applicationManager;
 
     @Override
-    public JwtEncodedToken build(Authenticated authenticated, JwtTokenFactory jwtTokenFactory, JwtToken.JwtTokenBuilder builder, final Map<String, String> requestContext) {
+    protected void preJwtTokenBuild(Authenticated authenticated, JwtTokenFactory jwtTokenFactory, JwtToken.JwtTokenBuilder tokenBuilder, Map<String, Object> requestContext) {
         assertAccessible(authenticated, requestContext);
-        long now = System.currentTimeMillis();
-        builder.withAudience(authenticated.host());
-        builder.withExpiration(new Date(now + jwtTokenExpiration));
-        builder.withIssuedAt(new Date(now));
-        builder.withIssuer(jwtTokenIssuer);
-        builder.withNotBefore(new Date(now + jwtTokenNotBefore));
-        builder.withSubject(String.valueOf(authenticated.principal()));
-
-        return null;
     }
 
-    protected void assertAccessible(Authenticated authenticated, final Map<String, String> requestContext) {
+    @Override
+    protected void postJwtTokenBuild(Authenticated authenticated, JwtTokenFactory jwtTokenFactory, JwtToken.JwtTokenBuilder tokenBuilder, Map<String, Object> requestContext) {
+        tokenBuilder.withSubject(requestContext.get(REQUEST_CONTEXT_PARAMETER_FUNCTION_NAME).toString());
+        tokenBuilder.withAudience(authenticated.principal().toString());
+        tokenBuilder.set("clt",authenticated.host());
+    }
+
+
+    @Override
+    protected Integer jwtAssociatedType(Authenticated authenticated, Map<String, Object> requestContext) {
+        return applicationManager.getProviderId();
+    }
+
+    @Override
+    protected String jwtAssociatedId(Authenticated authenticated, Map<String, Object> requestContext) {
+        return packageManager.getAppIdByFunctionFullName(requestContext.get(REQUEST_CONTEXT_PARAMETER_FUNCTION_NAME).toString());
+    }
+
+    protected void assertAccessible(Authenticated authenticated, final Map<String, Object> requestContext) {
         ResourceModel functionResource = new ResourceModel();
-        functionResource.setId(requestContext.get(REQUEST_CONTEXT_PARAMETER_FUNCTION_NAME));
+        functionResource.setId(getRequiredFunctionName(requestContext));
         functionResource.setType(applicationJwtAclResourceType);
         AclPrincipalModel principal = new AclPrincipalModel();
         principal.setName(String.valueOf(authenticated.principal()));
-        Page<AclEntry> aclEntries = aclManager.readPrincipalEntries(principal, functionResource, new PermissionModel(applicationJwtAclPermission), Pageable.unpaged());
-        Assert.isTrue(!aclEntries.isEmpty(), "access denied.");
+        Assert.isTrue(aclManager.isAccessible(functionResource, principal, new PermissionModel(applicationJwtAclPermission)), "access denied.");
     }
 
-    @Override
-    public boolean supportResolve(JwtTokenFactory.JwtHeader jwtHeader) {
-        return null != jwtHeader.get(JWT_HEADER_APP_AUTH_ID);
+    protected String getRequiredFunctionName(final Map<String, Object> requestContext) {
+        Object requestFunction = requestContext.get(REQUEST_CONTEXT_PARAMETER_FUNCTION_NAME);
+        Assert.notNull(requestFunction, "param " + REQUEST_CONTEXT_PARAMETER_FUNCTION_NAME + " required.");
+        return String.valueOf(requestFunction);
     }
 
-    @Override
-    public byte[] resolveSignatureKey(JwtTokenFactory.JwtHeader jwtHeader) {
-        return new byte[0];
+    @Autowired
+    public void setAclManager(AclManager aclManager) {
+        this.aclManager = aclManager;
+    }
+
+    @Autowired
+    public void setPackageManager(PackageManager packageManager) {
+        this.packageManager = packageManager;
     }
 
     @Autowired
     public void setApplicationManager(ApplicationManager applicationManager) {
         this.applicationManager = applicationManager;
-    }
-
-    public void setAclManager(AclManager aclManager) {
-        this.aclManager = aclManager;
     }
 }

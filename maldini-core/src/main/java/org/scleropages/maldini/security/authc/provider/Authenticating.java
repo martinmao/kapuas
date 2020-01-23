@@ -16,7 +16,7 @@
 package org.scleropages.maldini.security.authc.provider;
 
 
-import org.scleropages.maldini.AuthenticationDetails;
+import org.scleropages.maldini.security.AuthenticationDetails;
 
 import java.io.Serializable;
 import java.util.Date;

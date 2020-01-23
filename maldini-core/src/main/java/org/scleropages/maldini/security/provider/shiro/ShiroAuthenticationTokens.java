@@ -19,6 +19,7 @@ import org.apache.shiro.authc.AuthenticationToken;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.scleropages.maldini.security.authc.token.client.StatelessUsernamePasswordToken;
 import org.scleropages.maldini.security.provider.shiro.realm.ShiroStatelessUsernamePasswordToken;
+import org.scleropages.maldini.security.provider.shiro.realm.ShiroUsernamePasswordToken;
 
 /**
  * Utility class used for convert client token(org.scleropages.maldini.security.authc.token.client) as shiro token.
@@ -39,10 +40,14 @@ public abstract class ShiroAuthenticationTokens {
 
 
     private static UsernamePasswordToken toShiroUsernamePasswordToken(org.scleropages.maldini.security.authc.token.client.UsernamePasswordToken source) {
-        return new UsernamePasswordToken(source.getUsername(), source.getPassword(), source.isRememberMe(), source.host());
+        ShiroUsernamePasswordToken usernamePasswordToken = new ShiroUsernamePasswordToken(source.getUsername(), source.getPassword(), source.isRememberMe(), source.host());
+        usernamePasswordToken.setNativeToken(source);
+        return usernamePasswordToken;
     }
 
-    private static ShiroStatelessUsernamePasswordToken toShiroStatelessUsernamePasswordToken(StatelessUsernamePasswordToken source) {
-        return new ShiroStatelessUsernamePasswordToken(source.getUsername(), source.getPassword(), source.isRememberMe(), source.host());
+    private static UsernamePasswordToken toShiroStatelessUsernamePasswordToken(StatelessUsernamePasswordToken source) {
+        ShiroStatelessUsernamePasswordToken usernamePasswordToken = new ShiroStatelessUsernamePasswordToken(source.getUsername(), source.getPassword(), source.isRememberMe(), source.host());
+        usernamePasswordToken.setNativeToken(source);
+        return usernamePasswordToken;
     }
 }

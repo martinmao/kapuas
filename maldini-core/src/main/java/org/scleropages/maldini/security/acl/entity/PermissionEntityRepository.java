@@ -15,6 +15,7 @@
  */
 package org.scleropages.maldini.security.acl.entity;
 
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 
@@ -30,6 +31,7 @@ public interface PermissionEntityRepository extends CrudRepository<PermissionEnt
     @Query(value = "select distinct RESOURCE_TYPE_ID from SEC_ACL_PERMISSION where RESOURCE_TYPE=?", nativeQuery = true)
     Long findDistinctResourceTypeIdByResourceType(String resourceType);
 
+    @Cacheable("org.scleropages.maldini.security.acl.Permission")
     PermissionEntity findFirstByResourceType(String resourceType);
 
     List<PermissionEntity> findByResourceType(String resourceType);

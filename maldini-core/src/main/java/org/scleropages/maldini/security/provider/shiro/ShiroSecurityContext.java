@@ -16,8 +16,8 @@
 package org.scleropages.maldini.security.provider.shiro;
 
 import org.apache.shiro.SecurityUtils;
-import org.scleropages.maldini.AuthenticationDetails;
-import org.scleropages.maldini.SecurityContext;
+import org.scleropages.maldini.security.AuthenticationDetails;
+import org.scleropages.maldini.security.SecurityContext;
 import org.scleropages.maldini.security.authc.provider.Authenticated;
 
 import java.util.Date;
@@ -67,6 +67,11 @@ public class ShiroSecurityContext implements SecurityContext {
     @Override
     public String getHost() {
         return getRequiredAuthenticated().host();
+    }
+
+    @Override
+    public Authenticated getAuthenticated() {
+        return getRequiredAuthenticated();
     }
 
     @Override

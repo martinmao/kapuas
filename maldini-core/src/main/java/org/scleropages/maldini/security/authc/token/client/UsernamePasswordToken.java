@@ -21,19 +21,18 @@ package org.scleropages.maldini.security.authc.token.client;
 public class UsernamePasswordToken extends AbstractAuthenticationToken implements AuthenticationToken {
 
     private final String username;
-
-    private final String password;
+    private final char[] password;
 
     public UsernamePasswordToken(final String username, final String password, boolean rememberMe, String host) {
         super(rememberMe, host);
         this.username = username;
-        this.password = password;
+        this.password = password.toCharArray();
     }
 
     public UsernamePasswordToken(final String username, final String password, String host) {
         super(false, host);
         this.username = username;
-        this.password = password;
+        this.password = password.toCharArray();
     }
 
     public UsernamePasswordToken(final String username, final String password) {
@@ -55,7 +54,7 @@ public class UsernamePasswordToken extends AbstractAuthenticationToken implement
         return username;
     }
 
-    public String getPassword() {
+    public char[] getPassword() {
         return password;
     }
 

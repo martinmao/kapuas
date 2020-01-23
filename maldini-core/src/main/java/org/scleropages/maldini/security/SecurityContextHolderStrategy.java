@@ -27,7 +27,7 @@
  *
  ********************************************************************************/
 
-package org.scleropages.maldini;
+package org.scleropages.maldini.security;
 
 /**
  * Determine how to lookup {@link SecurityContext}

@@ -25,8 +25,11 @@ import org.apache.shiro.authc.credential.HashedCredentialsMatcher;
 import org.apache.shiro.authz.AuthorizationInfo;
 import org.apache.shiro.authz.SimpleAuthorizationInfo;
 import org.apache.shiro.realm.AuthorizingRealm;
+import org.apache.shiro.realm.Realm;
 import org.apache.shiro.subject.PrincipalCollection;
 import org.apache.shiro.util.ByteSource;
+import org.scleropages.maldini.configuration.shiro.ShiroConfiguration;
+import org.scleropages.maldini.security.AuthenticationDetails;
 import org.scleropages.maldini.security.authc.provider.Authenticated;
 import org.scleropages.maldini.security.authc.provider.Authenticating;
 import org.scleropages.maldini.security.authc.token.client.AbstractAuthenticationToken;
@@ -36,10 +39,23 @@ import org.springframework.core.ResolvableType;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
 /**
+ * abstract shiro realm，将realm与认证token绑定机制执行认证，允许多个realm配置（针对不同token类型，如jwt，oauth，三方认证系统），但要求每一种realm只会对一种token提供认证.
+ * 该类设计原则上需在认证前对账号状态进行检查 {@link #postCheckAuthenticationToken(AuthenticationToken, Authenticating)}.
+ * <p>
+ * <p>
+ * 但shiro默认实现思路（多realm情况下，单realm不存在该问题），realm中的 {@link #doGetAuthenticationInfo(AuthenticationToken)}抛出异常无效，例如：账号不存在，或账号异常(禁用，密码过期等)无法传播抛出的异常到前端
+ * ({@link org.apache.shiro.authc.pam.ModularRealmAuthenticator#doMultiRealmAuthentication(Collection, AuthenticationToken)}中会捕获异常尝试下一个realm，这样异常无法反馈给客户端)
+ * <p>
+ * 当前实现需配合自定义 {@link org.apache.shiro.authc.pam.AuthenticationStrategy#afterAttempt(Realm, AuthenticationToken, AuthenticationInfo, AuthenticationInfo, Throwable)}
+ * 遇到realm抛出的 {@link AuthenticationException}类型异常. 直接传播（throw）出去，不继续尝试下一个realm. {@link ShiroConfiguration#authenticationStrategy()}
+ * <p>
+ * 当前实现不适用与非集中式账户系统(db->ldap->三方账户系统，需轮流realm检查匹配.)，可以使用shiro 默认的策略
+ *
  * @author <a href="mailto:martinmao@icloud.com">Martin Mao</a>
  */
 public abstract class AbstractShiroRealm<T extends AuthenticationToken> extends AuthorizingRealm {
@@ -181,7 +197,8 @@ public abstract class AbstractShiroRealm<T extends AuthenticationToken> extends 
             onAuthenticatingNotExists(token);
         }
         if (null == authenticating.getDetails()) {
-            logger.warn("associated authenticating details not found by given token: {}", token);
+            if (logger.isDebugEnabled())
+                logger.warn("associated authenticating details not provided by given token: {}", token);
         }
         if (authenticating.isExpired())
             throw new AuthenticationException("principal expired.");
@@ -204,7 +221,7 @@ public abstract class AbstractShiroRealm<T extends AuthenticationToken> extends 
     }
 
     /**
-     * token关联的 {@link org.scleropages.maldini.AuthenticationDetails} 返回null触发
+     * token关联的 {@link AuthenticationDetails} 返回null触发
      *
      * @param token
      */

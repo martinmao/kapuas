@@ -15,6 +15,7 @@
  */
 package org.scleropages.maldini.security.crypto;
 
+import org.scleropages.core.util.Ciphers;
 import org.scleropages.core.util.SecretKeys;
 import org.scleropages.core.util.Signatures;
 import org.scleropages.crud.GenericManager;
@@ -65,14 +66,16 @@ public class CryptographyManager implements GenericManager<Cryptography, Long, C
             keyManager.createRandomKeyPair(keyAlg, keySize, (privateId, publicId) -> keyManager.awareKeyEntity(privateId, cryptographyEntity));
         } else
             throw new IllegalArgumentException("un-support key algorithm.");
-        validationSignature(cryptographyEntity);
-        validationCipher(cryptographyEntity);
+        if (Signatures.isSignatureAlgorithm(cryptographyEntity.getAlgorithm())) {
+            validationSignature(cryptographyEntity);
+        } else if (Ciphers.isCipherAlgorithm(cryptographyEntity.getAlgorithm())) {
+            validationCipher(cryptographyEntity);
+        } else
+            throw new IllegalArgumentException("un-support algorithm.");
         cryptographyEntityRepository.save(cryptographyEntity);
     }
 
     protected void validationSignature(CryptographyEntity cryptographyEntity) {
-        if (!Signatures.isSignatureAlgorithm(cryptographyEntity.getAlgorithm()))
-            return;
         Signatures.doInSign(cryptographyEntity.getAlgorithm(), signatureProvider -> {
             byte[] random = keyManager.random(64);
             try {

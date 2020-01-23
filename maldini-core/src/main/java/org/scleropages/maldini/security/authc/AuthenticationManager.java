@@ -18,8 +18,9 @@ package org.scleropages.maldini.security.authc;
 import org.scleropages.core.util.RandomGenerator;
 import org.scleropages.maldini.security.authc.mgmt.model.Authentication;
 import org.scleropages.maldini.security.authc.token.client.AuthenticationToken;
+import org.scleropages.maldini.security.authc.token.client.EncodedToken;
 
-import javax.validation.Valid;
+import java.util.Map;
 
 /**
  * Manager used for security principal management.
@@ -35,15 +36,28 @@ public interface AuthenticationManager {
      */
     void authentication(AuthenticationToken token);
 
+
     /**
-     * perform login(authentication and initialize resource such as session...) action by given authentication token.
+     * perform login and create jwt authentication token.
      *
      * @param authenticationToken
+     * @param requestContext
+     * @return
+     */
+    EncodedToken createEncodedToken(AuthenticationToken authenticationToken, Map<String, Object> requestContext,Class<?extends  EncodedToken> encodedTokenType);
+
+    /**
+     * perform login(authentication and initialize resource such as session...) action by given authentication token.
+     * if given client authentication token is {@link org.scleropages.maldini.session.StatelessToken} implementation will not initialize server resource.
+     *
+     * @param authenticationToken
+     * @see org.scleropages.maldini.security.authc.token.client.UsernamePasswordToken
+     * @see org.scleropages.maldini.security.authc.token.client.StatelessUsernamePasswordToken
      */
     void login(AuthenticationToken authenticationToken);
 
     /**
-     * perform logout (destroy resources such as session...) action.
+     * perform logout current authenticated (destroy resources such as session...) action.
      */
     void logout();
 
@@ -62,7 +76,7 @@ public interface AuthenticationManager {
      *
      * @param authentication
      */
-    void save(@Valid Authentication authentication);
+    void create(Authentication authentication);
 
     /**
      * delete a authentication by given id.

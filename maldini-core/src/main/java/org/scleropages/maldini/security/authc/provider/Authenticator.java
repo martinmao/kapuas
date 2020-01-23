@@ -13,10 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.scleropages.maldini.security.authc.mgmt;
+package org.scleropages.maldini.security.authc.provider;
 
 import org.scleropages.maldini.security.authc.mgmt.model.Authentication;
 import org.scleropages.maldini.security.authc.token.client.AuthenticationToken;
+import org.scleropages.maldini.security.authc.token.client.EncodedToken;
+
+import java.util.Map;
 
 /**
  * SPI interface. used for integration third-party security framework.
@@ -45,5 +48,15 @@ public interface Authenticator {
      * perform logout (destroy authentication resource such as session...) action.
      */
     void logout();
+
+
+    /**
+     * perform authentication and client encoded token creation.
+     *
+     * @param authenticationToken
+     * @param requestContext
+     * @param encodedTokenType
+     */
+    EncodedToken createEncodedToken(AuthenticationToken authenticationToken, Map<String, Object> requestContext, Class<? extends EncodedToken> encodedTokenType);
 
 }

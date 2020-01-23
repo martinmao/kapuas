@@ -15,8 +15,8 @@
  */
 package org.scleropages.maldini.security.provider.shiro;
 
-import org.scleropages.maldini.SecurityContext;
-import org.scleropages.maldini.SecurityContextHolderStrategy;
+import org.scleropages.maldini.security.SecurityContext;
+import org.scleropages.maldini.security.SecurityContextHolderStrategy;
 
 /**
  * @author <a href="mailto:martinmao@icloud.com">Martin Mao</a>

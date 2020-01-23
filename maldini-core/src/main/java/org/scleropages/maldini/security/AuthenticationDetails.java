@@ -13,33 +13,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.scleropages.maldini.security.authc.token.client;
+package org.scleropages.maldini.security;
 
 import java.io.Serializable;
 
 /**
+ * SPI Interface <br>
+ * Implementation this interface to load authentication additional info eg : employee info...
+ *
  * @author <a href="mailto:martinmao@icloud.com">Martin Mao</a>
  */
-public abstract class EncodedToken {
+public interface AuthenticationDetails extends Serializable {
 
-    private final Serializable encoded;
-    private String host;
+    /**
+     * return tag name for display.
+     *
+     * @return
+     */
+    String tag();
 
-    public EncodedToken(Serializable encoded) {
-        super();
-        this.encoded = encoded;
-    }
+    /**
+     * return unique identity for this details.
+     *
+     * @return
+     */
+    Serializable identifier();
 
-    public EncodedToken(String host, Serializable encoded) {
-        this.host = host;
-        this.encoded = encoded;
-    }
-
-    public Serializable getEncoded() {
-        return encoded;
-    }
-
-    public String getHost() {
-        return host;
-    }
+    /**
+     * return details type.
+     *
+     * @return
+     */
+    Serializable type();
 }

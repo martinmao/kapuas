@@ -33,7 +33,7 @@ public class ShiroJwtEncodedToken implements HostAuthenticationToken, StatelessT
 
     @Override
     public String getHost() {
-        return jwtEncodedToken.host();
+        return jwtEncodedToken.getHost();
     }
 
     @Override

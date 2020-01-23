@@ -2,6 +2,11 @@ package org.scleropages.maldini.configuration.shiro;
 
 import com.google.common.collect.Lists;
 import org.apache.shiro.SecurityUtils;
+import org.apache.shiro.authc.AuthenticationException;
+import org.apache.shiro.authc.AuthenticationInfo;
+import org.apache.shiro.authc.AuthenticationToken;
+import org.apache.shiro.authc.pam.AtLeastOneSuccessfulStrategy;
+import org.apache.shiro.authc.pam.AuthenticationStrategy;
 import org.apache.shiro.cache.CacheManager;
 import org.apache.shiro.mgt.SecurityManager;
 import org.apache.shiro.realm.Realm;
@@ -13,9 +18,11 @@ import org.apache.shiro.web.filter.mgt.DefaultFilter;
 import org.apache.shiro.web.mgt.WebSecurityManager;
 import org.scleropages.maldini.security.authc.mgmt.GenericAuthenticationManager;
 import org.scleropages.maldini.security.authc.provider.AuthenticationDetailsProvider;
+import org.scleropages.maldini.security.authc.provider.Authenticator;
 import org.scleropages.maldini.security.authc.token.server.jwt.DefaultJwtTokenFactory;
 import org.scleropages.maldini.security.authc.token.server.jwt.JwtTokenFactory;
 import org.scleropages.maldini.security.provider.shiro.ApplicationFormAuthenticationFilter;
+import org.scleropages.maldini.security.provider.shiro.ShiroAuthenticator;
 import org.scleropages.maldini.security.provider.shiro.realm.DefaultTokenManager;
 import org.scleropages.maldini.security.provider.shiro.realm.DefaultTokenRealm;
 import org.scleropages.maldini.security.provider.shiro.realm.jwt.JwtTokenManager;
@@ -27,6 +34,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.cache.annotation.EnableCaching;
@@ -46,6 +54,7 @@ import java.util.List;
 @EnableCaching
 @ImportResource("classpath:spring-security.xml")
 public class ShiroConfiguration implements ApplicationListener<ContextRefreshedEvent> {
+
 
     private static final Logger logger = LoggerFactory.getLogger(ShiroConfiguration.class);
 
@@ -122,6 +131,28 @@ public class ShiroConfiguration implements ApplicationListener<ContextRefreshedE
         return jwtTokenRealm;
     }
 
+    /**
+     * 修改shiro 默认策略，在尝试时如果抛出认证异常，传播出去，不进行其他realm尝试（如账号异常，密码过期等）
+     *
+     * @return
+     * @see org.scleropages.maldini.security.provider.shiro.AbstractShiroRealm
+     */
+    @Bean
+    @ConditionalOnMissingBean
+    protected AuthenticationStrategy authenticationStrategy() {
+        return new AtLeastOneSuccessfulStrategy() {
+            @Override
+            public AuthenticationInfo afterAttempt(Realm realm, AuthenticationToken token, AuthenticationInfo singleRealmInfo, AuthenticationInfo aggregateInfo, Throwable t) throws AuthenticationException {
+                if (null != t && t instanceof AuthenticationException)
+                    throw (AuthenticationException) t;
+                if (!logger.isDebugEnabled() && null != t) {
+                    logger.warn("threw an exception during a multi-realm authentication attempt:", t);
+                }
+                return super.afterAttempt(realm, token, singleRealmInfo, aggregateInfo, t);
+            }
+        };
+    }
+
 
     @Bean
     public DefaultTokenManager defaultTokenManager(GenericAuthenticationManager authenticationManager,
@@ -142,11 +173,15 @@ public class ShiroConfiguration implements ApplicationListener<ContextRefreshedE
     }
 
     @Bean
-    public JwtTokenManager shiroJwtTokenManager(JwtTokenFactory jwtTokenFactory) {
-        JwtTokenManager shiroJwtTokenManager = new JwtTokenManager(jwtTokenFactory);
-        return shiroJwtTokenManager;
+    public JwtTokenManager jwtTokenManager(JwtTokenFactory jwtTokenFactory) {
+        JwtTokenManager jwtTokenManager = new JwtTokenManager(jwtTokenFactory);
+        return jwtTokenManager;
     }
 
+    @Bean
+    public Authenticator shiroAuthenticator() {
+        return new ShiroAuthenticator();
+    }
 
     @Bean
     @ConditionalOnProperty(name = "shiro.annotations-processing.enabled", matchIfMissing = true)
@@ -165,10 +200,18 @@ public class ShiroConfiguration implements ApplicationListener<ContextRefreshedE
 
         defaulttokenRealm.setAuthenticationTokenManager(applicationContext.getBean(DefaultTokenManager.class));
 
+
         JwtTokenRealm jwtTokenRealm = applicationContext.getBean(JwtTokenRealm.class);
 
         jwtTokenRealm.setAuthenticationTokenManager(applicationContext.getBean(JwtTokenManager.class));
 
+
+        JwtTokenManager jwtTokenManager = applicationContext.getBean(JwtTokenManager.class);
+
+        jwtTokenManager.setSignatureKeyProviders(Lists.newArrayList(applicationContext.getBeansOfType(JwtTokenFactory.SignatureKeyProvider.class).values()));
+
+
+        applicationContext.getBean(ShiroAuthenticator.class).init();
 
         SecurityUtils.setSecurityManager(applicationContext.getBean(SecurityManager.class));
     }

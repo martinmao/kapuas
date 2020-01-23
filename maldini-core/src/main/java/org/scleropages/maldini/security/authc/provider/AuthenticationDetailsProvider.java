@@ -16,7 +16,9 @@
 package org.scleropages.maldini.security.authc.provider;
 
 
-import org.scleropages.maldini.AuthenticationDetails;
+import org.scleropages.maldini.security.AuthenticationDetails;
+import org.springframework.core.ResolvableType;
+import org.springframework.util.ClassUtils;
 
 /**
  * SPI Interface
@@ -25,9 +27,17 @@ import org.scleropages.maldini.AuthenticationDetails;
  *
  * @author <a href="mailto:martinmao@icloud.com">Martin Mao</a>
  */
-public interface AuthenticationDetailsProvider {
+public interface AuthenticationDetailsProvider<T extends AuthenticationDetails> {
 
-    AuthenticationDetails getAuthenticationDetails(final Authenticating authenticating,final String associatedId);
+    T getAuthenticationDetails(final Authenticating authenticating, final String associatedId);
+
+    default Class<? extends AuthenticationDetails> getDetailsType() {
+        Class<?> resolveGeneric = ResolvableType.forClass(AuthenticationDetailsProvider.class, getClass()).resolveGeneric(0);
+        if (ClassUtils.isAssignable(AuthenticationDetails.class, resolveGeneric)) {
+            return (Class<? extends AuthenticationDetails>) resolveGeneric;
+        }
+        throw new IllegalStateException("could not determine authentication details type of class: " + getClass()+". you must implementation getDetailsType method.");
+    }
 
     Integer getProviderId();
 

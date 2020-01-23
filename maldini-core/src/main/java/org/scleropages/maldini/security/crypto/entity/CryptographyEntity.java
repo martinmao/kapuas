@@ -32,7 +32,7 @@ import javax.persistence.UniqueConstraint;
  */
 @Entity
 @Table(name = "sec_cryptography", uniqueConstraints = {
-        @UniqueConstraint(columnNames = "associated_id,name_,associated_type")
+        @UniqueConstraint(columnNames = {"associated_id", "name_", "associated_type"})
 })
 @SequenceGenerator(name = "sec_cryptography_id", sequenceName = "seq_sec_cryptography", allocationSize = IdEntity.SEQ_DEFAULT_ALLOCATION_SIZE, initialValue = IdEntity.SEQ_DEFAULT_INITIAL_VALUE)
 public class CryptographyEntity extends IdEntity implements GenericKeyManager.KeyEntityAware {

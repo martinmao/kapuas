@@ -19,16 +19,13 @@ import org.scleropages.maldini.security.authc.provider.Authenticating;
 import org.scleropages.maldini.security.authc.token.server.jwt.JwtToken;
 import org.scleropages.maldini.security.authc.token.server.jwt.JwtTokenFactory;
 import org.scleropages.maldini.security.provider.shiro.AuthenticationTokenManager;
-import org.springframework.beans.factory.InitializingBean;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.util.Assert;
 
 import java.util.List;
 
 /**
  * @author <a href="mailto:martinmao@icloud.com">Martin Mao</a>
  */
-public class JwtTokenManager implements AuthenticationTokenManager<ShiroJwtEncodedToken>, InitializingBean {
+public class JwtTokenManager implements AuthenticationTokenManager<ShiroJwtEncodedToken> {
 
 
     private JwtTokenFactory.SignatureKeyProvider[] signatureKeyProviders;
@@ -47,13 +44,7 @@ public class JwtTokenManager implements AuthenticationTokenManager<ShiroJwtEncod
         return authenticating;
     }
 
-    @Autowired
     public void setSignatureKeyProviders(List<JwtTokenFactory.SignatureKeyProvider> signatureKeyProviders) {
         this.signatureKeyProviders = signatureKeyProviders.toArray(new JwtTokenFactory.SignatureKeyProvider[signatureKeyProviders.size()]);
-    }
-
-    @Override
-    public void afterPropertiesSet() throws Exception {
-        Assert.notEmpty(this.signatureKeyProviders, "signatureKeyProviders must not empty.");
     }
 }

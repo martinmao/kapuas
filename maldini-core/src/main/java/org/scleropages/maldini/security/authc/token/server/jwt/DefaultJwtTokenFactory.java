@@ -32,6 +32,7 @@ import org.springframework.util.Assert;
 
 import java.util.Date;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * @author <a href="mailto:martinmao@icloud.com">Martin Mao</a>
@@ -137,7 +138,16 @@ public class DefaultJwtTokenFactory implements JwtTokenFactory {
 
         populateNotProvidedAsDefaultValue(tokenObject, builder);
 
-        builder.signWith(SignatureAlgorithm.forName(algorithm), signatureKey);
+        SignatureAlgorithm signatureAlgorithm = null;
+        SignatureAlgorithm[] values = SignatureAlgorithm.values();
+
+        for (int i = 0; i < values.length; i++) {
+            if (Objects.equals(values[i].getJcaName(), algorithm)) {
+                signatureAlgorithm = values[i];
+            }
+        }
+        Assert.notNull(signatureAlgorithm, "not support jca algorithm for jwt provider.");
+        builder.signWith(signatureAlgorithm, signatureKey);
         return new JwtEncodedToken(builder.compact());
     }
 
@@ -149,10 +159,22 @@ public class DefaultJwtTokenFactory implements JwtTokenFactory {
             builder.setId(Digests.encodeHex(getRandomGenerator().nextBytes()));
         }
         if (tokenObject.getIssuedAt() == null) {// if no issued at at provided. use current date time.
-            builder.setIssuedAt(new Date(now / 1000));
+            builder.setIssuedAt(new Date(now));
+        } else {
+            // The JWT RFC *mandates* NumericDate values are represented as seconds.
+            // Because Because java.util.Date requires milliseconds, we need to multiply by 1000:
+            // io.jsonwebtoken bug，map中的日期不会/1000，必须强制set一遍
+            builder.setIssuedAt(tokenObject.getIssuedAt());
         }
-        if (tokenObject.getNotBefore() == null) {// if no not before provided. use current date time.
-            builder.setIssuedAt(new Date(now / 1000));
+        if (tokenObject.getNotBefore() == null) {
+            builder.setNotBefore(new Date(now));
+        } else {
+            builder.setNotBefore(tokenObject.getNotBefore());
+        }
+        if (tokenObject.getExpiration() == null) {
+            builder.setExpiration(new Date(now));
+        } else {
+            builder.setExpiration(tokenObject.getExpiration());
         }
     }
 

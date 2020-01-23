@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.scleropages.maldini;
+package org.scleropages.maldini.security;
 
 import org.scleropages.maldini.security.provider.shiro.ShiroSecurityContextHolderStrategy;
 

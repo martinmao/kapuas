@@ -18,7 +18,6 @@ package org.scleropages.maldini.app;
 import org.scleropages.crud.GenericManager;
 import org.scleropages.crud.orm.SearchFilter;
 import org.scleropages.crud.orm.jpa.entity.EntityAware;
-import org.scleropages.maldini.AuthenticationDetails;
 import org.scleropages.maldini.app.entity.ApplicationEntity;
 import org.scleropages.maldini.app.entity.ApplicationEntityRepository;
 import org.scleropages.maldini.app.model.Application;
@@ -45,7 +44,7 @@ import java.util.Map;
  */
 @Service
 @Validated
-public class ApplicationManager implements AuthenticationDetailsProvider, GenericManager<Application, Long, ApplicationMapper> {
+public class ApplicationManager implements AuthenticationDetailsProvider<Application>, GenericManager<Application, Long, ApplicationMapper> {
 
     protected final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -85,7 +84,7 @@ public class ApplicationManager implements AuthenticationDetailsProvider, Generi
         authentication.setAssociatedId(String.valueOf(savedApplication.getId()));
         authentication.setAssociatedType(AUTHENTICATION_DETAILS_PROVIDER_ID);
         authentication.enable();
-        authenticationManager.save(authentication);
+        authenticationManager.create(authentication);
         application = new Application();
         application.setAppId(authentication.getPrincipal());
         application.setAppSecret(authentication.getCredentials());
@@ -119,7 +118,7 @@ public class ApplicationManager implements AuthenticationDetailsProvider, Generi
 
     @Override
     @Transactional(readOnly = true)
-    public AuthenticationDetails getAuthenticationDetails(Authenticating authenticating, String associatedId) {
+    public Application getAuthenticationDetails(Authenticating authenticating, String associatedId) {
         return findById(Long.valueOf(associatedId));
     }
 

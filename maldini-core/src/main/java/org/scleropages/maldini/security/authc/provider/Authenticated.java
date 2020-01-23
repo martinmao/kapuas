@@ -1,6 +1,6 @@
 package org.scleropages.maldini.security.authc.provider;
 
-import org.scleropages.maldini.AuthenticationDetails;
+import org.scleropages.maldini.security.AuthenticationDetails;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -11,7 +11,7 @@ import java.util.Date;
 public interface Authenticated extends Serializable {
 
     /**
-     * return client principal(username)
+     * return client principal
      *
      * @return
      */

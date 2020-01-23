@@ -84,7 +84,7 @@ public class GenericAclManager implements AclManager {
     public Page<AclEntry> readPrincipalEntries(@Validated(AclPrincipalModel.CreateAclModel.class) AclPrincipalModel principal, @Validated(ResourceModel.ReadEntriesBySpecifyResourceType.class) ResourceModel resourceModel,
                                                PermissionModel permissionModel, Pageable pageable) {
 
-        boolean permissionProvided = null != permissionModel && null != permissionModel.getName();
+        boolean permissionProvided = null != permissionModel && StringUtils.isNotBlank(permissionModel.getName());
 
         return getRequiredAclProvider(resourceModel).readPrincipalEntries(principal, resourceModel, permissionProvided ?
                 Optional.of(permissionModel) : Optional.empty(), pageable);
@@ -93,7 +93,7 @@ public class GenericAclManager implements AclManager {
 
     @Override
     public boolean isAccessible(@Valid ResourceModel resource, @Valid AclPrincipalModel principal, PermissionModel permission) {
-        return readPrincipalEntries(principal, resource, permission, Pageable.unpaged()).isEmpty();
+        return ! readPrincipalEntries(principal, resource, permission, Pageable.unpaged()).isEmpty();
     }
 
     @Override
