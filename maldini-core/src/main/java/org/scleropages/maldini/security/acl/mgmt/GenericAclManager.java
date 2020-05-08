@@ -125,7 +125,9 @@ public class GenericAclManager implements AclManager {
 
     @Override
     public boolean isAccessible(@Valid ResourceModel resource, @Valid AclPrincipalModel principal, PermissionModel permission) {
-        return !findPrincipalEntries(principal, resource, permission, Pageable.unpaged()).isEmpty();
+        boolean permissionProvided = null != permission && StringUtils.isNotBlank(permission.getName());
+        return getRequiredAclProvider(resource).existsPrincipalEntries(principal, resource, permissionProvided ?
+                Optional.of(permission) : Optional.empty());
     }
 
     @Override
@@ -496,7 +498,7 @@ public class GenericAclManager implements AclManager {
             PermissionEntity permissionEntity = permissionEntityRepository.getLocalPermissionEntityRepository().getFirstByResourceType(resourceType);
 
             Assert.isTrue(!(permissionEntity.isNotSupport() && permission.isPresent()), "current resource is coarse-grained acl model(see acl strategy). not support permission argument.");
-
+            Assert.isTrue((!permissionEntity.isNotSupport()) && permission.isPresent(), "current resource is fine-grained acl model(see acl strategy). permission is required argument.");
 
             String resourceId = resourceModel.getId();
             Long resourceTypeId = getResourceTypeIdByResourceModel(resourceModel);
@@ -525,6 +527,40 @@ public class GenericAclManager implements AclManager {
                     entryEntities = abstractAclEntryEntityRepository.findByAclPrincipalNameAndResourceTypeId(principal.getName(), resourceTypeId, pageable, variablesSearchFilters);
             }
             return entryEntities.map(this::mapAclEntryModel);
+        }
+
+        @Override
+        public Boolean existsPrincipalEntries(AclPrincipalModel principal, ResourceModel resourceModel, Optional<PermissionModel> permission) {
+            String resourceType = resourceModel.getType();
+            PermissionEntity permissionEntity = permissionEntityRepository.getLocalPermissionEntityRepository().getFirstByResourceType(resourceType);
+
+            Assert.isTrue(!(permissionEntity.isNotSupport() && permission.isPresent()), "current resource is coarse-grained acl model(see acl strategy). not support permission argument.");
+            Assert.isTrue((!permissionEntity.isNotSupport()) && permission.isPresent(), "current resource is fine-grained acl model(see acl strategy). permission is required argument.");
+
+            String resourceId = resourceModel.getId();
+            Long resourceTypeId = getResourceTypeIdByResourceModel(resourceModel);
+
+            AbstractAclEntryEntityRepository abstractAclEntryEntityRepository = getAclEntryEntityRepository(permissionEntity);
+
+            boolean hierarchyPermission = permissionEntityRepository.getLocalPermissionEntityRepository().isHierarchyPermissionResource(resourceType);
+
+            if (StringUtils.isNotBlank(resourceId)) {
+                if (permission.isPresent()) {
+                    String permissionToMatch = permissionEntityRepository.getLocalPermissionEntityRepository().getPermissionEntity(resourceType, permission.get().getName()).getExtensionAndName();
+                    return hierarchyPermission ?
+                            aclEntryEntityRepository.existsByAclPrincipalNameAndResourceTypeIdAndResourceIdAndPermissionNameLike(principal.getName(), resourceTypeId, resourceId, permissionToMatch + "%")
+                            : aclEntryEntityRepository.existsByAclPrincipalNameAndResourceTypeIdAndResourceIdAndPermissionName(principal.getName(), resourceTypeId, resourceId, permissionToMatch);
+                } else
+                    return abstractAclEntryEntityRepository.existsByAclPrincipalNameAndResourceTypeIdAndResourceId(principal.getName(), resourceTypeId, resourceId);
+            } else {
+                if (permission.isPresent()) {
+                    String permissionToMatch = permissionEntityRepository.getLocalPermissionEntityRepository().getPermissionEntity(resourceType, permission.get().getName()).getExtensionAndName();
+                    return hierarchyPermission ?
+                            aclEntryEntityRepository.existsByAclPrincipalNameAndResourceTypeIdAndPermissionNameLike(principal.getName(), resourceTypeId, permissionToMatch + "%")
+                            : aclEntryEntityRepository.existsByAclPrincipalNameAndResourceTypeIdAndPermissionName(principal.getName(), resourceTypeId, permissionToMatch);
+                } else
+                    return abstractAclEntryEntityRepository.existsByAclPrincipalNameAndResourceTypeId(principal.getName(), resourceTypeId);
+            }
         }
 
         protected Long getResourceTypeIdByResourceModel(ResourceModel resourceModel) {

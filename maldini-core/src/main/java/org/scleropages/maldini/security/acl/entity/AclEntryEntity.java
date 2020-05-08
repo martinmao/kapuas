@@ -33,7 +33,7 @@ import javax.persistence.UniqueConstraint;
 @Entity
 @Table(name = "sec_acl_entries",
         uniqueConstraints = @UniqueConstraint(columnNames = {"sec_acl_id", "sec_acl_principal_id", "sec_acl_permission_id"}),
-        indexes = {@Index(columnList = "principal_,resource_type_id,resource_id")})
+        indexes = {@Index(columnList = "principal_,resource_type_id,resource_id,permission_")})
 @SequenceGenerator(name = "sec_acl_entries_id", sequenceName = "seq_sec_acl_entries", allocationSize = IdEntity.SEQ_DEFAULT_ALLOCATION_SIZE, initialValue = IdEntity.SEQ_DEFAULT_INITIAL_VALUE)
 public class AclEntryEntity extends AbstractAclEntryEntity {
 

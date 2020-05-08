@@ -159,4 +159,14 @@ public interface AclProvider {
      */
     Page<AclEntry> readPrincipalEntries(AclPrincipalModel principal, ResourceModel resourceModel, Optional<PermissionModel> permission, Pageable pageable, Map<String, SearchFilter> variablesSearchFilters);
 
+
+    /**
+     * Return true if given principal has permit to specify resource.
+     * @param principal granted principal
+     * @param resourceModel resource type for query(type required)
+     * @param permission optional for query for specify permission returned
+     * @return
+     */
+    Boolean existsPrincipalEntries(AclPrincipalModel principal, ResourceModel resourceModel, Optional<PermissionModel> permission);
+
 }

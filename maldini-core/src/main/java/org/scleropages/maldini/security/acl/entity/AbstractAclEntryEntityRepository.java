@@ -63,6 +63,11 @@ public interface AbstractAclEntryEntityRepository<E extends AbstractAclEntryEnti
 
     Page<E> findByAclPrincipalNameAndResourceTypeId(String principalName, Long resourceTypeId, Pageable pageable);
 
+    Boolean existsByAclPrincipalNameAndResourceTypeIdAndResourceId(String principalName, Long resourceTypeId, String resourceId);
+
+    Boolean existsByAclPrincipalNameAndResourceTypeId(String principalName, Long resourceTypeId);
+
+
 
     /**
      * 仅对resourceType+variable 过滤，resourceTypeId+resourceId结果唯一，没有必要在提供variable过滤

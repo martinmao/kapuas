@@ -175,6 +175,14 @@ public class AclAction implements GenericAction {
         return aclManager.findPrincipalEntries(new AclPrincipalModel(principal), resourceModel, new PermissionModel(permission), buildPageableFromRequest(request), SearchFilter.SearchFilterBuilder.build(variablesSearchParams));
     }
 
+    @GetMapping("accessible/{principal}/{resourceType}/{resourceId}")
+    public Object isAccessible(@PathVariable String principal, @PathVariable String resourceType, @PathVariable String resourceId, String permission) {
+        ResourceModel resourceModel = new ResourceModel();
+        resourceModel.setType(resourceType);
+        resourceModel.setId(resourceId);
+        return aclManager.isAccessible(resourceModel, new AclPrincipalModel(principal), new PermissionModel(permission));
+    }
+
     @Autowired
     public void setAclManager(AclManager aclManager) {
         this.aclManager = aclManager;

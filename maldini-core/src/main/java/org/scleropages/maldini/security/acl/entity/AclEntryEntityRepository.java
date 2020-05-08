@@ -56,12 +56,20 @@ public interface AclEntryEntityRepository extends AbstractAclEntryEntityReposito
     //权限继承时合并所有权限为一条记录，需要like匹配
     Page<AclEntryEntity> findByAclPrincipalNameAndResourceTypeIdAndPermissionNameLike(String principalName, Long resourceTypeId, String permissionName, Pageable pageable);
 
-    Page<AclEntryEntity> findByAclPrincipalNameAndResourceTypeIdAndResourceIdAndPermissionNameLike(String principalName, Long resourceTypeId,String resourceId, String permissionName, Pageable pageable);
+    Page<AclEntryEntity> findByAclPrincipalNameAndResourceTypeIdAndResourceIdAndPermissionNameLike(String principalName, Long resourceTypeId, String resourceId, String permissionName, Pageable pageable);
+
+    Boolean existsByAclPrincipalNameAndResourceTypeIdAndPermissionNameLike(String principalName, Long resourceTypeId, String permissionName);
+
+    Boolean existsByAclPrincipalNameAndResourceTypeIdAndResourceIdAndPermissionNameLike(String principalName, Long resourceTypeId, String resourceId, String permissionName);
 
     //非权限继承不会合并记录，每一条acl entry对应一个权限记录，通过 equals匹配
     Page<AclEntryEntity> findByAclPrincipalNameAndResourceTypeIdAndPermissionName(String principalName, Long resourceTypeId, String permissionName, Pageable pageable);
 
-    Page<AclEntryEntity> findByAclPrincipalNameAndResourceTypeIdAndResourceIdAndPermissionName(String principalName, Long resourceTypeId,String resourceId, String permissionName, Pageable pageable);
+    Page<AclEntryEntity> findByAclPrincipalNameAndResourceTypeIdAndResourceIdAndPermissionName(String principalName, Long resourceTypeId, String resourceId, String permissionName, Pageable pageable);
+
+    Boolean existsByAclPrincipalNameAndResourceTypeIdAndPermissionName(String principalName, Long resourceTypeId, String permissionName);
+
+    Boolean existsByAclPrincipalNameAndResourceTypeIdAndResourceIdAndPermissionName(String principalName, Long resourceTypeId, String resourceId, String permissionName);
 
 
     default Page<AclEntryEntity> findByAclPrincipalNameAndResourceTypeIdAndPermissionNameLike(String principalName, Long resourceTypeId, String permissionName, Pageable pageable, Map<String, SearchFilter> variablesSearchFilters) {
