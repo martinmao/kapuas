@@ -43,7 +43,7 @@ public class AclManagerTest {
         model.setTag(tag);
         model.setOwner("martinmao@icloud.com");
         aclManager.createAcl(model);
-        Acl acl = aclManager.readAcl(model);
+        Acl acl = aclManager.getAcl(model);
         Assert.assertEquals(id, acl.resource().id());
         Assert.assertEquals(tag, acl.resource().tag());
         Assert.assertEquals("file", acl.resource().type());

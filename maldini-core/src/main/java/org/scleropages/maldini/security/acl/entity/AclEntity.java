@@ -15,7 +15,7 @@
  */
 package org.scleropages.maldini.security.acl.entity;
 
-import org.scleropages.crud.orm.jpa.entity.IdEntity;
+import org.scleropages.crud.dao.orm.jpa.entity.IdEntity;
 
 import javax.persistence.Entity;
 import javax.persistence.OneToMany;
@@ -28,7 +28,7 @@ import java.util.List;
  * @author <a href="mailto:martinmao@icloud.com">Martin Mao</a>
  */
 @Entity
-@Table(name = "sec_acl", uniqueConstraints = @UniqueConstraint(columnNames = {"resource_id", "resource_type_id"}))
+@Table(name = "sec_acl", uniqueConstraints = @UniqueConstraint(columnNames = {"resource_type_id","resource_id"}))
 @SequenceGenerator(name = "sec_acl_id", sequenceName = "seq_sec_acl", allocationSize = IdEntity.SEQ_DEFAULT_ALLOCATION_SIZE, initialValue = IdEntity.SEQ_DEFAULT_INITIAL_VALUE)
 public class AclEntity extends AbstractAclEntity {
 

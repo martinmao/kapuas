@@ -15,6 +15,7 @@
  */
 package org.scleropages.maldini.security.acl.provider;
 
+import org.scleropages.crud.dao.orm.SearchFilter;
 import org.scleropages.maldini.security.acl.Acl;
 import org.scleropages.maldini.security.acl.AclEntry;
 import org.scleropages.maldini.security.acl.entity.AclPrincipalEntity;
@@ -26,13 +27,14 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import java.io.Serializable;
+import java.util.Map;
 import java.util.Optional;
 
 /**
  * SPI interface. help any domain's easy way to management access control.
  *
  * <pre>
- * <b>!!!IMPORT INFORMATION: DO NOT MODIFY ARGUMENT(xxxEntity) state. all methods already executing-bind in transaction. any entity changes will override to database.</b>
+ * <b>!!!IMPORT INFORMATION: DO NOT MODIFY ENTITY ARGUMENT state. all methods already executing-bind in transaction. any payload changes will override to database.</b>
  * </pre>
  *
  * @author <a href="mailto:martinmao@icloud.com">Martin Mao</a>
@@ -57,6 +59,22 @@ public interface AclProvider {
      */
     void createAcl(ResourceModel resource, PermissionEntity permissionEntity, AclPrincipalEntity aclPrincipalEntity);
 
+    /**
+     * update a acl info for specify resource.
+     *
+     * @param resource
+     * @param aclPrincipalEntity
+     */
+    void updateAcl(ResourceModel resource, PermissionEntity permissionEntity, Optional<AclPrincipalEntity> aclPrincipalEntity);
+
+
+    /**
+     * delete a acl for specify resource.
+     *
+     * @param resource
+     * @param aclPrincipalEntity
+     */
+    void deleteAcl(ResourceModel resource, PermissionEntity permissionEntity);
 
     /**
      * get {@link Acl} by given resource.
@@ -76,15 +94,15 @@ public interface AclProvider {
      * @param pageable
      * @return
      */
-    Page<Acl> readAcl(ResourceModel resourceModel, PermissionEntity permissionEntity, Pageable pageable);
+    Page<Acl> readAcl(ResourceModel resourceModel, PermissionEntity permissionEntity, Pageable pageable, Map<String, SearchFilter> variablesSearchFilters);
 
 
     /**
      * create a acl entry for specify resource.
      *
-     * @param resource           associated resource.
-     * @param permissionEntity   associated acl strategy for given resource.
-     * @param aclPrincipalEntity grant to principal for given resource.
+     * @param resource           target resource
+     * @param aclPrincipalEntity grants
+     * @param permissionEntity   permissions
      */
     void createAclEntry(ResourceModel resource, AclPrincipalEntity aclPrincipalEntity, PermissionEntity... permissionEntity);
 
@@ -96,6 +114,23 @@ public interface AclProvider {
      * @param aclPrincipalEntity grant to principal for given resource.
      */
     void createAclEntryWithoutPermission(ResourceModel resource, AclPrincipalEntity aclPrincipalEntity);
+
+
+    /**
+     * delete a acl entry for specify resource.
+     * @param resource target resource
+     * @param aclPrincipalEntity grants
+     * @param permissionEntity permissions
+     */
+    void deleteAclEntry(ResourceModel resource, AclPrincipalEntity aclPrincipalEntity, PermissionEntity... permissionEntity);
+
+
+    /**
+     * delete a acl entry for specify resource.
+     * @param resource target resource
+     * @param aclPrincipalEntity grants
+     */
+    void deleteAclEntryWithoutPermission(ResourceModel resource, AclPrincipalEntity aclPrincipalEntity);
 
 
     /**
@@ -122,6 +157,6 @@ public interface AclProvider {
      * @param pageable
      * @return
      */
-    Page<AclEntry> readPrincipalEntries(AclPrincipalModel principal, ResourceModel resourceModel, Optional<PermissionModel> permission, Pageable pageable);
+    Page<AclEntry> readPrincipalEntries(AclPrincipalModel principal, ResourceModel resourceModel, Optional<PermissionModel> permission, Pageable pageable, Map<String, SearchFilter> variablesSearchFilters);
 
 }

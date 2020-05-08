@@ -15,12 +15,15 @@
  */
 package org.scleropages.maldini.security.acl.model;
 
+import org.apache.commons.lang3.StringUtils;
+
 import javax.validation.constraints.NotEmpty;
+import java.beans.Transient;
 
 /**
- * Represents how acl struct.Used field (expression) to defined.<br>
+ * Represents how acl struct.Used  resource, expression(optional if coarse-grained acl model) to defined.<br>
  * <p>
- * There are support tow defining format:
+ * There are support two definitions expression format:
  * <pre>
  * example permission simple format: publish=发布,subscribe=订阅
  *
@@ -29,6 +32,7 @@ import javax.validation.constraints.NotEmpty;
  *
  * <B>
  * NOTE: not support Mixed mode for permission separator( '>' or ',' Only one you can be selected).
+ * Because when in inherit format will merge multiple entries records to one. and simple format record acl entry per permission.
  * </B>
  *
  * @author <a href="mailto:martinmao@icloud.com">Martin Mao</a>
@@ -77,6 +81,26 @@ public class AclStrategy {
 
     public PermissionModel[] getPermissions() {
         return permissions;
+    }
+
+
+    @Transient
+    public boolean isFineGrainedAclModel() {
+        return StringUtils.isNotBlank(expression);
+    }
+
+
+    public String[] splitExpressionByPermissionInheritSeparator() {
+        return StringUtils.split(expression, AclStrategy.EXP_FORMAT_PERMISSION_INHERIT_SEPARATOR);
+    }
+
+    @Transient
+    public boolean isInheritPermissionExpression() {
+        return StringUtils.contains(expression, EXP_FORMAT_PERMISSION_INHERIT_SEPARATOR);
+    }
+
+    public String[] splitExpressionByPermissionSeparator() {
+        return StringUtils.split(expression, EXP_FORMAT_PERMISSION_SEPARATOR);
     }
 
     public interface CreateModel {

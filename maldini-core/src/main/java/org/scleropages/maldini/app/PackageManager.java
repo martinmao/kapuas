@@ -17,7 +17,7 @@ package org.scleropages.maldini.app;
 
 import org.apache.commons.lang3.StringUtils;
 import org.scleropages.crud.GenericManager;
-import org.scleropages.crud.orm.SearchFilter;
+import org.scleropages.crud.dao.orm.SearchFilter;
 import org.scleropages.maldini.app.entity.FunctionEntity;
 import org.scleropages.maldini.app.entity.FunctionEntityRepository;
 import org.scleropages.maldini.app.entity.PackageEntity;
@@ -118,11 +118,8 @@ public class PackageManager implements GenericManager<Package, Long, PackageMapp
 
     @Transactional(readOnly = true)
     public String getAppIdByFunctionFullName(String funcFullName){
-        return functionEntityRepository.findAppIdByFunctionFullName(funcFullName);
+        return functionEntityRepository.getAppIdByFunctionFullName(funcFullName);
     }
-
-
-
 
     @Override
     public Package findById(Long id) {

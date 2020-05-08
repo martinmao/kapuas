@@ -15,7 +15,7 @@
  */
 package org.scleropages.maldini.security.crypto.entity;
 
-import org.scleropages.crud.orm.jpa.GenericRepository;
+import org.scleropages.crud.dao.orm.jpa.GenericRepository;
 import org.scleropages.maldini.security.crypto.model.Key;
 import org.scleropages.maldini.security.crypto.model.KeyMapper;
 

@@ -15,22 +15,35 @@
  */
 package org.scleropages.maldini.security.acl.entity;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
-import org.springframework.data.repository.PagingAndSortingRepository;
+import org.jooq.Record1;
+import org.jooq.Table;
+import org.scleropages.maldini.jooq.tables.SecAclS;
+import org.scleropages.maldini.jooq.tables.SecAclSPrincipal;
+import org.scleropages.maldini.jooq.tables.records.SecAclSPrincipalRecord;
+import org.springframework.util.Assert;
 
 /**
  * @author <a href="mailto:martinmao@icloud.com">Martin Mao</a>
  */
-public interface SimpleAclPrincipalEntityRepository extends PagingAndSortingRepository<SimpleAclPrincipalEntity, Long>, JpaSpecificationExecutor<SimpleAclPrincipalEntity> {
+public interface SimpleAclPrincipalEntityRepository extends AbstractAclEntryEntityRepository<SimpleAclPrincipalEntity, SecAclSPrincipal, SecAclSPrincipalRecord> {
 
-    Page<SimpleAclPrincipalEntity> findByResourceIdAndResourceType(String resourceId, String resourceType, Pageable pageable);
 
-    Page<SimpleAclPrincipalEntity> findByResourceIdAndResourceTypeAndAclPrincipalName(String resourceId, String resourceType, String principalName, Pageable pageable);
+    default Long getIdByAcl_IdAndGrant_Id(Long aclId, Long grantId) {
+        SecAclSPrincipal secAclSPrincipal = dslTable();
+        Record1<Long> id = dslContext().select(secAclSPrincipal.ID).from(secAclSPrincipal)
+                .where(secAclSPrincipal.SEC_ACL_ID.eq(aclId))
+                .and(secAclSPrincipal.SEC_ACL_PRINCIPAL_ID.eq(grantId)).fetchOne();
+        Assert.notNull(id, "no acl entry found.");
+        return id.get(secAclSPrincipal.ID);
+    }
 
-    Page<SimpleAclPrincipalEntity> findByAclPrincipalNameAndResourceType(String principalName, String resourceType, Pageable pageable);
+    @Override
+    default SimpleAclPrincipalEntity createActualAclEntryEntity() {
+        return new SimpleAclPrincipalEntity();
+    }
 
-    Page<SimpleAclPrincipalEntity> findByAclPrincipalNameAndResourceIdAndResourceType(String principalName, String resourceId, String resourceType, Pageable pageable);
-
+    @Override
+    default Table actualAclTable() {
+        return SecAclS.SEC_ACL_S;
+    }
 }

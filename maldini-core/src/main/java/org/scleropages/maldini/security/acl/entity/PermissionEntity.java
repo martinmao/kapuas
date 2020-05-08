@@ -16,7 +16,7 @@
 package org.scleropages.maldini.security.acl.entity;
 
 import org.apache.commons.lang3.StringUtils;
-import org.scleropages.crud.orm.jpa.entity.IdEntity;
+import org.scleropages.crud.dao.orm.jpa.entity.IdEntity;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -55,7 +55,6 @@ public class PermissionEntity extends IdEntity {
         return resourceTypeId;
     }
 
-
     @Column(name = "extends_")
     public String getExtension() {
         return extension;
@@ -83,13 +82,25 @@ public class PermissionEntity extends IdEntity {
     }
 
     /**
-     * return true if current permission inherit include given entity.
+     * return true if current permission inherit include given payload.
      *
      * @return
      */
     @Transient
     public boolean isInheritInclude(PermissionEntity entity) {
         return StringUtils.contains(getExtension(), entity.getName());
+    }
+
+    /**
+     * return getExtension() + "," + getName();
+     *
+     * @return
+     */
+    @Transient
+    public String getExtensionAndName() {
+        if (StringUtils.isBlank(getExtension()))
+            return getName();
+        return getExtension() + "," + getName();
     }
 
     public void setResourceType(String resourceType) {

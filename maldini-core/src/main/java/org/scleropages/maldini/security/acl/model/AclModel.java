@@ -22,6 +22,7 @@ import org.scleropages.maldini.security.acl.Resource;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author <a href="mailto:martinmao@icloud.com">Martin Mao</a>
@@ -35,6 +36,7 @@ public class AclModel implements Acl {
     private List<AclPrincipal> owners;
     private String tag;
     private List<AclEntry> entries;
+    private Map<String,Object> variables;
 
 
     public Serializable getId() {
@@ -65,6 +67,9 @@ public class AclModel implements Acl {
         return entries;
     }
 
+    public Map<String, Object> getVariables() {
+        return variables;
+    }
 
     public void setId(Serializable id) {
         this.id = id;
@@ -92,6 +97,10 @@ public class AclModel implements Acl {
 
     public void setEntries(List<AclEntry> entries) {
         this.entries = entries;
+    }
+
+    public void setVariables(Map<String, Object> variables) {
+        this.variables = variables;
     }
 
     @Override

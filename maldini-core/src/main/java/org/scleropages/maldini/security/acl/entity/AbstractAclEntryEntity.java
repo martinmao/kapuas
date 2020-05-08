@@ -15,7 +15,7 @@
  */
 package org.scleropages.maldini.security.acl.entity;
 
-import org.scleropages.crud.orm.jpa.entity.IdEntity;
+import org.scleropages.crud.dao.orm.jpa.entity.IdEntity;
 
 import javax.persistence.Column;
 import javax.persistence.FetchType;
@@ -30,22 +30,27 @@ import javax.persistence.Transient;
 @MappedSuperclass
 public class AbstractAclEntryEntity extends IdEntity {
 
+    /**
+     * FOLLOW COLUMN NAME MUST NEVER CHANGED.BECAUSE REPOSITORY USED HARD CODE WRITTEN.
+     */
+    protected static final String PRINCIPAL_COLUMN = "principal_";
+
     private String aclPrincipalName;
-    private String resourceType;
+    private Long resourceTypeId;
     private String resourceId;
 
     private AclPrincipalEntity grant;
     private AbstractAclEntity acl;
 
 
-    @Column(name = "principal_", nullable = false)
+    @Column(name = PRINCIPAL_COLUMN, nullable = false)
     public String getAclPrincipalName() {
         return aclPrincipalName;
     }
 
-    @Column(name = "resource_type", nullable = false)
-    public String getResourceType() {
-        return resourceType;
+    @Column(name = "resource_type_id", nullable = false)
+    public Long getResourceTypeId() {
+        return resourceTypeId;
     }
 
     @Column(name = "resource_id", nullable = false)
@@ -68,8 +73,8 @@ public class AbstractAclEntryEntity extends IdEntity {
         this.aclPrincipalName = aclPrincipalName;
     }
 
-    public void setResourceType(String resourceType) {
-        this.resourceType = resourceType;
+    public void setResourceTypeId(Long resourceTypeId) {
+        this.resourceTypeId = resourceTypeId;
     }
 
     public void setResourceId(String resourceId) {

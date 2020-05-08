@@ -23,5 +23,8 @@ import org.springframework.data.repository.PagingAndSortingRepository;
  */
 public interface AclPrincipalEntityRepository extends PagingAndSortingRepository<AclPrincipalEntity, Long>, JpaSpecificationExecutor<AclPrincipalEntity> {
 
-    AclPrincipalEntity findByName(String name);
+    AclPrincipalEntity getByName(String name);
+
+    Boolean existsByName(String name);
+
 }

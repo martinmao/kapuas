@@ -15,7 +15,7 @@
  */
 package org.scleropages.maldini.security.acl.entity;
 
-import org.scleropages.crud.orm.jpa.entity.IdEntity;
+import org.scleropages.crud.dao.orm.jpa.entity.IdEntity;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;

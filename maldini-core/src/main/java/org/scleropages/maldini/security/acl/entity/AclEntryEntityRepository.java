@@ -15,34 +15,89 @@
  */
 package org.scleropages.maldini.security.acl.entity;
 
+import org.apache.commons.collections.MapUtils;
+import org.jooq.Record;
+import org.jooq.Record1;
+import org.jooq.SelectQuery;
+import org.jooq.Table;
+import org.scleropages.crud.dao.orm.SearchFilter;
+import org.scleropages.maldini.jooq.tables.SecAcl;
+import org.scleropages.maldini.jooq.tables.SecAclEntries;
+import org.scleropages.maldini.jooq.tables.records.SecAclEntriesRecord;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
-import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
-import org.springframework.data.repository.PagingAndSortingRepository;
+import org.springframework.util.Assert;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author <a href="mailto:martinmao@icloud.com">Martin Mao</a>
  */
-public interface AclEntryEntityRepository extends PagingAndSortingRepository<AclEntryEntity, Long>, JpaSpecificationExecutor<AclEntryEntity> {
+public interface AclEntryEntityRepository extends AbstractAclEntryEntityRepository<AclEntryEntity, SecAclEntries, SecAclEntriesRecord> {
 
-    AclEntryEntity findByAcl_IdAndGrant_IdAndPermission_Id(Long aclId, Long principalId, Long permissionId);
+    boolean existsByAcl_IdAndGrant_IdAndPermission_Id(Long aclId, Long principalId, Long permissionId);
 
-    @EntityGraph(attributePaths = {"permission"})
+
+    default Long getIdByAcl_IdAndGrant_IdAndPermission_Id(Long aclId, Long grantId, Long permissionId) {
+        SecAclEntries aclEntries = dslTable();
+        Record1<Long> id = dslContext().select(aclEntries.ID).from(aclEntries)
+                .where(aclEntries.SEC_ACL_ID.eq(aclId))
+                .and(aclEntries.SEC_ACL_PRINCIPAL_ID.eq(grantId))
+                .and(aclEntries.SEC_ACL_PERMISSION_ID.eq(permissionId)).fetchOne();
+        Assert.notNull(id, "no acl entry found.");
+        return id.get(aclEntries.ID);
+    }
+
+    @EntityGraph(attributePaths = "permission")
     List<AclEntryEntity> findByAcl_IdAndGrant_Id(Long aclId, Long principalId);
 
-    Page<AclEntryEntity> findByResourceIdAndResourceType(String resourceId, String resourceType, Pageable pageable);
+    //权限继承时合并所有权限为一条记录，需要like匹配
+    Page<AclEntryEntity> findByAclPrincipalNameAndResourceTypeIdAndPermissionNameLike(String principalName, Long resourceTypeId, String permissionName, Pageable pageable);
 
-    Page<AclEntryEntity> findByResourceIdAndResourceTypeAndAclPrincipalName(String resourceId, String resourceType, String principalName, Pageable pageable);
+    Page<AclEntryEntity> findByAclPrincipalNameAndResourceTypeIdAndResourceIdAndPermissionNameLike(String principalName, Long resourceTypeId,String resourceId, String permissionName, Pageable pageable);
 
-    Page<AclEntryEntity> findByAclPrincipalNameAndResourceType(String principalName, String resourceType, Pageable pageable);
+    //非权限继承不会合并记录，每一条acl entry对应一个权限记录，通过 equals匹配
+    Page<AclEntryEntity> findByAclPrincipalNameAndResourceTypeIdAndPermissionName(String principalName, Long resourceTypeId, String permissionName, Pageable pageable);
 
-    Page<AclEntryEntity> findByAclPrincipalNameAndResourceIdAndResourceType(String principalName, String resourceId, String resourceType, Pageable pageable);
+    Page<AclEntryEntity> findByAclPrincipalNameAndResourceTypeIdAndResourceIdAndPermissionName(String principalName, Long resourceTypeId,String resourceId, String permissionName, Pageable pageable);
 
-    Page<AclEntryEntity> findByAclPrincipalNameAndResourceTypeAndPermissionNameLike(String principalName, String resourceType, String permissionName, Pageable pageable);
 
-    Page<AclEntryEntity> findByAclPrincipalNameAndResourceIdAndResourceTypeAndPermissionNameLike(String principalName, String resourceId, String resourceType, String permissionName, Pageable pageable);
+    default Page<AclEntryEntity> findByAclPrincipalNameAndResourceTypeIdAndPermissionNameLike(String principalName, Long resourceTypeId, String permissionName, Pageable pageable, Map<String, SearchFilter> variablesSearchFilters) {
+        if (MapUtils.isEmpty(variablesSearchFilters))
+            return findByAclPrincipalNameAndResourceTypeIdAndPermissionNameLike(principalName, resourceTypeId, permissionName, pageable);
 
+        SelectQuery<Record> query = buildBaseVariableSearchQuery(pageable, variablesSearchFilters, principalName, resourceTypeId).get();
+        query.addConditions(dslTable().PERMISSION_.like(permissionName));
+        return dslPage(() -> query, pageable, false, false).map(o -> {
+            AclEntryEntity entity = createActualAclEntryEntity();
+            dslRecordInto(o, entity);
+            return entity;
+        });
+    }
+
+    default Page<AclEntryEntity> findByAclPrincipalNameAndResourceTypeIdAndPermissionName(String principalName, Long resourceTypeId, String permissionName, Pageable pageable, Map<String, SearchFilter> variablesSearchFilters) {
+        if (MapUtils.isEmpty(variablesSearchFilters))
+            return findByAclPrincipalNameAndResourceTypeIdAndPermissionName(principalName, resourceTypeId, permissionName, pageable);
+
+        SelectQuery<Record> query = buildBaseVariableSearchQuery(pageable, variablesSearchFilters, principalName, resourceTypeId).get();
+        query.addConditions(dslTable().PERMISSION_.eq(permissionName));
+        return dslPage(() -> query, pageable, false, false).map(o -> {
+            AclEntryEntity entity = createActualAclEntryEntity();
+            dslRecordInto(o, entity);
+            return entity;
+        });
+    }
+
+
+    @Override
+    default AclEntryEntity createActualAclEntryEntity() {
+        return new AclEntryEntity();
+    }
+
+    @Override
+    default Table actualAclTable() {
+        return SecAcl.SEC_ACL;
+    }
 }

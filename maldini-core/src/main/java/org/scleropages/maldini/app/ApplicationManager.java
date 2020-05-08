@@ -16,8 +16,8 @@
 package org.scleropages.maldini.app;
 
 import org.scleropages.crud.GenericManager;
-import org.scleropages.crud.orm.SearchFilter;
-import org.scleropages.crud.orm.jpa.entity.EntityAware;
+import org.scleropages.crud.dao.orm.SearchFilter;
+import org.scleropages.crud.dao.orm.jpa.entity.EntityAware;
 import org.scleropages.maldini.app.entity.ApplicationEntity;
 import org.scleropages.maldini.app.entity.ApplicationEntityRepository;
 import org.scleropages.maldini.app.model.Application;

@@ -15,7 +15,7 @@
  */
 package org.scleropages.maldini.security.authc.mgmt.entity;
 
-import org.scleropages.crud.orm.jpa.entity.IdEntity;
+import org.scleropages.crud.dao.orm.jpa.entity.IdEntity;
 import org.scleropages.maldini.security.crypto.CryptographyManager;
 import org.scleropages.maldini.security.crypto.entity.CryptographyEntity;
 

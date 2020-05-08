@@ -19,7 +19,7 @@ import org.scleropages.core.util.RandomGenerator;
 import org.scleropages.core.util.SecretKeys;
 import org.scleropages.core.util.SecureRandomGenerator;
 import org.scleropages.crud.GenericManager;
-import org.scleropages.crud.orm.jpa.entity.EntityAware;
+import org.scleropages.crud.dao.orm.jpa.entity.EntityAware;
 import org.scleropages.maldini.security.crypto.entity.KeyEntity;
 import org.scleropages.maldini.security.crypto.entity.KeyEntityRepository;
 import org.scleropages.maldini.security.crypto.model.Key;
@@ -123,7 +123,7 @@ public class GenericKeyManager implements KeyManager, GenericManager<Key, Long, 
 
 
     /**
-     * not a open api. just used for manager implementation perform entity binding(such as jpa entity relational mapping.)
+     * not a open api. just used for manager implementation perform payload binding(such as jpa payload relational mapping.)
      *
      * @param id
      * @param entityAware

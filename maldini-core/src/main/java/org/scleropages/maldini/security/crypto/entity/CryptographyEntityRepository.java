@@ -15,7 +15,7 @@
  */
 package org.scleropages.maldini.security.crypto.entity;
 
-import org.scleropages.crud.orm.jpa.GenericRepository;
+import org.scleropages.crud.dao.orm.jpa.GenericRepository;
 import org.scleropages.maldini.security.crypto.model.Cryptography;
 import org.scleropages.maldini.security.crypto.model.CryptographyMapper;
 import org.springframework.data.domain.Page;

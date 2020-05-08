@@ -26,4 +26,5 @@ org.springframework.boot.loader.PropertiesLauncher \
 --logging.level.org.springframework.jdbc=info \
 --logging.level.org.springframework.data.elasticsearch.client.WIRE=info \
 --spring.jpa.show-sql=false \
+--server.tomcat.mbeanregistry.enabled=true \
 --server.port=18080 \

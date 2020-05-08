@@ -15,10 +15,13 @@
  */
 package org.scleropages.maldini.security.acl.entity;
 
-import org.scleropages.crud.orm.jpa.entity.IdEntity;
+import org.scleropages.crud.dao.orm.jpa.entity.IdEntity;
 
 import javax.persistence.Column;
 import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
 import javax.persistence.JoinColumn;
 import javax.persistence.ManyToOne;
 import javax.persistence.MappedSuperclass;
@@ -29,29 +32,43 @@ import javax.persistence.MappedSuperclass;
 @MappedSuperclass
 public abstract class AbstractAclEntity extends IdEntity {
 
+
+    /**
+     * FOLLOW COLUMN NAME MUST NEVER CHANGED.BECAUSE REPOSITORY USED HARD CODE WRITTEN.
+     */
+    protected static final String ID_COLUMN = "id";
+
+    protected static final String RESOURCE_TYPE_ID_COLUMN = "resource_type_id";
+
+    protected static final String RESOURCE_ID_COLUMN="resource_id";
+
+
     private String resourceId;
-    private String resourceType;
     private String resourceTag;
     private Long resourceTypeId;
 
     private AclPrincipalEntity owner;
 
-    @Column(name = "resource_id", nullable = false)
+    @Override
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = ID_COLUMN)
+    public Long getId() {
+        return super.getId();
+    }
+
+    @Column(name = RESOURCE_ID_COLUMN, nullable = false)
     public String getResourceId() {
         return resourceId;
     }
 
-    @Column(name = "resource_type", nullable = false)
-    public String getResourceType() {
-        return resourceType;
-    }
 
     @Column(name = "resource_tag", nullable = false)
     public String getResourceTag() {
         return resourceTag;
     }
 
-    @Column(name = "resource_type_id", nullable = false)
+    @Column(name = RESOURCE_TYPE_ID_COLUMN, nullable = false)
     public Long getResourceTypeId() {
         return resourceTypeId;
     }
@@ -62,13 +79,8 @@ public abstract class AbstractAclEntity extends IdEntity {
         return owner;
     }
 
-
     public void setResourceId(String resourceId) {
         this.resourceId = resourceId;
-    }
-
-    public void setResourceType(String resourceType) {
-        this.resourceType = resourceType;
     }
 
     public void setResourceTag(String resourceTag) {

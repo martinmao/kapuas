@@ -13,19 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.scleropages.maldini.security.authc.mgmt.entity;
-
-import org.scleropages.crud.dao.orm.jpa.GenericRepository;
-import org.scleropages.maldini.security.authc.mgmt.model.JwtTokenTemplate;
-import org.scleropages.maldini.security.authc.mgmt.model.JwtTokenTemplateMapper;
-import org.springframework.cache.annotation.Cacheable;
+package org.scleropages.maldini.security.acl.entity;
 
 /**
  * @author <a href="mailto:martinmao@icloud.com">Martin Mao</a>
  */
-public interface JwtTokenTemplateEntityRepository extends GenericRepository<JwtTokenTemplate, JwtTokenTemplateMapper, JwtTokenTemplateEntity, Long> {
-
-    @Cacheable
-    JwtTokenTemplateEntity getByAssociatedIdAndAssociatedType(String associatedId, Integer associatedType);
+public class PermissionEntityRepositoryImpl implements PermissionEntityRepositoryCustom {
 
 }

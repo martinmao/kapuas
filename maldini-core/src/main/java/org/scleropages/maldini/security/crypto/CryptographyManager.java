@@ -19,7 +19,7 @@ import org.scleropages.core.util.Ciphers;
 import org.scleropages.core.util.SecretKeys;
 import org.scleropages.core.util.Signatures;
 import org.scleropages.crud.GenericManager;
-import org.scleropages.crud.orm.jpa.entity.EntityAware;
+import org.scleropages.crud.dao.orm.jpa.entity.EntityAware;
 import org.scleropages.maldini.security.crypto.entity.CryptographyEntity;
 import org.scleropages.maldini.security.crypto.entity.CryptographyEntityRepository;
 import org.scleropages.maldini.security.crypto.entity.KeyEntity;
@@ -143,7 +143,7 @@ public class CryptographyManager implements GenericManager<Cryptography, Long, C
 
 
     /**
-     * not a open api. just used for manager implementation perform entity binding(such as jpa entity relational mapping.)
+     * not a open api. just used for manager implementation perform payload binding(such as jpa payload relational mapping.)
      *
      * @param id
      * @param entityAware

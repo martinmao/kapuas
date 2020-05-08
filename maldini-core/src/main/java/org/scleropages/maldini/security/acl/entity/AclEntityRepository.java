@@ -15,24 +15,16 @@
  */
 package org.scleropages.maldini.security.acl.entity;
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.jpa.repository.EntityGraph;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.data.repository.PagingAndSortingRepository;
+import org.scleropages.maldini.jooq.tables.SecAcl;
+import org.scleropages.maldini.jooq.tables.records.SecAclRecord;
 
 /**
  * @author <a href="mailto:martinmao@icloud.com">Martin Mao</a>
  */
-public interface AclEntityRepository extends PagingAndSortingRepository<AclEntity, Long> {
+public interface AclEntityRepository extends AbstractAclEntityRepository<AclEntity, SecAcl, SecAclRecord> {
 
-    @EntityGraph(attributePaths = {"owner"})
-    AclEntity getByResourceIdAndResourceTypeId(String resourceId, Long typeId);
-
-    AclEntity getByResourceIdAndResourceTypeIdAndIdIsNotNull(String resourceId, Long typeId);
-
-    @Query(value = "select count(1) from SEC_ACL  where RESOURCE_ID=? and RESOURCE_TYPE_ID=?", nativeQuery = true)
-    Integer countByResourceIdAndResourceTypeId(String resourceId, Long resourceTypeId);
-
-    Page<AclEntity> findByResourceTypeId(Long typeId, Pageable pageable);
+    @Override
+    default AclEntity createActualAclEntity() {
+        return new AclEntity();
+    }
 }

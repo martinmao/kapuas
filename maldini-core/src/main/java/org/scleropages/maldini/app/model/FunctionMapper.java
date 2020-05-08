@@ -16,7 +16,7 @@
 package org.scleropages.maldini.app.model;
 
 import org.mapstruct.Mapper;
-import org.scleropages.crud.orm.ModelMapper;
+import org.scleropages.crud.dao.orm.ModelMapper;
 import org.scleropages.maldini.app.entity.FunctionEntity;
 
 /**

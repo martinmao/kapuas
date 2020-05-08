@@ -70,7 +70,7 @@ public class JwtTokenTemplateManager implements GenericManager<JwtTokenTemplate,
 
     @Transactional(readOnly = true)
     public JwtTokenTemplate find(String associatedId, Integer associatedType) {
-        return getModelMapper().mapForRead(jwtTokenTemplateEntityRepository.findByAssociatedIdAndAssociatedType(associatedId, associatedType));
+        return getModelMapper().mapForRead(jwtTokenTemplateEntityRepository.getByAssociatedIdAndAssociatedType(associatedId, associatedType));
     }
 
     @Override

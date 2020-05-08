@@ -19,7 +19,7 @@ import org.scleropages.core.util.Digests;
 import org.scleropages.core.util.RandomGenerator;
 import org.scleropages.core.util.SecureRandomGenerator;
 import org.scleropages.crud.GenericManager;
-import org.scleropages.crud.orm.jpa.entity.EntityAware;
+import org.scleropages.crud.dao.orm.jpa.entity.EntityAware;
 import org.scleropages.maldini.security.authc.AuthenticationManager;
 import org.scleropages.maldini.security.authc.mgmt.entity.AuthenticationEntity;
 import org.scleropages.maldini.security.authc.mgmt.entity.AuthenticationEntityRepository;
@@ -131,7 +131,7 @@ public class GenericAuthenticationManager implements AuthenticationManager, Gene
     }
 
     /**
-     * not a open api. just used for manager implementation perform entity binding(such as jpa entity relational mapping.)
+     * not a open api. just used for manager implementation perform payload binding(such as jpa payload relational mapping.)
      *
      * @param id
      * @param entityAware

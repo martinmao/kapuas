@@ -19,6 +19,7 @@ import org.scleropages.maldini.security.acl.Resource;
 
 import javax.validation.constraints.NotEmpty;
 import java.io.Serializable;
+import java.util.Map;
 
 /**
  * @author <a href="mailto:martinmao@icloud.com">Martin Mao</a>
@@ -31,10 +32,15 @@ public class ResourceModel implements Resource {
     private String owner;
     private Long typeId;
 
+    private Map<String, Object> variables;
+    private String bizPayload;
+    private Map<String,Object> bizBody;
+
 
     @NotEmpty(groups = {CreateModel.class})
     @NotEmpty(groups = {ReadAclModel.class})
     @NotEmpty(groups = {ReadEntriesBySpecifyResource.class})
+    @NotEmpty(groups = {UpdateModel.class})
     public String getId() {
         return id;
     }
@@ -48,6 +54,7 @@ public class ResourceModel implements Resource {
     @NotEmpty(groups = {ReadAclModel.class})
     @NotEmpty(groups = {ReadEntriesBySpecifyResource.class})
     @NotEmpty(groups = {ReadEntriesBySpecifyResourceType.class})
+    @NotEmpty(groups = {UpdateModel.class})
     public String getType() {
         return type;
     }
@@ -59,6 +66,18 @@ public class ResourceModel implements Resource {
 
     public Long getTypeId() {
         return typeId;
+    }
+
+    public Map<String, Object> getVariables() {
+        return variables;
+    }
+
+    public String getBizPayload() {
+        return bizPayload;
+    }
+
+    public Map<String, Object> getBizBody() {
+        return bizBody;
     }
 
     public void setId(String id) {
@@ -79,6 +98,18 @@ public class ResourceModel implements Resource {
 
     public void setTypeId(Long typeId) {
         this.typeId = typeId;
+    }
+
+    public void setVariables(Map<String, Object> variables) {
+        this.variables = variables;
+    }
+
+    public void setBizPayload(String bizPayload) {
+        this.bizPayload = bizPayload;
+    }
+
+    public void setBizBody(Map<String, Object> bizBody) {
+        this.bizBody = bizBody;
     }
 
     @Override
@@ -108,7 +139,11 @@ public class ResourceModel implements Resource {
 
     }
 
-    public interface ReadEntriesBySpecifyResourceType{
+    public interface ReadEntriesBySpecifyResourceType {
+
+    }
+
+    public interface UpdateModel {
 
     }
 }

@@ -15,7 +15,7 @@
  */
 package org.scleropages.maldini.security.acl;
 
-import org.scleropages.crud.orm.SearchFilter;
+import org.scleropages.crud.dao.orm.SearchFilter;
 import org.scleropages.maldini.security.acl.model.AclPrincipalModel;
 import org.scleropages.maldini.security.acl.model.AclStrategy;
 import org.scleropages.maldini.security.acl.model.PermissionModel;
@@ -24,6 +24,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
 import javax.validation.Valid;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -32,6 +33,14 @@ import java.util.Map;
  * @author <a href="mailto:martinmao@icloud.com">Martin Mao</a>
  */
 public interface AclManager {
+
+
+    /**
+     * list all acl strategy resource types
+     *
+     * @return
+     */
+    String[] getAllAclStrategyResourceTypes();
 
     /**
      * get {@link AclStrategy} by given resource.
@@ -48,7 +57,7 @@ public interface AclManager {
      * @param aclPrincipal
      * @return
      */
-    Page<AclPrincipal> readAclPrincipals(Map<String, SearchFilter> searchFilters, Pageable pageable);
+    Page<AclPrincipal> findAclPrincipals(Map<String, SearchFilter> searchFilters, Pageable pageable);
 
 
     /**
@@ -57,16 +66,37 @@ public interface AclManager {
      * @param resourceModel (id and type is required)
      * @return
      */
-    Acl readAcl(@Valid ResourceModel resourceModel);
+    Acl getAcl(@Valid ResourceModel resourceModel);
 
     /**
      * read acl(s) by given resource type
      *
      * @param resourceModel (type is required)
+     * @param pageable
      * @return
      */
-    Page<Acl> readAcl(@Valid ResourceModel resourceModel, Pageable pageable);
+    Page<Acl> findAcl(@Valid ResourceModel resourceModel, Pageable pageable);
 
+
+    /**
+     * read acl(s) by given resource type and filtered by variables.
+     *
+     * @param resourceModel
+     * @param pageable
+     * @param variablesSearchFilters
+     * @return
+     */
+    Page<Acl> findAcl(@Valid ResourceModel resourceModel, Pageable pageable, Map<String, SearchFilter> variablesSearchFilters);
+
+
+    /**
+     * fetch all business payload by given resource(type is required) and acl ids.
+     *
+     * @param resourceModel
+     * @param aclIds
+     * @return
+     */
+    List<String> findAllAclBizPayload(@Valid ResourceModel resourceModel, Long... aclIds);
 
     /**
      * read acl entries by specify (id and type) resource.
@@ -76,11 +106,11 @@ public interface AclManager {
      * @param pageable
      * @return
      */
-    Page<AclEntry> readEntries(@Valid ResourceModel resourceModel, AclPrincipalModel principal, Pageable pageable);
+    Page<AclEntry> findEntries(@Valid ResourceModel resourceModel, AclPrincipalModel principal, Pageable pageable);
 
 
     /**
-     * read principal entries by specify resource.
+     * read acl entries by specify(from principal) resource.
      *
      * @param principal     grant to specify principal.
      * @param resourceModel by resource type(type is required and id is optional)
@@ -88,7 +118,20 @@ public interface AclManager {
      * @param pageable
      * @return
      */
-    Page<AclEntry> readPrincipalEntries(@Valid AclPrincipalModel principal, @Valid ResourceModel resourceModel, PermissionModel permission, Pageable pageable);
+    Page<AclEntry> findPrincipalEntries(@Valid AclPrincipalModel principal, @Valid ResourceModel resourceModel, PermissionModel permission, Pageable pageable);
+
+
+    /**
+     * read acl entries by specify(from principal) resource and variable search filters(used for when resource id not provided.)
+     *
+     * @param principal              grant to specify principal.
+     * @param resourceModel          by resource type(type is required and id is optional)
+     * @param permission             optional query condition
+     * @param pageable
+     * @param variablesSearchFilters
+     * @return
+     */
+    Page<AclEntry> findPrincipalEntries(@Valid AclPrincipalModel principal, @Valid ResourceModel resourceModel, PermissionModel permission, Pageable pageable, Map<String, SearchFilter> variablesSearchFilters);
 
 
     /**
@@ -114,6 +157,21 @@ public interface AclManager {
 
 
     /**
+     * update acl by given resource.
+     *
+     * @param resource
+     */
+    void updateAcl(@Valid ResourceModel resource);
+
+
+    /**
+     * delete a acl by given resource.
+     * @param resource
+     */
+    void deleteAcl(@Valid ResourceModel resource);
+
+
+    /**
      * create acl entry for given resource
      *
      * @param resource   resource associated acl must exists(type id is required.)
@@ -121,6 +179,15 @@ public interface AclManager {
      * @param permission a group optional permissions.
      */
     void createAclEntry(@Valid ResourceModel resource, @Valid AclPrincipalModel grant, PermissionModel... permission);
+
+
+    /**
+     * delete acl entry by given resource
+     * @param resource resource associated acl must exists(type id is required.)
+     * @param grant grants principal.
+     * @param permission a group optional permissions.
+     */
+    void deleteAclEntry(@Valid ResourceModel resource, @Valid AclPrincipalModel grant, PermissionModel... permission);
 
 
     /**

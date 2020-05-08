@@ -15,7 +15,7 @@
  */
 package org.scleropages.maldini.security.authc.mgmt.entity;
 
-import org.scleropages.crud.orm.jpa.GenericRepository;
+import org.scleropages.crud.dao.orm.jpa.GenericRepository;
 import org.scleropages.maldini.security.authc.mgmt.model.Authentication;
 import org.scleropages.maldini.security.authc.mgmt.model.AuthenticationMapper;
 

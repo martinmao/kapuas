@@ -15,7 +15,7 @@
  */
 package org.scleropages.maldini.app.entity;
 
-import org.scleropages.crud.orm.jpa.GenericRepository;
+import org.scleropages.crud.dao.orm.jpa.GenericRepository;
 import org.scleropages.maldini.app.model.Application;
 import org.scleropages.maldini.app.model.ApplicationMapper;
 

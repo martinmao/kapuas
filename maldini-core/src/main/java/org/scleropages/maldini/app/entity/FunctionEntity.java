@@ -15,8 +15,8 @@
  */
 package org.scleropages.maldini.app.entity;
 
-import org.scleropages.crud.orm.jpa.entity.EntityAware;
-import org.scleropages.crud.orm.jpa.entity.IdEntity;
+import org.scleropages.crud.dao.orm.jpa.entity.EntityAware;
+import org.scleropages.crud.dao.orm.jpa.entity.IdEntity;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -125,6 +125,6 @@ public class FunctionEntity extends IdEntity implements EntityAware<IdEntity> {
         else if (idEntity instanceof PackageEntity)
             setPackageEntity((PackageEntity) idEntity);
         else
-            throw new IllegalArgumentException("unsupported entity type: " + idEntity.getClass().getName());
+            throw new IllegalArgumentException("unsupported payload type: " + idEntity.getClass().getName());
     }
 }
