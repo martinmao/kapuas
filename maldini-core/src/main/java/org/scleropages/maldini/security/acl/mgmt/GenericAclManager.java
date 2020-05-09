@@ -213,8 +213,7 @@ public class GenericAclManager implements AclManager {
                                PermissionModel... permission) {
         AclPrincipalEntity principalEntity = aclPrincipalEntityRepository.getByName(grant.getName());
         List<PermissionEntity> permissionEntities = permissionEntityRepository.getLocalPermissionEntityRepository().findAllByResourceType(resource.getType());
-        assertAclEntryArgumentsValid(principalEntity, permissionEntities, permission);
-        resource.setTypeId(permissionEntities.get(0).getResourceTypeId());
+        assertAclEntryArgumentsValid(resource, principalEntity, permissionEntities, permission);
         List<PermissionEntity> hits = Lists.newArrayList();
 
         /*
@@ -265,29 +264,28 @@ public class GenericAclManager implements AclManager {
     public void deleteAclEntry(@Validated(ResourceModel.ReadAclModel.class) ResourceModel resource, @Validated(AclPrincipalModel.CreateAclModel.class) AclPrincipalModel grant, PermissionModel... permission) {
         AclPrincipalEntity principalEntity = aclPrincipalEntityRepository.getByName(grant.getName());
         List<PermissionEntity> permissionEntities = permissionEntityRepository.getLocalPermissionEntityRepository().findAllByResourceType(resource.getType());
-        assertAclEntryArgumentsValid(principalEntity, permissionEntities, permission);
-        resource.setTypeId(permissionEntities.get(0).getResourceTypeId());
-        List<PermissionEntity> hits = Lists.newArrayList();
+        assertAclEntryArgumentsValid(resource, principalEntity, permissionEntities, permission);
+        List<PermissionEntity> deletedPermissionEntries = Lists.newArrayList();
 
         if (null != permission) {
             for (PermissionModel model : permission) {
                 boolean hit = false;
                 for (PermissionEntity entity : permissionEntities) {
                     if (hit = Objects.equals(entity.getName(), model.getName())) {
-                        hits.add(entity);
+                        deletedPermissionEntries.add(entity);
                         break;
                     }
                 }
                 Assert.isTrue(hit, "no permission definition found by given permission: " + model.getName());
             }
         }
-        if (hits.size() > 0)
-            getRequiredAclProvider(resource).deleteAclEntry(resource, principalEntity, hits.toArray(new PermissionEntity[hits.size()]));
+        if (deletedPermissionEntries.size() > 0)
+            getRequiredAclProvider(resource).deleteAclEntry(resource, principalEntity, deletedPermissionEntries.toArray(new PermissionEntity[deletedPermissionEntries.size()]));
         else
             getRequiredAclProvider(resource).deleteAclEntryWithoutPermission(resource, principalEntity);
     }
 
-    protected void assertAclEntryArgumentsValid(AclPrincipalEntity principalEntity, List<PermissionEntity> permissionEntities, PermissionModel... permission) {
+    protected void assertAclEntryArgumentsValid(ResourceModel resource, AclPrincipalEntity principalEntity, List<PermissionEntity> permissionEntities, PermissionModel... permission) {
         Assert.notNull(principalEntity, "grant principal not found.");
         Assert.notEmpty(permissionEntities, "no acl strategy found by given resource.");
         PermissionEntity firstPermissionEntity = permissionEntities.get(0);
@@ -298,6 +296,7 @@ public class GenericAclManager implements AclManager {
         if (permissionEntities.size() > 1 && null == permission) {
             throw new BizViolationException("current resource is fine-grained acl model(see acl strategy). permission is required.");
         }
+        resource.setTypeId(permissionEntities.get(0).getResourceTypeId());
     }
 
 
@@ -495,10 +494,7 @@ public class GenericAclManager implements AclManager {
         @Override
         public Page<AclEntry> readPrincipalEntries(AclPrincipalModel principal, ResourceModel resourceModel, Optional<PermissionModel> permission, Pageable pageable, Map<String, SearchFilter> variablesSearchFilters) {
             String resourceType = resourceModel.getType();
-            PermissionEntity permissionEntity = permissionEntityRepository.getLocalPermissionEntityRepository().getFirstByResourceType(resourceType);
-
-            Assert.isTrue(!(permissionEntity.isNotSupport() && permission.isPresent()), "current resource is coarse-grained acl model(see acl strategy). not support permission argument.");
-            Assert.isTrue((!permissionEntity.isNotSupport()) && permission.isPresent(), "current resource is fine-grained acl model(see acl strategy). permission is required argument.");
+            PermissionEntity permissionEntity = assertPermissionModel(resourceModel, permission);
 
             String resourceId = resourceModel.getId();
             Long resourceTypeId = getResourceTypeIdByResourceModel(resourceModel);
@@ -529,14 +525,12 @@ public class GenericAclManager implements AclManager {
             return entryEntities.map(this::mapAclEntryModel);
         }
 
+
         @Override
         public Boolean existsPrincipalEntries(AclPrincipalModel principal, ResourceModel resourceModel, Optional<PermissionModel> permission) {
+            PermissionEntity permissionEntity = assertPermissionModel(resourceModel, permission);
+
             String resourceType = resourceModel.getType();
-            PermissionEntity permissionEntity = permissionEntityRepository.getLocalPermissionEntityRepository().getFirstByResourceType(resourceType);
-
-            Assert.isTrue(!(permissionEntity.isNotSupport() && permission.isPresent()), "current resource is coarse-grained acl model(see acl strategy). not support permission argument.");
-            Assert.isTrue((!permissionEntity.isNotSupport()) && permission.isPresent(), "current resource is fine-grained acl model(see acl strategy). permission is required argument.");
-
             String resourceId = resourceModel.getId();
             Long resourceTypeId = getResourceTypeIdByResourceModel(resourceModel);
 
@@ -580,6 +574,13 @@ public class GenericAclManager implements AclManager {
             acl.setOwner(principalEntity);
         }
 
+        protected PermissionEntity assertPermissionModel(ResourceModel resourceModel, Optional<PermissionModel> permission) {
+            PermissionEntity permissionEntity = permissionEntityRepository.getLocalPermissionEntityRepository().getFirstByResourceType(resourceModel.getType());
+
+            Assert.isTrue(!(permissionEntity.isNotSupport() && permission.isPresent()), "current resource is coarse-grained acl model(see acl strategy). not support permission argument.");
+            Assert.isTrue((!permissionEntity.isNotSupport()) && permission.isPresent(), "current resource is fine-grained acl model(see acl strategy). permission is required argument.");
+            return permissionEntity;
+        }
 
         protected void mapAclModel(AclModel aclModel, AbstractAclEntity aclEntity, boolean mapOwner, boolean mapVariables) {
             Assert.notNull(aclEntity, "resource not found.");
