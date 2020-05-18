@@ -30,6 +30,7 @@ import org.apache.shiro.subject.PrincipalCollection;
 import org.apache.shiro.util.ByteSource;
 import org.scleropages.maldini.configuration.shiro.ShiroConfiguration;
 import org.scleropages.maldini.security.AuthenticationDetails;
+import org.scleropages.maldini.security.SecurityBizException;
 import org.scleropages.maldini.security.authc.provider.Authenticated;
 import org.scleropages.maldini.security.authc.provider.Authenticating;
 import org.scleropages.maldini.security.authc.token.client.AbstractAuthenticationToken;
@@ -217,7 +218,7 @@ public abstract class AbstractShiroRealm<T extends AuthenticationToken> extends 
      * @param token
      */
     protected void onAuthenticatingNotExists(final T token) {
-        throw new AuthenticationException("bad credentials.");
+        throw new AuthenticationException(SecurityBizException.AUTHC_FAILURE_MESSAGE);
     }
 
     /**

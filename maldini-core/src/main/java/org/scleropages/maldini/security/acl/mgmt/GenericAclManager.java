@@ -23,6 +23,7 @@ import org.scleropages.crud.dao.orm.SearchFilter;
 import org.scleropages.crud.dao.orm.jpa.SearchFilterSpecifications;
 import org.scleropages.crud.exception.BizError;
 import org.scleropages.crud.exception.BizStateViolationException;
+import org.scleropages.maldini.security.SecurityBizException;
 import org.scleropages.maldini.security.acl.Acl;
 import org.scleropages.maldini.security.acl.AclEntry;
 import org.scleropages.maldini.security.acl.AclManager;
@@ -142,7 +143,7 @@ public class GenericAclManager implements AclManager {
     @BizError("04")
     @Transactional(readOnly = true)
     public void accessible(@Valid ResourceModel resource, @Valid AclPrincipalModel principal, PermissionModel permission) {
-        Assert.isTrue(isAccessible(resource, principal, permission), "access denied.");
+        Assert.isTrue(isAccessible(resource, principal, permission), SecurityBizException.AUTHZ_FAILURE_MESSAGE);
     }
 
     @Override
