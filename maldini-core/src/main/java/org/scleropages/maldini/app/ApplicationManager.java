@@ -18,8 +18,14 @@ package org.scleropages.maldini.app;
 import org.scleropages.crud.GenericManager;
 import org.scleropages.crud.dao.orm.SearchFilter;
 import org.scleropages.crud.dao.orm.jpa.entity.EntityAware;
+import org.scleropages.crud.exception.BizError;
+import org.scleropages.crud.exception.BizParamViolationException;
+import org.scleropages.maldini.app.entity.ApiEntity;
+import org.scleropages.maldini.app.entity.ApiEntityRepository;
 import org.scleropages.maldini.app.entity.ApplicationEntity;
 import org.scleropages.maldini.app.entity.ApplicationEntityRepository;
+import org.scleropages.maldini.app.model.Api;
+import org.scleropages.maldini.app.model.ApiMapper;
 import org.scleropages.maldini.app.model.Application;
 import org.scleropages.maldini.app.model.ApplicationMapper;
 import org.scleropages.maldini.security.authc.AuthenticationManager;
@@ -34,16 +40,19 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
 import org.springframework.validation.annotation.Validated;
 
 import javax.validation.Valid;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * @author <a href="mailto:martinmao@icloud.com">Martin Mao</a>
  */
 @Service
 @Validated
+@BizError("40")
 public class ApplicationManager implements AuthenticationDetailsProvider<Application>, GenericManager<Application, Long, ApplicationMapper> {
 
     protected final Logger logger = LoggerFactory.getLogger(getClass());
@@ -61,14 +70,45 @@ public class ApplicationManager implements AuthenticationDetailsProvider<Applica
 
     private ApplicationEntityRepository applicationEntityRepository;
 
+    private ApiEntityRepository apiEntityRepository;
+
     private AuthenticationManager authenticationManager;
 
+    @Transactional
+    @Validated({Api.CreateModel.class})
+    @BizError("01")
+    public void createApi(@Valid Api api) {
+        ApplicationEntity applicationEntity = applicationEntityRepository.get(api.getApplicationId()).orElseThrow(() -> new BizParamViolationException("no application found by given id: " + api.getApplicationId()));
+        ApiEntity apiEntity = getModelMapper(ApiMapper.class).mapForSave(api);
+        apiEntity.setApplicationEntity(applicationEntity);
+        apiEntityRepository.save(apiEntity);
+    }
+
+    @Transactional
+    @Validated({Api.UpdateModel.class})
+    @BizError("02")
+    public void saveApi(@Valid Api api) {
+        apiEntityRepository.findById(api.getId()).ifPresent(apiEntity -> {
+            getModelMapper(ApiMapper.class).mapForUpdate(api, apiEntity);
+            apiEntityRepository.save(apiEntity);
+        });
+    }
+
+    @Transactional(readOnly = true)
+    @BizError("03")
+    public Page<Api> findApiPage(Map<String, SearchFilter> searchFilters, Pageable pageable) {
+        return apiEntityRepository.findPage(searchFilters, pageable).map(apiEntity -> getModelMapper(ApiMapper.class).mapForRead(apiEntity));
+    }
 
     @Override
     @Transactional
     @Validated({Application.UpdateModel.class})
+    @BizError("04")
     public void save(@Valid Application application) {
         applicationEntityRepository.findById(application.getId()).ifPresent(applicationEntity -> {
+            if (!Objects.equals(applicationEntity.getName(), application.getName())) {
+                Assert.isTrue(!applicationEntityRepository.existsByName(application.getName()), "application name already exists.");
+            }
             getModelMapper().mapForUpdate(application, applicationEntity);
             applicationEntityRepository.save(applicationEntity);
         });
@@ -76,7 +116,9 @@ public class ApplicationManager implements AuthenticationDetailsProvider<Applica
 
     @Transactional
     @Validated({Application.CreateModel.class})
+    @BizError("05")
     public Application create(@Valid Application application) {
+        Assert.isTrue(!applicationEntityRepository.existsByName(application.getName()), "application name already exists.");
         Authentication authentication = authenticationManager.randomAuthentication(randomAppIdBytesLength, randomAppSecureBytesLength, randomBytesEncoded);
         application.enable();
         application.setAppId(authentication.getPrincipal());
@@ -85,46 +127,61 @@ public class ApplicationManager implements AuthenticationDetailsProvider<Applica
         authentication.setAssociatedType(AUTHENTICATION_DETAILS_PROVIDER_ID);
         authentication.enable();
         authenticationManager.create(authentication);
-        application = new Application();
-        application.setAppId(authentication.getPrincipal());
-        application.setAppSecret(authentication.getCredentials());
-        return application;
+        Application result = new Application();
+        result.setAppId(authentication.getPrincipal());
+        result.setAppSecret(authentication.getCredentials());
+        return result;
     }
 
     @Transactional(readOnly = true)
+    @BizError("06")
     public Application getApplication(Application application) {
-        return getModelMapper().mapForRead(findByIdOrAppId(application.getId(), application.getAppId()));
+        return getModelMapper().mapForRead(applicationEntityRepository.getByIdOrAppId(application.getId(), application.getAppId()));
     }
 
     @Transactional(readOnly = true)
+    @BizError("07")
+    public Api getApi(Long id) {
+        return getModelMapper(ApiMapper.class).mapForRead(apiEntityRepository.getById(id));
+    }
+
+    @Transactional(readOnly = true)
+    @BizError("08")
     public Page<Application> findApplicationPage(Map<String, SearchFilter> searchFilters, Pageable pageable) {
-        return applicationEntityRepository.findPage(searchFilters, pageable);
+        return applicationEntityRepository.findPage(searchFilters, pageable).map(applicationEntity -> getModelMapper().mapForRead(applicationEntity));
     }
 
     public void awareApplicationEntity(Long id, EntityAware entityAware) {
         entityAware.setEntity(applicationEntityRepository.findById(id).get());
     }
 
-    protected ApplicationEntity findByIdOrAppId(Long id, String appId) {
-        return applicationEntityRepository.findByIdOrAppId(id, appId);
+    public void awareApiEntity(Long id, EntityAware entityAware) {
+        entityAware.setEntity(apiEntityRepository.getById(id));
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Application findById(Long id) {
+    @BizError("09")
+    public Application getById(Long id) {
         return getModelMapper().mapForRead(applicationEntityRepository.findById(id).get());
     }
 
 
     @Override
     @Transactional(readOnly = true)
+    @BizError("10")
     public Application getAuthenticationDetails(Authenticating authenticating, String associatedId) {
-        return findById(Long.valueOf(associatedId));
+        return getById(Long.valueOf(associatedId));
     }
 
     @Autowired
     public void setApplicationEntityRepository(ApplicationEntityRepository applicationEntityRepository) {
         this.applicationEntityRepository = applicationEntityRepository;
+    }
+
+    @Autowired
+    public void setApiEntityRepository(ApiEntityRepository apiEntityRepository) {
+        this.apiEntityRepository = apiEntityRepository;
     }
 
     @Autowired

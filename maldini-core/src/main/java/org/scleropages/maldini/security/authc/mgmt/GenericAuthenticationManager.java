@@ -20,6 +20,7 @@ import org.scleropages.core.util.RandomGenerator;
 import org.scleropages.core.util.SecureRandomGenerator;
 import org.scleropages.crud.GenericManager;
 import org.scleropages.crud.dao.orm.jpa.entity.EntityAware;
+import org.scleropages.crud.exception.BizError;
 import org.scleropages.maldini.security.authc.AuthenticationManager;
 import org.scleropages.maldini.security.authc.mgmt.entity.AuthenticationEntity;
 import org.scleropages.maldini.security.authc.mgmt.entity.AuthenticationEntityRepository;
@@ -44,6 +45,7 @@ import java.util.Map;
  */
 @Service
 @Validated
+@BizError("10")
 public class GenericAuthenticationManager implements AuthenticationManager, GenericManager<Authentication, Long, AuthenticationMapper> {
 
     protected Logger logger = LoggerFactory.getLogger(getClass());
@@ -68,27 +70,32 @@ public class GenericAuthenticationManager implements AuthenticationManager, Gene
 
 
     @Override
+    @BizError("01")
     public void authentication(AuthenticationToken token) {
-        authenticator.authentication(token, findOne(String.valueOf(token.getPrincipal())));
+        authenticator.authentication(token, getByPrincipal(String.valueOf(token.getPrincipal())));
     }
 
     @Override
+    @BizError("02")
     public EncodedToken createEncodedToken(AuthenticationToken authenticationToken, Map<String, Object> requestContext, Class<? extends EncodedToken> encodedTokenType) {
         return authenticator.createEncodedToken(authenticationToken, requestContext, encodedTokenType);
     }
 
     @Override
+    @BizError("03")
     public void login(AuthenticationToken authenticationToken) {
         authenticator.login(authenticationToken);
     }
 
     @Override
+    @BizError("04")
     public void logout() {
         authenticator.logout();
     }
 
 
     @Override
+    @BizError("05")
     public Authentication randomAuthentication(int numberOfPrincipalBytes, int numberOfCredentialsBytes, String encoded) {
         String principal = Digests.encode(encoded, randomGenerator.nextBytes(numberOfPrincipalBytes));
         String credentials = Digests.encode(encoded, randomGenerator.nextBytes(numberOfCredentialsBytes));
@@ -98,6 +105,7 @@ public class GenericAuthenticationManager implements AuthenticationManager, Gene
     @Override
     @Transactional
     @Validated(Authentication.CreateModel.class)
+    @BizError("06")
     public void create(Authentication authentication) {
         AuthenticationEntity authenticationEntity = getModelMapper().mapForSave(authentication);
         hashPassword(authenticationEntity);
@@ -106,18 +114,22 @@ public class GenericAuthenticationManager implements AuthenticationManager, Gene
 
     @Override
     @Transactional
+    @BizError("07")
     public void delete(Long id) {
         authenticationEntityRepository.deleteById(id);
     }
 
     @Override
     @Transactional(readOnly = true)
-    public Authentication findOne(String principal) {
-        return getModelMapper().mapForRead(authenticationEntityRepository.findByPrincipal(principal));
+    @BizError("08")
+    public Authentication getByPrincipal(String principal) {
+        return getModelMapper().mapForRead(authenticationEntityRepository.getByPrincipal(principal));
     }
 
     @Override
     @Validated(Authentication.UpdateModel.class)
+    @Transactional
+    @BizError("09")
     public void save(Authentication model) {
         AuthenticationEntity authenticationEntity = getModelMapper().mapForSave(model);
         hashPassword(authenticationEntity);
@@ -126,7 +138,8 @@ public class GenericAuthenticationManager implements AuthenticationManager, Gene
 
     @Override
     @Transactional(readOnly = true)
-    public Authentication findById(Long id) {
+    @BizError("10")
+    public Authentication getById(Long id) {
         return getModelMapper().mapForRead(authenticationEntityRepository.findById(id).get());
     }
 
@@ -142,6 +155,7 @@ public class GenericAuthenticationManager implements AuthenticationManager, Gene
 
     @Override
     @Transactional
+    @BizError("11")
     public void updateCredentials(Long id, String oldCredentials, String newCredentials) {
         authenticationEntityRepository.findById(id).ifPresent(authenticationEntity -> {
             authenticator.authentication(new UsernamePasswordToken(authenticationEntity.getPrincipal(), oldCredentials), getModelMapper().mapForRead(authenticationEntity));
@@ -152,6 +166,7 @@ public class GenericAuthenticationManager implements AuthenticationManager, Gene
 
     @Override
     @Transactional
+    @BizError("12")
     public Authentication resetCredentials(Long id) {
         Authentication authentication = new Authentication();
         authenticationEntityRepository.findById(id).ifPresent(authenticationEntity -> {

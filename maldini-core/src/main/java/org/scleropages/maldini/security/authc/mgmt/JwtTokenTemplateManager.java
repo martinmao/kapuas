@@ -75,8 +75,8 @@ public class JwtTokenTemplateManager implements GenericManager<JwtTokenTemplate,
 
     @Override
     @Transactional(readOnly = true)
-    public JwtTokenTemplate findById(Long id) {
-        return jwtTokenTemplateEntityRepository.findModelById(id);
+    public JwtTokenTemplate getById(Long id) {
+        return getModelMapper().mapForRead(jwtTokenTemplateEntityRepository.get(id).get());
     }
 
 

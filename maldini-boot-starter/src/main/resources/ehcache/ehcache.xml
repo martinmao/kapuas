@@ -46,7 +46,7 @@
         <heap>1</heap> <!--a single instance. ensure it can keep all entries from sec_acl_permission in heap memory-->
     </cache>
 
-    <cache alias="org.scleropages.maldini.app.entity.FunctionEntityRepository.getAppIdByFunctionFullName">
+    <cache alias="org.scleropages.maldini.app.entity.DomainFunctionEntityRepository.getAppIdByFunctionFullName">
         <expiry>
             <ttl unit="minutes">10</ttl>
         </expiry>

@@ -16,8 +16,6 @@
 package org.scleropages.maldini.security.crypto.entity;
 
 import org.scleropages.crud.dao.orm.jpa.GenericRepository;
-import org.scleropages.maldini.security.crypto.model.Cryptography;
-import org.scleropages.maldini.security.crypto.model.CryptographyMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.EntityGraph;
@@ -27,7 +25,7 @@ import java.util.Optional;
 /**
  * @author <a href="mailto:martinmao@icloud.com">Martin Mao</a>
  */
-public interface CryptographyEntityRepository extends GenericRepository<Cryptography, CryptographyMapper, CryptographyEntity, Long> {
+public interface CryptographyEntityRepository extends GenericRepository<CryptographyEntity, Long> {
 
     Page<CryptographyEntity> findAllByAssociatedType(Integer associatedType, Pageable pageable);
 

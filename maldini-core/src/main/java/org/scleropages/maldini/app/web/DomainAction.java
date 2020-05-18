@@ -16,9 +16,9 @@
 package org.scleropages.maldini.app.web;
 
 import org.scleropages.crud.web.GenericAction;
-import org.scleropages.maldini.app.PackageManager;
-import org.scleropages.maldini.app.model.Function;
-import org.scleropages.maldini.app.model.Package;
+import org.scleropages.maldini.app.DomainManager;
+import org.scleropages.maldini.app.model.Domain;
+import org.scleropages.maldini.app.model.DomainFunction;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -32,44 +32,44 @@ import javax.servlet.http.HttpServletRequest;
  * @author <a href="mailto:martinmao@icloud.com">Martin Mao</a>
  */
 @RestController
-@RequestMapping("pkg")
-public class PackageAction implements GenericAction {
+@RequestMapping("domain")
+public class DomainAction implements GenericAction {
 
-    private PackageManager packageManager;
+    private DomainManager domainManager;
 
     @PostMapping
-    public void createPackage(@RequestBody Package model) {
-        packageManager.create(model);
+    public void createDomain(@RequestBody Domain model) {
+        domainManager.create(model);
     }
 
     @GetMapping("page")
-    public Object findPagePackage(HttpServletRequest request) {
-        return packageManager.findPackagePage(buildSearchFilterFromRequest(request), buildPageableFromRequest(request));
+    public Object findDomainPage(HttpServletRequest request) {
+        return domainManager.findDomainPage(buildSearchFilterFromRequest(request), buildPageableFromRequest(request));
     }
 
     @PostMapping("update")
-    public void updatePackage(@RequestBody Package model) {
-        packageManager.save(model);
+    public void updateDomain(@RequestBody Domain model) {
+        domainManager.save(model);
     }
 
     @PostMapping("func")
-    public void createFunction(@RequestBody Function function) {
-        packageManager.create(function);
+    public void createDomainFunction(@RequestBody DomainFunction function) {
+        domainManager.create(function);
     }
 
     @GetMapping("func/page")
-    public Object findPageFunction(HttpServletRequest request) {
-        return packageManager.findFunctionPage(buildSearchFilterFromRequest(request), buildPageableFromRequest(request));
+    public Object findDomainFunctionPage(HttpServletRequest request) {
+        return domainManager.findDomainFunctionPage(buildSearchFilterFromRequest(request), buildPageableFromRequest(request));
     }
 
     @PostMapping("func/update")
-    public void updateFunction(@RequestBody Function function) {
-        packageManager.save(function);
+    public void updateDomainFunction(@RequestBody DomainFunction function) {
+        domainManager.save(function);
     }
 
 
     @Autowired
-    public void setPackageManager(PackageManager packageManager) {
-        this.packageManager = packageManager;
+    public void setDomainManager(DomainManager domainManager) {
+        this.domainManager = domainManager;
     }
 }

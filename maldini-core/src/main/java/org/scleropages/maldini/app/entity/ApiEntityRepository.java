@@ -16,23 +16,13 @@
 package org.scleropages.maldini.app.entity;
 
 import org.scleropages.crud.dao.orm.jpa.GenericRepository;
-import org.scleropages.maldini.app.model.Function;
-import org.scleropages.maldini.app.model.FunctionMapper;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.jpa.repository.EntityGraph;
-import org.springframework.data.jpa.repository.Query;
 
 /**
  * @author <a href="mailto:martinmao@icloud.com">Martin Mao</a>
  */
-public interface FunctionEntityRepository extends GenericRepository<Function, FunctionMapper, FunctionEntity, Long> {
+public interface ApiEntityRepository extends GenericRepository<ApiEntity, Long> {
 
-    Iterable<FunctionEntity> findAllByPackageEntity_Id(Long id);
-
-    @Query(nativeQuery = true, value = "select app_info.app_id from app_func,app_info where full_name=? and app_func.app_info_id=app_info.id")
-    @Cacheable
-    String getAppIdByFunctionFullName(String fullName);
-
-    @EntityGraph(attributePaths = {"applicationEntity,packageEntity"})
-    FunctionEntity getByFullName(String fullName);
+    @EntityGraph(attributePaths = "applicationEntity")
+    ApiEntity getById(Long id);
 }

@@ -20,6 +20,7 @@ import org.scleropages.core.util.SecretKeys;
 import org.scleropages.core.util.Signatures;
 import org.scleropages.crud.GenericManager;
 import org.scleropages.crud.dao.orm.jpa.entity.EntityAware;
+import org.scleropages.crud.exception.BizError;
 import org.scleropages.maldini.security.crypto.entity.CryptographyEntity;
 import org.scleropages.maldini.security.crypto.entity.CryptographyEntityRepository;
 import org.scleropages.maldini.security.crypto.entity.KeyEntity;
@@ -45,6 +46,7 @@ import java.security.SignatureException;
  */
 @Service
 @Validated
+@BizError("30")
 public class CryptographyManager implements GenericManager<Cryptography, Long, CryptographyMapper> {
 
     protected final Logger logger = LoggerFactory.getLogger(getClass());
@@ -56,6 +58,7 @@ public class CryptographyManager implements GenericManager<Cryptography, Long, C
     @Override
     @Transactional
     @Validated({Cryptography.CreateModel.class})
+    @BizError("01")
     public void save(@Valid Cryptography model) {
         CryptographyEntity cryptographyEntity = getModelMapper().mapForSave(model);
         String keyAlg = model.getKeyAlgorithm();
@@ -109,22 +112,26 @@ public class CryptographyManager implements GenericManager<Cryptography, Long, C
 
     @Override
     @Transactional(readOnly = true)
-    public Cryptography findById(Long id) {
+    @BizError("02")
+    public Cryptography getById(Long id) {
         return getModelMapper().mapForReadWithKeys(cryptographyEntityRepository.findById(id).get(), true);
     }
 
     @Transactional(readOnly = true)
+    @BizError("03")
     public Cryptography findOne(Integer associatedType, String associatedId, String name) {
         return getModelMapper().mapForReadWithKeys(cryptographyEntityRepository.findByAssociatedIdAndNameAndAssociatedType(associatedId, name, associatedType).get(), true);
     }
 
     @Transactional(readOnly = true)
+    @BizError("04")
     public Page<Cryptography> findPage(Integer associatedType, Pageable pageable) {
         return cryptographyEntityRepository.findAllByAssociatedType
                 (associatedType, pageable).map(cryptographyEntity -> getModelMapper().mapForRead(cryptographyEntity));
     }
 
     @Transactional(readOnly = true)
+    @BizError("05")
     public Page<Cryptography> findPage(Integer associatedType, String associatedId, Pageable pageable) {
         return cryptographyEntityRepository.findAllByAssociatedTypeAndAssociatedId
                 (associatedType, associatedId, pageable).map(cryptographyEntity -> getModelMapper().mapForRead(cryptographyEntity));

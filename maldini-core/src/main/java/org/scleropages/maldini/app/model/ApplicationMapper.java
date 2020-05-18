@@ -16,7 +16,7 @@
 package org.scleropages.maldini.app.model;
 
 import org.mapstruct.Mapper;
-import org.scleropages.crud.dao.orm.ModelMapper;
+import org.scleropages.crud.ModelMapper;
 import org.scleropages.maldini.app.entity.ApplicationEntity;
 
 /**
@@ -24,5 +24,6 @@ import org.scleropages.maldini.app.entity.ApplicationEntity;
  */
 @Mapper(config = ModelMapper.DefaultConfig.class)
 public interface ApplicationMapper extends ModelMapper<ApplicationEntity, Application> {
+
 
 }

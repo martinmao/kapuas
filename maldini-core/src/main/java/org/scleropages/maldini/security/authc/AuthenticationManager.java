@@ -91,7 +91,7 @@ public interface AuthenticationManager {
      * @param principal
      * @return
      */
-    Authentication findOne(String principal);
+    Authentication getByPrincipal(String principal);
 
     /**
      * find a authentication by given id.
@@ -99,7 +99,7 @@ public interface AuthenticationManager {
      * @param id
      * @return
      */
-    Authentication findById(Long id);
+    Authentication getById(Long id);
 
     /**
      * update exists credentials. oldCredentials must matches current principal credentials.

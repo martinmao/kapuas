@@ -22,11 +22,11 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Null;
 
 /**
- * 用于描述一种业务能力，其仅从业务角度将一组功能聚合在一起作为一种能力对外提供服务
+ * 用于描述领域，从业务角度将一组业务功能 {@link DomainFunction} 聚合在一起作为一种能力对外提供服务
  *
  * @author <a href="mailto:martinmao@icloud.com">Martin Mao</a>
  */
-public class Package implements Available {
+public class Domain implements Available {
 
     private Long id;
     private String namespace;
@@ -34,6 +34,7 @@ public class Package implements Available {
     private String description;
     private String docUrl;
     private Boolean enabled;
+    private Long parentId;
 
     @NotNull(groups = {UpdateModel.class})
     @Null(groups = {CreateModel.class})
@@ -66,6 +67,10 @@ public class Package implements Available {
         return enabled;
     }
 
+    public Long getParentId() {
+        return parentId;
+    }
+
     public void setId(Long id) {
         this.id = id;
     }
@@ -88,6 +93,10 @@ public class Package implements Available {
 
     public void setEnabled(Boolean enabled) {
         this.enabled = enabled;
+    }
+
+    public void setParentId(Long parentId) {
+        this.parentId = parentId;
     }
 
     @Override

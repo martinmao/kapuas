@@ -21,7 +21,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.scleropages.core.mapper.JsonMapper2;
 import org.scleropages.crud.dao.orm.SearchFilter;
 import org.scleropages.crud.dao.orm.jpa.SearchFilterSpecifications;
-import org.scleropages.crud.exception.BizViolationException;
+import org.scleropages.crud.exception.BizError;
+import org.scleropages.crud.exception.BizStateViolationException;
 import org.scleropages.maldini.security.acl.Acl;
 import org.scleropages.maldini.security.acl.AclEntry;
 import org.scleropages.maldini.security.acl.AclManager;
@@ -62,6 +63,7 @@ import java.util.stream.Stream;
  */
 @Service
 @Validated
+@BizError("20")
 public class GenericAclManager implements AclManager {
 
 
@@ -95,6 +97,7 @@ public class GenericAclManager implements AclManager {
 
     @Override
     @Transactional(readOnly = true)
+    @BizError("01")
     public Page<AclEntry> findEntries(@Validated(ResourceModel.ReadEntriesBySpecifyResource.class) ResourceModel resourceModel,
                                       AclPrincipalModel principal, Pageable pageable) {
 
@@ -104,6 +107,7 @@ public class GenericAclManager implements AclManager {
 
     @Override
     @Transactional(readOnly = true)
+    @BizError("02")
     public Page<AclEntry> findPrincipalEntries(@Validated(AclPrincipalModel.CreateAclModel.class) AclPrincipalModel principal, @Validated(ResourceModel.ReadEntriesBySpecifyResourceType.class) ResourceModel resourceModel,
                                                PermissionModel permissionModel, Pageable pageable) {
         return findPrincipalEntries(principal, resourceModel, permissionModel, pageable, MapUtils.EMPTY_MAP);
@@ -111,6 +115,8 @@ public class GenericAclManager implements AclManager {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    @BizError("03")
     public Page<AclEntry> findPrincipalEntries(@Validated(AclPrincipalModel.CreateAclModel.class) AclPrincipalModel principal, @Validated(ResourceModel.ReadEntriesBySpecifyResourceType.class) ResourceModel resourceModel, PermissionModel permissionModel, Pageable pageable, Map<String, SearchFilter> variablesSearchFilters) {
 
         boolean permissionProvided = null != permissionModel && StringUtils.isNotBlank(permissionModel.getName());
@@ -124,6 +130,8 @@ public class GenericAclManager implements AclManager {
     }
 
     @Override
+    @Transactional(readOnly = true)
+    @BizError("04")
     public boolean isAccessible(@Valid ResourceModel resource, @Valid AclPrincipalModel principal, PermissionModel permission) {
         boolean permissionProvided = null != permission && StringUtils.isNotBlank(permission.getName());
         return getRequiredAclProvider(resource).existsPrincipalEntries(principal, resource, permissionProvided ?
@@ -131,8 +139,16 @@ public class GenericAclManager implements AclManager {
     }
 
     @Override
+    @BizError("04")
+    @Transactional(readOnly = true)
+    public void accessible(@Valid ResourceModel resource, @Valid AclPrincipalModel principal, PermissionModel permission) {
+        Assert.isTrue(isAccessible(resource, principal, permission), "access denied.");
+    }
+
+    @Override
     @Transactional(readOnly = true)
     @Validated(ResourceModel.ReadAclModel.class)
+    @BizError("05")
     public Acl getAcl(ResourceModel resource) {
         PermissionEntity permissionEntity = permissionEntityRepository.getLocalPermissionEntityRepository().getFirstByResourceType(resource.getType());
         resource.setTypeId(permissionEntity.getResourceTypeId());
@@ -141,6 +157,7 @@ public class GenericAclManager implements AclManager {
 
     @Override
     @Transactional(readOnly = true)
+    @BizError("06")
     @Validated(ResourceModel.ReadEntriesBySpecifyResourceType.class)
     public Page<Acl> findAcl(ResourceModel resourceModel, Pageable pageable) {
         return findAcl(resourceModel, pageable, MapUtils.EMPTY_MAP);
@@ -149,6 +166,7 @@ public class GenericAclManager implements AclManager {
     @Override
     @Transactional(readOnly = true)
     @Validated(ResourceModel.ReadEntriesBySpecifyResourceType.class)
+    @BizError("07")
     public Page<Acl> findAcl(ResourceModel resourceModel, Pageable pageable, Map<String, SearchFilter> variablesSearchFilters) {
         PermissionEntity permissionEntity = permissionEntityRepository.getLocalPermissionEntityRepository().getFirstByResourceType(resourceModel.getType());
         if (-1 != maximumVariableConditionsAllowedInAclQuery && null != variablesSearchFilters && variablesSearchFilters.size() > maximumVariableConditionsAllowedInAclQuery) {
@@ -160,6 +178,7 @@ public class GenericAclManager implements AclManager {
     @Override
     @Transactional(readOnly = true)
     @Validated(ResourceModel.ReadEntriesBySpecifyResourceType.class)
+    @BizError("08")
     public List<String> findAllAclBizPayload(ResourceModel resourceModel, Long... aclIds) {
         if (-1 != maximumBizPayloadAllowedInBatchQuery && null != aclIds && aclIds.length > maximumBizPayloadAllowedInBatchQuery) {
             throw new IllegalArgumentException("Not allowed many more payload search. maximum: " + maximumBizPayloadAllowedInBatchQuery + ". current: " + aclIds.length);
@@ -172,6 +191,7 @@ public class GenericAclManager implements AclManager {
     @Override
     @Transactional
     @Validated({ResourceModel.CreateModel.class})
+    @BizError("09")
     public void createAcl(ResourceModel resource) {
         PermissionEntity permissionEntity = permissionEntityRepository.getLocalPermissionEntityRepository().getFirstByResourceType(resource.getType());
         AclPrincipalEntity principalEntity = aclPrincipalEntityRepository.getByName(resource.getOwner());
@@ -183,6 +203,7 @@ public class GenericAclManager implements AclManager {
     @Override
     @Transactional
     @Validated(ResourceModel.UpdateModel.class)
+    @BizError("10")
     public void updateAcl(ResourceModel resource) {
         PermissionEntity permissionEntity = permissionEntityRepository.getLocalPermissionEntityRepository().getFirstByResourceType(resource.getType());
         Long resourceTypeId = permissionEntityRepository.getLocalPermissionEntityRepository().getResourceTypeIdByResourceType(resource.getType());
@@ -199,6 +220,7 @@ public class GenericAclManager implements AclManager {
     @Override
     @Transactional
     @Validated(ResourceModel.UpdateModel.class)
+    @BizError("11")
     public void deleteAcl(@Valid ResourceModel resource) {
         PermissionEntity permissionEntity = permissionEntityRepository.getLocalPermissionEntityRepository().getFirstByResourceType(resource.getType());
         Long resourceTypeId = permissionEntityRepository.getLocalPermissionEntityRepository().getResourceTypeIdByResourceType(resource.getType());
@@ -208,6 +230,7 @@ public class GenericAclManager implements AclManager {
 
     @Override
     @Transactional
+    @BizError("12")
     public void createAclEntry(@Validated(ResourceModel.ReadAclModel.class) ResourceModel resource,
                                @Validated(AclPrincipalModel.CreateAclModel.class) AclPrincipalModel grant,
                                PermissionModel... permission) {
@@ -261,6 +284,7 @@ public class GenericAclManager implements AclManager {
 
     @Override
     @Transactional
+    @BizError("13")
     public void deleteAclEntry(@Validated(ResourceModel.ReadAclModel.class) ResourceModel resource, @Validated(AclPrincipalModel.CreateAclModel.class) AclPrincipalModel grant, PermissionModel... permission) {
         AclPrincipalEntity principalEntity = aclPrincipalEntityRepository.getByName(grant.getName());
         List<PermissionEntity> permissionEntities = permissionEntityRepository.getLocalPermissionEntityRepository().findAllByResourceType(resource.getType());
@@ -291,10 +315,10 @@ public class GenericAclManager implements AclManager {
         PermissionEntity firstPermissionEntity = permissionEntities.get(0);
 
         if (permissionEntities.size() == 1 && firstPermissionEntity.isNotSupport() && null != permission) {
-            throw new BizViolationException("current resource is coarse-grained acl model(see acl strategy). not support permission argument.");
+            throw new BizStateViolationException("current resource is coarse-grained acl model(see acl strategy). not support permission argument.");
         }
         if (permissionEntities.size() > 1 && null == permission) {
-            throw new BizViolationException("current resource is fine-grained acl model(see acl strategy). permission is required.");
+            throw new BizStateViolationException("current resource is fine-grained acl model(see acl strategy). permission is required.");
         }
         resource.setTypeId(permissionEntities.get(0).getResourceTypeId());
     }
@@ -577,8 +601,11 @@ public class GenericAclManager implements AclManager {
         protected PermissionEntity assertPermissionModel(ResourceModel resourceModel, Optional<PermissionModel> permission) {
             PermissionEntity permissionEntity = permissionEntityRepository.getLocalPermissionEntityRepository().getFirstByResourceType(resourceModel.getType());
 
-            Assert.isTrue(!(permissionEntity.isNotSupport() && permission.isPresent()), "current resource is coarse-grained acl model(see acl strategy). not support permission argument.");
-            Assert.isTrue((!permissionEntity.isNotSupport()) && permission.isPresent(), "current resource is fine-grained acl model(see acl strategy). permission is required argument.");
+            if (permissionEntity.isNotSupport()) {
+                Assert.isTrue(!permission.isPresent(), "current resource is coarse-grained acl model(see acl strategy). not support permission argument.");
+            } else {
+                Assert.isTrue(permission.isPresent(), "current resource is fine-grained acl model(see acl strategy). permission is required argument.");
+            }
             return permissionEntity;
         }
 

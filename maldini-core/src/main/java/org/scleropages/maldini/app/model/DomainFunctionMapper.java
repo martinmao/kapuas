@@ -16,12 +16,12 @@
 package org.scleropages.maldini.app.model;
 
 import org.mapstruct.Mapper;
-import org.scleropages.crud.dao.orm.ModelMapper;
-import org.scleropages.maldini.app.entity.FunctionEntity;
+import org.scleropages.crud.ModelMapper;
+import org.scleropages.maldini.app.entity.DomainFunctionEntity;
 
 /**
  * @author <a href="mailto:martinmao@icloud.com">Martin Mao</a>
  */
 @Mapper(config = ModelMapper.DefaultConfig.class)
-public interface FunctionMapper extends ModelMapper<FunctionEntity, Function> {
+public interface DomainFunctionMapper extends ModelMapper<DomainFunctionEntity, DomainFunction> {
 }

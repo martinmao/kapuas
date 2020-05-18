@@ -19,6 +19,9 @@ import org.scleropages.crud.dao.orm.jpa.entity.IdEntity;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 
@@ -26,26 +29,19 @@ import javax.persistence.Table;
  * @author <a href="mailto:martinmao@icloud.com">Martin Mao</a>
  */
 @Entity
-@Table(name = "app_info")
-@SequenceGenerator(name = "app_info_id", sequenceName = "seq_app_info", allocationSize = IdEntity.SEQ_DEFAULT_ALLOCATION_SIZE, initialValue = IdEntity.SEQ_DEFAULT_INITIAL_VALUE)
-public class ApplicationEntity extends IdEntity {
+@Table(name = "app_api")
+@SequenceGenerator(name = "app_api_id", sequenceName = "seq_app_api", allocationSize = IdEntity.SEQ_DEFAULT_ALLOCATION_SIZE, initialValue = IdEntity.SEQ_DEFAULT_INITIAL_VALUE)
+public class ApiEntity extends IdEntity {
 
-    private String appId;
-    private String name;
+    private String apiId;
     private String tag;
-    private String contact;
-    private String contactNumber;
+    private String docUrl;
     private String description;
-    private Boolean enabled;
+    private ApplicationEntity applicationEntity;
 
-    @Column(name = "app_id", nullable = false, unique = true)
-    public String getAppId() {
-        return appId;
-    }
-
-    @Column(name = "name_", nullable = false, unique = true)
-    public String getName() {
-        return name;
+    @Column(name = "api_id", nullable = false, unique = true)
+    public String getApiId() {
+        return apiId;
     }
 
     @Column(name = "tag_", nullable = false)
@@ -53,14 +49,9 @@ public class ApplicationEntity extends IdEntity {
         return tag;
     }
 
-    @Column(name = "contact_", nullable = false)
-    public String getContact() {
-        return contact;
-    }
-
-    @Column(name = "contact_number", nullable = false)
-    public String getContactNumber() {
-        return contactNumber;
+    @Column(name = "doc_url", nullable = false)
+    public String getDocUrl() {
+        return docUrl;
     }
 
     @Column(name = "desc_", nullable = false)
@@ -68,36 +59,29 @@ public class ApplicationEntity extends IdEntity {
         return description;
     }
 
-    @Column(name = "enabled_", nullable = false)
-    public Boolean getEnabled() {
-        return enabled;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "app_info_id", nullable = false)
+    public ApplicationEntity getApplicationEntity() {
+        return applicationEntity;
     }
 
-    public void setAppId(String appId) {
-        this.appId = appId;
-    }
-
-    public void setName(String name) {
-        this.name = name;
+    public void setApiId(String apiId) {
+        this.apiId = apiId;
     }
 
     public void setTag(String tag) {
         this.tag = tag;
     }
 
-    public void setContact(String contact) {
-        this.contact = contact;
-    }
-
-    public void setContactNumber(String contactNumber) {
-        this.contactNumber = contactNumber;
+    public void setDocUrl(String docUrl) {
+        this.docUrl = docUrl;
     }
 
     public void setDescription(String description) {
         this.description = description;
     }
 
-    public void setEnabled(Boolean enabled) {
-        this.enabled = enabled;
+    public void setApplicationEntity(ApplicationEntity applicationEntity) {
+        this.applicationEntity = applicationEntity;
     }
 }

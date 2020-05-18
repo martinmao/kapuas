@@ -16,13 +16,13 @@
 package org.scleropages.maldini.app.model;
 
 import org.mapstruct.Mapper;
-import org.scleropages.crud.dao.orm.ModelMapper;
-import org.scleropages.maldini.app.entity.PackageEntity;
+import org.scleropages.crud.ModelMapper;
+import org.scleropages.maldini.app.entity.DomainEntity;
 
 /**
  * @author <a href="mailto:martinmao@icloud.com">Martin Mao</a>
  */
 @Mapper(config = ModelMapper.DefaultConfig.class)
-public interface PackageMapper extends ModelMapper<PackageEntity, Package> {
+public interface DomainMapper extends ModelMapper<DomainEntity, Domain> {
 
 }

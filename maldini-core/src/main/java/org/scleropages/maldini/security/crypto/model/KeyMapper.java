@@ -16,7 +16,7 @@
 package org.scleropages.maldini.security.crypto.model;
 
 import org.mapstruct.Mapper;
-import org.scleropages.crud.dao.orm.ModelMapper;
+import org.scleropages.crud.ModelMapper;
 import org.scleropages.maldini.security.crypto.entity.KeyEntity;
 
 /**

@@ -60,6 +60,6 @@ public interface KeyManager {
      * @param id
      * @return
      */
-    Key findById(Long id);
+    Key getById(Long id);
 
 }

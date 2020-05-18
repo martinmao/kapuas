@@ -18,8 +18,10 @@ package org.scleropages.maldini.app.web;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.scleropages.crud.web.GenericAction;
 import org.scleropages.maldini.app.ApplicationManager;
+import org.scleropages.maldini.app.model.Api;
 import org.scleropages.maldini.app.model.Application;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -56,6 +58,21 @@ public class ApplicationAction implements GenericAction {
     @GetMapping("page")
     public Object findPageApplication(HttpServletRequest request) {
         return applicationManager.findApplicationPage(buildSearchFilterFromRequest(request), buildPageableFromRequest(request));
+    }
+
+    @PostMapping("api")
+    public void createApi(@RequestBody Api api) {
+        applicationManager.createApi(api);
+    }
+
+    @PostMapping("api/update")
+    public void updateApi(@RequestBody Api api) {
+        applicationManager.saveApi(api);
+    }
+
+    @GetMapping("api")
+    public Page findApiPage(HttpServletRequest request) {
+        return applicationManager.findApiPage(buildSearchFilterFromRequest(request), buildPageableFromRequest(request));
     }
 
 

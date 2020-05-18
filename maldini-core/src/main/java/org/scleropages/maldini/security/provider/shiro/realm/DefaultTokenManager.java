@@ -57,7 +57,7 @@ public class DefaultTokenManager implements AuthenticationTokenManager<UsernameP
     @Override
     public Authenticating find(UsernamePasswordToken authenticationToken) {
         String username = authenticationToken.getUsername();
-        Authentication entity = authenticationManager.findOne(username);
+        Authentication entity = authenticationManager.getByPrincipal(username);
         if (entity == null)
             return null;
 

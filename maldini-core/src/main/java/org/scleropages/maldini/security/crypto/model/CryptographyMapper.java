@@ -17,8 +17,8 @@ package org.scleropages.maldini.security.crypto.model;
 
 import com.google.common.collect.Lists;
 import org.mapstruct.Mapper;
-import org.scleropages.crud.dao.orm.ModelMapper;
-import org.scleropages.crud.dao.orm.ModelMapperRepository;
+import org.scleropages.crud.ModelMapper;
+import org.scleropages.crud.ModelMapperRepository;
 import org.scleropages.maldini.security.crypto.entity.CryptographyEntity;
 import org.scleropages.maldini.security.crypto.entity.KeyEntity;
 

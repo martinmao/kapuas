@@ -13,17 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.scleropages.maldini.app.entity;
+package org.scleropages.maldini.app.model;
 
-import org.scleropages.crud.dao.orm.jpa.GenericRepository;
-import org.scleropages.maldini.app.model.Package;
-import org.scleropages.maldini.app.model.PackageMapper;
-import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.mapstruct.Mapper;
+import org.scleropages.crud.ModelMapper;
+import org.scleropages.maldini.app.entity.ApiEntity;
 
 /**
  * @author <a href="mailto:martinmao@icloud.com">Martin Mao</a>
  */
-public interface PackageEntityRepository extends GenericRepository<Package, PackageMapper, PackageEntity, Long>, JpaSpecificationExecutor<PackageEntity> {
-
-    PackageEntity findByIdOrNamespace(Long id, String namespace);
+@Mapper(config = ModelMapper.DefaultConfig.class)
+public interface ApiMapper extends ModelMapper<ApiEntity, Api> {
 }

@@ -45,7 +45,7 @@ public class CryptographyAction implements GenericAction {
 
     @GetMapping("item/{id}")
     public Object getCryptography(@PathVariable("id") Long id) {
-        return cryptographyManager.findById(id);
+        return cryptographyManager.getById(id);
     }
 
     @GetMapping("{associatedType}")

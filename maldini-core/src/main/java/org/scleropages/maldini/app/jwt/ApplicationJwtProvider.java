@@ -16,7 +16,7 @@
 package org.scleropages.maldini.app.jwt;
 
 import org.scleropages.maldini.app.ApplicationManager;
-import org.scleropages.maldini.app.PackageManager;
+import org.scleropages.maldini.app.DomainManager;
 import org.scleropages.maldini.app.model.Application;
 import org.scleropages.maldini.security.acl.AclManager;
 import org.scleropages.maldini.security.acl.model.AclPrincipalModel;
@@ -41,14 +41,14 @@ public class ApplicationJwtProvider extends AbstractJwtTokenTemplateProvider<App
 
     private static final String REQUEST_CONTEXT_PARAMETER_FUNCTION_NAME = "app_func";
 
-    @Value("#{ @environment['jwt.token.app_auth.acl_resource'] ?: 'app_function' }")
+    @Value("#{ @environment['jwt.token.app_auth.acl_resource'] ?: 'domain_function_access' }")
     private String applicationJwtAclResourceType;
     @Value("#{ @environment['jwt.token.app_auth.acl_permission'] ?: null }")
     private String applicationJwtAclPermission;
 
     private AclManager aclManager;
 
-    private PackageManager packageManager;
+    private DomainManager domainManager;
 
     private ApplicationManager applicationManager;
 
@@ -61,7 +61,7 @@ public class ApplicationJwtProvider extends AbstractJwtTokenTemplateProvider<App
     protected void postJwtTokenBuild(Authenticated authenticated, JwtTokenFactory jwtTokenFactory, JwtToken.JwtTokenBuilder tokenBuilder, Map<String, Object> requestContext) {
         tokenBuilder.withSubject(requestContext.get(REQUEST_CONTEXT_PARAMETER_FUNCTION_NAME).toString());
         tokenBuilder.withAudience(authenticated.principal().toString());
-        tokenBuilder.set("clt",authenticated.host());
+        tokenBuilder.set("clt", authenticated.host());
     }
 
 
@@ -72,7 +72,7 @@ public class ApplicationJwtProvider extends AbstractJwtTokenTemplateProvider<App
 
     @Override
     protected String jwtAssociatedId(Authenticated authenticated, Map<String, Object> requestContext) {
-        return packageManager.getAppIdByFunctionFullName(requestContext.get(REQUEST_CONTEXT_PARAMETER_FUNCTION_NAME).toString());
+        return domainManager.getAppIdByFunctionFullName(requestContext.get(REQUEST_CONTEXT_PARAMETER_FUNCTION_NAME).toString());
     }
 
     protected void assertAccessible(Authenticated authenticated, final Map<String, Object> requestContext) {
@@ -81,7 +81,7 @@ public class ApplicationJwtProvider extends AbstractJwtTokenTemplateProvider<App
         functionResource.setType(applicationJwtAclResourceType);
         AclPrincipalModel principal = new AclPrincipalModel();
         principal.setName(String.valueOf(authenticated.principal()));
-        Assert.isTrue(aclManager.isAccessible(functionResource, principal, new PermissionModel(applicationJwtAclPermission)), "access denied.");
+        aclManager.accessible(functionResource, principal, new PermissionModel(applicationJwtAclPermission));
     }
 
     protected String getRequiredFunctionName(final Map<String, Object> requestContext) {
@@ -96,8 +96,8 @@ public class ApplicationJwtProvider extends AbstractJwtTokenTemplateProvider<App
     }
 
     @Autowired
-    public void setPackageManager(PackageManager packageManager) {
-        this.packageManager = packageManager;
+    public void setDomainManager(DomainManager domainManager) {
+        this.domainManager = domainManager;
     }
 
     @Autowired

@@ -16,14 +16,12 @@
 package org.scleropages.maldini.security.authc.mgmt.entity;
 
 import org.scleropages.crud.dao.orm.jpa.GenericRepository;
-import org.scleropages.maldini.security.authc.mgmt.model.Authentication;
-import org.scleropages.maldini.security.authc.mgmt.model.AuthenticationMapper;
 
 /**
  * @author <a href="mailto:martinmao@icloud.com">Martin Mao</a>
  */
-public interface AuthenticationEntityRepository extends GenericRepository<Authentication, AuthenticationMapper, AuthenticationEntity, Long> {
+public interface AuthenticationEntityRepository extends GenericRepository<AuthenticationEntity, Long> {
 
-    AuthenticationEntity findByPrincipal(String principal);
+    AuthenticationEntity getByPrincipal(String principal);
 
 }

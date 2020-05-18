@@ -24,7 +24,7 @@ import javax.validation.constraints.Null;
 import java.io.Serializable;
 
 /**
- * 用于描述一个应用，技术上application作为一个单独的进程单元，提供一组功能供外部使用，或本身
+ * 用于描述一个应用，技术上application作为一个单独的进程单元，提供一组接口供外部使用，或本身
  * 作为消费者对其他application有功能访问的需求.
  *
  * @author <a href="mailto:martinmao@icloud.com">Martin Mao</a>
@@ -33,6 +33,7 @@ public class Application implements Available, AuthenticationDetails {
 
     private Long id;
     private String name;
+    private String tag;
     private String description;
     private String contact;
     private String contactNumber;
@@ -49,6 +50,11 @@ public class Application implements Available, AuthenticationDetails {
     @NotBlank(groups = {CreateModel.class})
     public String getName() {
         return name;
+    }
+
+    @NotBlank(groups = {CreateModel.class})
+    public String getTag() {
+        return tag;
     }
 
     @NotBlank(groups = {CreateModel.class})
@@ -88,6 +94,10 @@ public class Application implements Available, AuthenticationDetails {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public void setTag(String tag) {
+        this.tag = tag;
     }
 
     public void setDescription(String description) {

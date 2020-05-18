@@ -20,6 +20,7 @@ import org.scleropages.core.util.SecretKeys;
 import org.scleropages.core.util.SecureRandomGenerator;
 import org.scleropages.crud.GenericManager;
 import org.scleropages.crud.dao.orm.jpa.entity.EntityAware;
+import org.scleropages.crud.exception.BizError;
 import org.scleropages.maldini.security.crypto.entity.KeyEntity;
 import org.scleropages.maldini.security.crypto.entity.KeyEntityRepository;
 import org.scleropages.maldini.security.crypto.model.Key;
@@ -39,6 +40,7 @@ import java.util.function.BiConsumer;
  */
 @Service
 @Validated
+@BizError("30")
 public class GenericKeyManager implements KeyManager, GenericManager<Key, Long, KeyMapper> {
 
 
@@ -48,6 +50,8 @@ public class GenericKeyManager implements KeyManager, GenericManager<Key, Long, 
 
 
     @Override
+    @Transactional
+    @BizError("01")
     public Long createRandomKey(String algorithm, int keySize) {
         SecretKey created = randomGenerator.consumeRandom(random -> SecretKeys.generateRandomKey(algorithm, keyGenerator -> {
             if (keySize != -1)
@@ -62,6 +66,8 @@ public class GenericKeyManager implements KeyManager, GenericManager<Key, Long, 
     }
 
     @Override
+    @Transactional
+    @BizError("02")
     public void createRandomKeyPair(String algorithm, int keySize, BiConsumer<Long, Long> consumer) {
         KeyPair created = randomGenerator.consumeRandom(random -> SecretKeys.generateRandomKeyPair(algorithm, keyPairGenerator -> {
             if (keySize != -1)
@@ -80,6 +86,8 @@ public class GenericKeyManager implements KeyManager, GenericManager<Key, Long, 
         consumer.accept(keyEntityRepository.save(privateKeyEntity).getId(), keyEntityRepository.save(publicKeyEntity).getId());
     }
 
+    @Transactional
+    @BizError("03")
     public void resetKeyEncoded(Long id) {
         keyEntityRepository.findById(id).ifPresent(keyEntity -> {
             if (keyEntity.getKeyType() == Key.KEY_TYPE) {
@@ -110,6 +118,7 @@ public class GenericKeyManager implements KeyManager, GenericManager<Key, Long, 
 
     @Override
     @Transactional
+    @BizError("04")
     public void save(Key model) {
         model.enable();
         keyEntityRepository.save(getModelMapper().mapForSave(model));
@@ -117,7 +126,8 @@ public class GenericKeyManager implements KeyManager, GenericManager<Key, Long, 
 
     @Override
     @Transactional(readOnly = true)
-    public Key findById(Long id) {
+    @BizError("05")
+    public Key getById(Long id) {
         return getModelMapper().mapForRead(keyEntityRepository.findById(id).get());
     }
 

@@ -22,11 +22,11 @@ import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Null;
 
 /**
- * 具体某一业务功能，由application提供技术实现，由package进行业务组织作为一种能力对外提供服务.
+ * 具体某一业务功能，由 {@link Api} 提供技术实现，由 {@link Domain} 进行业务组织作为一种能力对外提供服务.
  *
  * @author <a href="mailto:martinmao@icloud.com">Martin Mao</a>
  */
-public class Function implements Available {
+public class DomainFunction implements Available {
 
     private Long id;
     private String name;
@@ -35,8 +35,8 @@ public class Function implements Available {
     private String description;
     private String docUrl;
     private Boolean enabled;
-    private Long applicationId;
-    private Long packageId;
+    private Long apiId;
+    private Long domainId;
 
     @NotNull(groups = {UpdateModel.class})
     @Null(groups = {CreateModel.class})
@@ -76,14 +76,14 @@ public class Function implements Available {
 
     @NotNull(groups = {CreateModel.class})
     @Null(groups = {UpdateModel.class})
-    public Long getApplicationId() {
-        return applicationId;
+    public Long getApiId() {
+        return apiId;
     }
 
     @NotNull(groups = {CreateModel.class})
     @Null(groups = {UpdateModel.class})
-    public Long getPackageId() {
-        return packageId;
+    public Long getDomainId() {
+        return domainId;
     }
 
     public void setId(Long id) {
@@ -114,12 +114,12 @@ public class Function implements Available {
         this.enabled = enabled;
     }
 
-    public void setApplicationId(Long applicationId) {
-        this.applicationId = applicationId;
+    public void setApiId(Long apiId) {
+        this.apiId = apiId;
     }
 
-    public void setPackageId(Long packageId) {
-        this.packageId = packageId;
+    public void setDomainId(Long domainId) {
+        this.domainId = domainId;
     }
 
     @Override

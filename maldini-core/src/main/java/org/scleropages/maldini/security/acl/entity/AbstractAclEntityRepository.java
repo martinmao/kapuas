@@ -52,7 +52,7 @@ public interface AbstractAclEntityRepository<E extends AbstractAclEntity, T exte
 
 
     default E getByResourceTypeIdAndResourceIdWithOwner(Long typeId, String resourceId) {
-        Specification<E> specification = (Specification<E>) (root, query, builder) -> {
+        Specification<E> specification = (root, query, builder) -> {
             root.fetch("owner");
             return builder.and(builder.equal(root.get("resourceTypeId"), typeId), builder.equal(root.get("resourceId"), resourceId));
         };

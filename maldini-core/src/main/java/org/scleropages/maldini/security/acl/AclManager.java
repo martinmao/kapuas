@@ -199,4 +199,15 @@ public interface AclManager {
      */
     boolean isAccessible(@Valid ResourceModel resource, @Valid AclPrincipalModel principal, PermissionModel permission);
 
+
+    /**
+     * check if given principal was granted permissions for given resource.
+     *
+     * @param resource   asserts resource.
+     * @param principal  grants principal.
+     * @param permission a group optional permissions.
+     * @throws IllegalArgumentException when access denied.
+     */
+    void accessible(@Valid ResourceModel resource, @Valid AclPrincipalModel principal, PermissionModel permission);
+
 }

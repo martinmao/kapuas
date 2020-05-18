@@ -19,6 +19,9 @@ import org.scleropages.crud.dao.orm.jpa.entity.IdEntity;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
 
@@ -26,15 +29,16 @@ import javax.persistence.Table;
  * @author <a href="mailto:martinmao@icloud.com">Martin Mao</a>
  */
 @Entity
-@Table(name = "app_pkg")
-@SequenceGenerator(name = "app_pkg_id", sequenceName = "seq_app_pkg", allocationSize = IdEntity.SEQ_DEFAULT_ALLOCATION_SIZE, initialValue = IdEntity.SEQ_DEFAULT_INITIAL_VALUE)
-public class PackageEntity extends IdEntity {
+@Table(name = "app_domain")
+@SequenceGenerator(name = "app_domain_id", sequenceName = "seq_app_domain", allocationSize = IdEntity.SEQ_DEFAULT_ALLOCATION_SIZE, initialValue = IdEntity.SEQ_DEFAULT_INITIAL_VALUE)
+public class DomainEntity extends IdEntity {
 
     private String namespace;
     private String tag;
     private String description;
     private String docUrl;
     private Boolean enabled;
+    private DomainEntity parentDomainEntity;
 
     @Column(name = "ns_", nullable = false, unique = true)
     public String getNamespace() {
@@ -61,6 +65,12 @@ public class PackageEntity extends IdEntity {
         return enabled;
     }
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_app_domain_id")
+    public DomainEntity getParentDomainEntity() {
+        return parentDomainEntity;
+    }
+
     public void setNamespace(String namespace) {
         this.namespace = namespace;
     }
@@ -79,5 +89,9 @@ public class PackageEntity extends IdEntity {
 
     public void setEnabled(Boolean enabled) {
         this.enabled = enabled;
+    }
+
+    public void setParentDomainEntity(DomainEntity parentDomainEntity) {
+        this.parentDomainEntity = parentDomainEntity;
     }
 }
