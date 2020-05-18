@@ -36,6 +36,7 @@ public class Application implements Available, AuthenticationDetails {
     private String tag;
     private String description;
     private String contact;
+    private String apiGateway;
     private String contactNumber;
     private Boolean enabled;
     private String appId;
@@ -62,10 +63,14 @@ public class Application implements Available, AuthenticationDetails {
         return description;
     }
 
-
     @NotBlank(groups = {CreateModel.class})
     public String getContact() {
         return contact;
+    }
+
+    @NotBlank(groups = {CreateModel.class})
+    public String getApiGateway() {
+        return apiGateway;
     }
 
     @NotBlank(groups = {CreateModel.class})
@@ -114,6 +119,10 @@ public class Application implements Available, AuthenticationDetails {
 
     public void setEnabled(Boolean enabled) {
         this.enabled = enabled;
+    }
+
+    public void setApiGateway(String apiGateway) {
+        this.apiGateway = apiGateway;
     }
 
     @Override

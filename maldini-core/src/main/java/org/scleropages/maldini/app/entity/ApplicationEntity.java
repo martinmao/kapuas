@@ -33,6 +33,7 @@ public class ApplicationEntity extends IdEntity {
     private String appId;
     private String name;
     private String tag;
+    private String apiGateway;
     private String contact;
     private String contactNumber;
     private String description;
@@ -56,6 +57,11 @@ public class ApplicationEntity extends IdEntity {
     @Column(name = "contact_", nullable = false)
     public String getContact() {
         return contact;
+    }
+
+    @Column(name = "api_gateway", nullable = false)
+    public String getApiGateway() {
+        return apiGateway;
     }
 
     @Column(name = "contact_number", nullable = false)
@@ -87,6 +93,10 @@ public class ApplicationEntity extends IdEntity {
 
     public void setContact(String contact) {
         this.contact = contact;
+    }
+
+    public void setApiGateway(String apiGateway) {
+        this.apiGateway = apiGateway;
     }
 
     public void setContactNumber(String contactNumber) {

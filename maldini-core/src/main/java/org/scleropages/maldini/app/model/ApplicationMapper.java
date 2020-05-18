@@ -24,6 +24,5 @@ import org.scleropages.maldini.app.entity.ApplicationEntity;
  */
 @Mapper(config = ModelMapper.DefaultConfig.class)
 public interface ApplicationMapper extends ModelMapper<ApplicationEntity, Application> {
-
-
+    
 }
