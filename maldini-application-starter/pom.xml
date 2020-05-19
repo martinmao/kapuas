@@ -13,7 +13,7 @@
     <dependencies>
         <dependency>
             <groupId>org.scleropages.maldini</groupId>
-            <artifactId>maldini-core</artifactId>
+            <artifactId>maldini-application</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>

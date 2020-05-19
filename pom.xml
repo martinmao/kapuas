@@ -7,8 +7,8 @@
     <packaging>pom</packaging>
     <version>0.0.1-SNAPSHOT</version>
     <modules>
-        <module>maldini-core</module>
-        <module>maldini-boot-starter</module>
+        <module>maldini-application</module>
+        <module>maldini-application-starter</module>
     </modules>
     <name>Maldini-${project.version} Parent</name>
     <description>Top project pom.xml file</description>
