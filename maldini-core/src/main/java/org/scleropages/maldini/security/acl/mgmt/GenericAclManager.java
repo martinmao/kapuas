@@ -143,7 +143,9 @@ public class GenericAclManager implements AclManager {
     @BizError("04")
     @Transactional(readOnly = true)
     public void accessible(@Valid ResourceModel resource, @Valid AclPrincipalModel principal, PermissionModel permission) {
-        Assert.isTrue(isAccessible(resource, principal, permission), SecurityBizException.AUTHZ_FAILURE_MESSAGE);
+        if(!isAccessible(resource, principal, permission)){
+            throw new SecurityBizException(SecurityBizException.AUTHZ_FAILURE_MESSAGE);
+        }
     }
 
     @Override
