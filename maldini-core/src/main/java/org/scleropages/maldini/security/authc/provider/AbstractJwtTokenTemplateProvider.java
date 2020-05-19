@@ -33,8 +33,8 @@ import java.util.Map;
  */
 public abstract class AbstractJwtTokenTemplateProvider<T> implements JwtProvider<T> {
 
-    private static final String JWT_HEADER_AUTH_TYPE = "aut";
-    private static final String JWT_HEADER_AUTH_ID = "aui";
+    private static final String JWT_HEADER_AUTH_TYPE = "aut";//auth type .
+    private static final String JWT_HEADER_AUTH_ID = "aui";//auth id.
 
     @Value("#{ @environment['jwt.token.template.expiration'] ?: 1800000 }")
     private long jwtTokenExpiration;
@@ -52,7 +52,7 @@ public abstract class AbstractJwtTokenTemplateProvider<T> implements JwtProvider
     public JwtEncodedToken build(Authenticated authenticated, JwtTokenFactory jwtTokenFactory, JwtToken.JwtTokenBuilder tokenBuilder, Map<String, Object> requestContext) {
         preJwtTokenBuild(authenticated, jwtTokenFactory, tokenBuilder, requestContext);
         long now = System.currentTimeMillis();
-        JwtTokenTemplate jwtTokenTemplate = tokenTemplateManager.find(jwtAssociatedId(authenticated, requestContext), jwtAssociatedType(authenticated, requestContext));
+        JwtTokenTemplate jwtTokenTemplate = tokenTemplateManager.getByAssociatedTypeAndAssociatedId(jwtAssociatedType(authenticated, requestContext), jwtAssociatedId(authenticated, requestContext));
         Assert.notNull(jwtTokenTemplate, "no jwt token template found.");
         Map<String, Object> jwtHeader = Maps.newHashMap();
         jwtHeader.put(JWT_HEADER_AUTH_TYPE, jwtTokenTemplate.getAssociatedType());
@@ -77,7 +77,7 @@ public abstract class AbstractJwtTokenTemplateProvider<T> implements JwtProvider
             throw new IllegalArgumentException(JWT_HEADER_AUTH_TYPE + " not a valid number.");
         }
         String jwtAssociatedId = String.valueOf(jwtHeader.get(JWT_HEADER_AUTH_ID));
-        JwtTokenTemplate jwtTokenTemplate = tokenTemplateManager.find(jwtAssociatedId, jwtAssociatedType);
+        JwtTokenTemplate jwtTokenTemplate = tokenTemplateManager.getByAssociatedTypeAndAssociatedId(jwtAssociatedType, jwtAssociatedId);
         Assert.notNull(jwtTokenTemplate, "no jwt token template found.");
         return jwtTokenTemplate.getVerifyKeyEncoded()
                 != null ? jwtTokenTemplate.getVerifyKeyEncoded() : jwtTokenTemplate.getSignKeyEncoded();

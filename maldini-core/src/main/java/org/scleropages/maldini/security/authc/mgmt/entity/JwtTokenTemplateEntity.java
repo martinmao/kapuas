@@ -33,7 +33,7 @@ import javax.persistence.UniqueConstraint;
  */
 @Entity
 @Table(name = "sec_jwtt", uniqueConstraints = {
-        @UniqueConstraint(columnNames = {"associated_id", "associated_type"})})
+        @UniqueConstraint(columnNames = {"associated_type", "associated_id"})})
 @SequenceGenerator(name = "sec_jwtt_id", sequenceName = "seq_sec_jwtt", allocationSize = IdEntity.SEQ_DEFAULT_ALLOCATION_SIZE, initialValue = IdEntity.SEQ_DEFAULT_INITIAL_VALUE)
 public class JwtTokenTemplateEntity extends IdEntity implements CryptographyManager.CryptographyEntityAware {
 
@@ -51,12 +51,12 @@ public class JwtTokenTemplateEntity extends IdEntity implements CryptographyMana
         return algorithm;
     }
 
-    @Column(name = "subject", nullable = false)
+    @Column(name = "subject_", nullable = false)
     public String getSubject() {
         return subject;
     }
 
-    @Column(name = "issuer", nullable = false)
+    @Column(name = "issuer_", nullable = false)
     public String getIssuer() {
         return issuer;
     }
@@ -71,7 +71,7 @@ public class JwtTokenTemplateEntity extends IdEntity implements CryptographyMana
         return associatedId;
     }
 
-    @Column(name = "sign_key_encoded", nullable = false)
+    @Column(name = "sign_key_encoded", nullable = false, length = 2048)
     public byte[] getSignKeyEncoded() {
         return signKeyEncoded;
     }

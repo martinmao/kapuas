@@ -33,6 +33,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
 
 import javax.validation.Valid;
+import java.util.Map;
 
 /**
  * @author <a href="mailto:martinmao@icloud.com">Martin Mao</a>
@@ -69,8 +70,24 @@ public class JwtTokenTemplateManager implements GenericManager<JwtTokenTemplate,
     }
 
     @Transactional(readOnly = true)
-    public JwtTokenTemplate find(String associatedId, Integer associatedType) {
-        return getModelMapper().mapForRead(jwtTokenTemplateEntityRepository.getByAssociatedIdAndAssociatedType(associatedId, associatedType));
+    public JwtTokenTemplate getByAssociatedTypeAndAssociatedId(Integer associatedType, String associatedId) {
+        Assert.notNull(associatedType,"associatedType is required.");
+        Assert.hasText(associatedId,"associatedId is required.");
+        return getModelMapper().mapForRead(jwtTokenTemplateEntityRepository.getByAssociatedTypeAndAssociatedId(associatedType, associatedId));
+    }
+
+    @Transactional(readOnly = true)
+    public JwtTokenTemplate getVerifyKeyEncodedAndAlgorithmByAssociatedTypeAndAssociatedId(Integer associatedType, String associatedId) {
+        Assert.notNull(associatedType,"associatedType is required.");
+        Assert.hasText(associatedId,"associatedId is required.");
+        Map<String, Object> data = jwtTokenTemplateEntityRepository.getVerifyKeyEncodedAndAlgorithmByAssociatedTypeAndAssociatedId(associatedType, associatedId);
+        Assert.notNull(data, "no jwt token template found.");
+        JwtTokenTemplate jwtTokenTemplate = new JwtTokenTemplate();
+        jwtTokenTemplate.setAlgorithm((String) data.get("alg_"));
+        jwtTokenTemplate.setVerifyKeyEncoded((byte[]) data.get("verify_key_encoded"));
+        jwtTokenTemplate.setAssociatedType(associatedType);
+        jwtTokenTemplate.setAssociatedId(associatedId);
+        return jwtTokenTemplate;
     }
 
     @Override

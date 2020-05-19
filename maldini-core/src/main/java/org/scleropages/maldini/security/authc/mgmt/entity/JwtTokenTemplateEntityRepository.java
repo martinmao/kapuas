@@ -17,6 +17,9 @@ package org.scleropages.maldini.security.authc.mgmt.entity;
 
 import org.scleropages.crud.dao.orm.jpa.GenericRepository;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.jpa.repository.Query;
+
+import java.util.Map;
 
 /**
  * @author <a href="mailto:martinmao@icloud.com">Martin Mao</a>
@@ -24,6 +27,9 @@ import org.springframework.cache.annotation.Cacheable;
 public interface JwtTokenTemplateEntityRepository extends GenericRepository<JwtTokenTemplateEntity, Long> {
 
     @Cacheable
-    JwtTokenTemplateEntity getByAssociatedIdAndAssociatedType(String associatedId, Integer associatedType);
+    JwtTokenTemplateEntity getByAssociatedTypeAndAssociatedId(Integer associatedType,String associatedId);
+
+    @Query(nativeQuery = true, value = "select verify_key_encoded, alg_ from sec_jwtt where associated_type=? and associated_id=?")
+    Map<String,Object> getVerifyKeyEncodedAndAlgorithmByAssociatedTypeAndAssociatedId(Integer associatedType, String associatedId);
 
 }

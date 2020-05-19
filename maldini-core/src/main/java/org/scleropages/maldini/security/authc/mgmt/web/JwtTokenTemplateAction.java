@@ -18,6 +18,8 @@ package org.scleropages.maldini.security.authc.mgmt.web;
 import org.scleropages.maldini.security.authc.mgmt.JwtTokenTemplateManager;
 import org.scleropages.maldini.security.authc.mgmt.model.JwtTokenTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -36,6 +38,16 @@ public class JwtTokenTemplateAction {
     @PostMapping
     public void createJwtTokenTemplate(@RequestBody JwtTokenTemplate template) {
         jwtTokenTemplateManager.save(template);
+    }
+
+    @GetMapping("{associatedType}/{associatedId}")
+    public JwtTokenTemplate getVerifyKeyEncoded(@PathVariable Integer associatedType, @PathVariable String associatedId) {
+        return jwtTokenTemplateManager.getVerifyKeyEncodedAndAlgorithmByAssociatedTypeAndAssociatedId(associatedType, associatedId);
+    }
+
+    @GetMapping("{id}")
+    public JwtTokenTemplate getJwtTokenTemplate(@PathVariable Long id) {
+        return jwtTokenTemplateManager.getById(id);
     }
 
 
