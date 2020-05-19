@@ -9,7 +9,6 @@
     <modules>
         <module>maldini-core</module>
         <module>maldini-boot-starter</module>
-        <module>maldini-client</module>
     </modules>
     <name>Maldini-${project.version} Parent</name>
     <description>Top project pom.xml file</description>
