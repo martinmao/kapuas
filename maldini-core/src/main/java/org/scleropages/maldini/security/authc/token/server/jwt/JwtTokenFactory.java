@@ -62,8 +62,18 @@ public interface JwtTokenFactory extends EncodedTokenFactory<JwtToken> {
      */
     interface SignatureKeyProvider {
 
+        /**
+         * return true if current provider support given {@link JwtHeader}
+         * @param jwtHeader
+         * @return
+         */
         boolean support(JwtHeader jwtHeader);
 
+        /**
+         * look up sign key
+         * @param jwtHeader
+         * @return
+         */
         byte[] get(JwtHeader jwtHeader);
     }
 

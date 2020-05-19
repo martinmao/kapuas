@@ -28,7 +28,6 @@ import org.apache.shiro.realm.AuthorizingRealm;
 import org.apache.shiro.realm.Realm;
 import org.apache.shiro.subject.PrincipalCollection;
 import org.apache.shiro.util.ByteSource;
-import org.scleropages.maldini.configuration.shiro.ShiroConfiguration;
 import org.scleropages.maldini.security.AuthenticationDetails;
 import org.scleropages.maldini.security.SecurityBizException;
 import org.scleropages.maldini.security.authc.provider.Authenticated;
@@ -53,7 +52,7 @@ import java.util.List;
  * ({@link org.apache.shiro.authc.pam.ModularRealmAuthenticator#doMultiRealmAuthentication(Collection, AuthenticationToken)}中会捕获异常尝试下一个realm，这样异常无法反馈给客户端)
  * <p>
  * 当前实现需配合自定义 {@link org.apache.shiro.authc.pam.AuthenticationStrategy#afterAttempt(Realm, AuthenticationToken, AuthenticationInfo, AuthenticationInfo, Throwable)}
- * 遇到realm抛出的 {@link AuthenticationException}类型异常. 直接传播（throw）出去，不继续尝试下一个realm. {@link ShiroConfiguration#authenticationStrategy()}
+ * 遇到realm抛出的 {@link AuthenticationException}类型异常. 直接传播（throw）出去，不继续尝试下一个realm. 通过自定义{@link org.apache.shiro.authc.pam.AuthenticationStrategy}实现.
  * <p>
  * 当前实现不适用与非集中式账户系统(db->ldap->三方账户系统，需轮流realm检查匹配.)，可以使用shiro 默认的策略
  *
