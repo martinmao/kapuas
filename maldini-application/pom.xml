@@ -81,6 +81,12 @@
             <groupId>org.scleropages.ball</groupId>
             <artifactId>ball-all</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.scleropages.maldini</groupId>
+            <artifactId>maldini-core</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
 
         <dependency>
             <groupId>com.h2database</groupId>

@@ -9,6 +9,7 @@
     <modules>
         <module>maldini-application</module>
         <module>maldini-application-starter</module>
+        <module>maldini-core</module>
     </modules>
     <name>Maldini-${project.version} Parent</name>
     <description>Top project pom.xml file</description>
