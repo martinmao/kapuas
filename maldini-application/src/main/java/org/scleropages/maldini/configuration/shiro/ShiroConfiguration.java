@@ -49,6 +49,9 @@ import javax.servlet.DispatcherType;
 import javax.servlet.Filter;
 import java.util.List;
 
+/**
+ * @author <a href="mailto:martinmao@icloud.com">Martin Mao</a>
+ */
 @Configuration
 @ConditionalOnProperty(name = "shiro.web.enabled", matchIfMissing = true)
 @EnableCaching
