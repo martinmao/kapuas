@@ -44,7 +44,7 @@ public interface AuthenticationManager {
      * @param requestContext
      * @return
      */
-    EncodedToken createEncodedToken(AuthenticationToken authenticationToken, Map<String, Object> requestContext,Class<?extends  EncodedToken> encodedTokenType);
+    EncodedToken createEncodedToken(AuthenticationToken authenticationToken, Map<String, Object> requestContext, Class<? extends EncodedToken> encodedTokenType);
 
     /**
      * perform login(authentication and initialize resource such as session...) action by given authentication token.
@@ -124,4 +124,12 @@ public interface AuthenticationManager {
      * @return
      */
     RandomGenerator getRandomGenerator();
+
+    String getCredentialsEncoded();
+
+    boolean isCredentialsHashed();
+
+    String getCredentialsHashAlgorithmName();
+
+    int getCredentialsHashIterations();
 }

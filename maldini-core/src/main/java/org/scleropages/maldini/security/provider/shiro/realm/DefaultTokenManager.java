@@ -19,7 +19,7 @@ import com.google.common.collect.Maps;
 import org.apache.shiro.authc.UsernamePasswordToken;
 import org.scleropages.maldini.security.AuthenticationDetails;
 import org.scleropages.maldini.security.SecurityOption;
-import org.scleropages.maldini.security.authc.mgmt.GenericAuthenticationManager;
+import org.scleropages.maldini.security.authc.AuthenticationManager;
 import org.scleropages.maldini.security.authc.mgmt.model.Authentication;
 import org.scleropages.maldini.security.authc.provider.Authenticating;
 import org.scleropages.maldini.security.authc.provider.AuthenticationDetailsProvider;
@@ -35,7 +35,7 @@ import java.util.Map;
 
 
 /**
- * 基于 {@link GenericAuthenticationManager} 的 {@link UsernamePasswordToken} token管理器，供shiro realm认证
+ * 基于 {@link AuthenticationManager} 的 {@link UsernamePasswordToken} token管理器，供shiro realm认证
  *
  * @author <a href="mailto:martinmao@icloud.com">Martin Mao</a>
  */
@@ -43,14 +43,14 @@ public class DefaultTokenManager implements AuthenticationTokenManager<UsernameP
 
     protected final Logger logger = LoggerFactory.getLogger(getClass());
 
-    private final GenericAuthenticationManager authenticationManager;
+    private final AuthenticationManager authenticationManager;
 
     private Map<Integer, AuthenticationDetailsProvider> authenticationDetailsProviders;
 
     private AuthenticationDetailsProvider defaultAuthenticationDetailsProvider = new NoAuthenticationDetailsProvider();
 
 
-    public DefaultTokenManager(GenericAuthenticationManager authenticationManager) {
+    public DefaultTokenManager(AuthenticationManager authenticationManager) {
         this.authenticationManager = authenticationManager;
     }
 

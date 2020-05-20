@@ -13,11 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.scleropages.maldini.security.authc.provider;
+package org.scleropages.maldini.security.authc.mgmt;
 
 import com.google.common.collect.Maps;
 import org.scleropages.maldini.security.authc.mgmt.JwtTokenTemplateManager;
 import org.scleropages.maldini.security.authc.mgmt.model.JwtTokenTemplate;
+import org.scleropages.maldini.security.authc.provider.Authenticated;
+import org.scleropages.maldini.security.authc.provider.JwtProvider;
 import org.scleropages.maldini.security.authc.token.client.jwt.JwtEncodedToken;
 import org.scleropages.maldini.security.authc.token.server.jwt.JwtToken;
 import org.scleropages.maldini.security.authc.token.server.jwt.JwtTokenFactory;

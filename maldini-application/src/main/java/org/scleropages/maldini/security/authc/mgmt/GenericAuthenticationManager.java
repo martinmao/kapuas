@@ -196,39 +196,26 @@ public class GenericAuthenticationManager implements AuthenticationManager, Gene
         return randomGenerator;
     }
 
+    @Override
     public String getCredentialsEncoded() {
         return credentialsEncoded;
     }
 
 
+    @Override
     public boolean isCredentialsHashed() {
         return credentialsHashed;
     }
 
-    public void setCredentialsHashed(boolean credentialsHashed) {
-        this.credentialsHashed = credentialsHashed;
-    }
-
-
+    @Override
     public String getCredentialsHashAlgorithmName() {
         return credentialsHashAlgorithmName;
     }
 
-    public void setCredentialsHashAlgorithmName(String credentialsHashAlgorithmName) {
-        this.credentialsHashAlgorithmName = credentialsHashAlgorithmName;
-    }
 
-
+    @Override
     public int getCredentialsHashIterations() {
         return credentialsHashIterations;
-    }
-
-    public void setCredentialsHashIterations(int credentialsHashIterations) {
-        this.credentialsHashIterations = credentialsHashIterations;
-    }
-
-    public void setCredentialsEncoded(String credentialsEncoded) {
-        this.credentialsEncoded = credentialsEncoded;
     }
 
 

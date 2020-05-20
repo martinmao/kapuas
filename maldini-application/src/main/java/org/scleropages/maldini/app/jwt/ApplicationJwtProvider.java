@@ -22,7 +22,7 @@ import org.scleropages.maldini.security.acl.AclManager;
 import org.scleropages.maldini.security.acl.model.AclPrincipalModel;
 import org.scleropages.maldini.security.acl.model.PermissionModel;
 import org.scleropages.maldini.security.acl.model.ResourceModel;
-import org.scleropages.maldini.security.authc.provider.AbstractJwtTokenTemplateProvider;
+import org.scleropages.maldini.security.authc.mgmt.AbstractJwtTokenTemplateProvider;
 import org.scleropages.maldini.security.authc.provider.Authenticated;
 import org.scleropages.maldini.security.authc.token.server.jwt.JwtToken;
 import org.scleropages.maldini.security.authc.token.server.jwt.JwtTokenFactory;
