@@ -15,7 +15,7 @@
  */
 package org.scleropages.maldini.security.authc.provider;
 
-import org.scleropages.maldini.security.authc.mgmt.model.Authentication;
+import org.scleropages.maldini.security.authc.Authentication;
 import org.scleropages.maldini.security.authc.token.client.AuthenticationToken;
 import org.scleropages.maldini.security.authc.token.client.EncodedToken;
 

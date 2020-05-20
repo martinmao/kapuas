@@ -28,8 +28,9 @@ import org.scleropages.maldini.app.model.Api;
 import org.scleropages.maldini.app.model.ApiMapper;
 import org.scleropages.maldini.app.model.Application;
 import org.scleropages.maldini.app.model.ApplicationMapper;
+import org.scleropages.maldini.security.authc.Authentication;
 import org.scleropages.maldini.security.authc.AuthenticationManager;
-import org.scleropages.maldini.security.authc.mgmt.model.Authentication;
+import org.scleropages.maldini.security.authc.mgmt.model.AuthenticationModel;
 import org.scleropages.maldini.security.authc.provider.Authenticating;
 import org.scleropages.maldini.security.authc.provider.AuthenticationDetailsProvider;
 import org.slf4j.Logger;
@@ -123,10 +124,14 @@ public class ApplicationManager implements AuthenticationDetailsProvider<Applica
         application.enable();
         application.setAppId(authentication.getPrincipal());
         ApplicationEntity savedApplication = applicationEntityRepository.save(getModelMapper().mapForSave(application));
-        authentication.setAssociatedId(String.valueOf(savedApplication.getId()));
-        authentication.setAssociatedType(AUTHENTICATION_DETAILS_PROVIDER_ID);
-        authentication.enable();
-        authenticationManager.create(authentication);
+
+
+        AuthenticationModel authenticationModel=new AuthenticationModel(authentication.getPrincipal(),authentication.getCredentials());
+        authenticationModel.setAssociatedId(String.valueOf(savedApplication.getId()));
+        authenticationModel.setAssociatedType(AUTHENTICATION_DETAILS_PROVIDER_ID);
+        authenticationModel.enable();
+        authenticationManager.create(authenticationModel);
+
         Application result = new Application();
         result.setAppId(authentication.getPrincipal());
         result.setAppSecret(authentication.getCredentials());

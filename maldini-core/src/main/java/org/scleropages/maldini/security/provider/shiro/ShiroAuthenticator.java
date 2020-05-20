@@ -19,7 +19,7 @@ import com.google.common.collect.Maps;
 import org.apache.shiro.SecurityUtils;
 import org.scleropages.maldini.security.SecurityContext;
 import org.scleropages.maldini.security.SecurityContextHolder;
-import org.scleropages.maldini.security.authc.mgmt.model.Authentication;
+import org.scleropages.maldini.security.authc.Authentication;
 import org.scleropages.maldini.security.authc.provider.Authenticator;
 import org.scleropages.maldini.security.authc.provider.JwtProvider;
 import org.scleropages.maldini.security.authc.token.client.AuthenticationToken;

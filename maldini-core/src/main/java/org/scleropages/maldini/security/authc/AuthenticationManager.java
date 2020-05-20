@@ -16,7 +16,6 @@
 package org.scleropages.maldini.security.authc;
 
 import org.scleropages.core.util.RandomGenerator;
-import org.scleropages.maldini.security.authc.mgmt.model.Authentication;
 import org.scleropages.maldini.security.authc.token.client.AuthenticationToken;
 import org.scleropages.maldini.security.authc.token.client.EncodedToken;
 

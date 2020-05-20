@@ -16,6 +16,7 @@
 package org.scleropages.maldini.security.authc.mgmt.model;
 
 import org.scleropages.crud.types.Available;
+import org.scleropages.maldini.security.authc.Authentication;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
@@ -24,7 +25,7 @@ import javax.validation.constraints.Null;
 /**
  * @author <a href="mailto:martinmao@icloud.com">Martin Mao</a>
  */
-public class Authentication implements Available {
+public class AuthenticationModel implements Authentication, Available {
 
 
     private Long id;
@@ -40,10 +41,10 @@ public class Authentication implements Available {
 
     private byte[] secureSalt;
 
-    public Authentication() {
+    public AuthenticationModel() {
     }
 
-    public Authentication(String principal, String credentials) {
+    public AuthenticationModel(String principal, String credentials) {
         this.principal = principal;
         this.credentials = credentials;
     }

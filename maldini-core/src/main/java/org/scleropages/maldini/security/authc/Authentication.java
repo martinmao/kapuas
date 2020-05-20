@@ -13,17 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.scleropages.maldini.security.authc.mgmt.model;
-
-import org.mapstruct.Mapper;
-import org.scleropages.crud.ModelMapper;
-import org.scleropages.maldini.security.authc.mgmt.entity.AuthenticationEntity;
-
+package org.scleropages.maldini.security.authc;
 
 /**
  * @author <a href="mailto:martinmao@icloud.com">Martin Mao</a>
  */
-@Mapper(config = ModelMapper.DefaultConfig.class)
-public interface AuthenticationMapper extends ModelMapper<AuthenticationEntity, AuthenticationModel> {
+public interface Authentication {
 
+
+    Long getId();
+
+    String getPrincipal();
+
+    String getCredentials();
+
+    byte[] getSecureSalt();
+
+    Integer getAssociatedType();
+
+    String getAssociatedId();
+
+    Boolean getEnabled();
+
+    Boolean getExpired();
+
+    Boolean getLocked();
+
+    Boolean getCredentialsExpired();
 }

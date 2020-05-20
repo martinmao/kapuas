@@ -18,7 +18,7 @@ package org.scleropages.maldini.security.authc.mgmt.web;
 import org.scleropages.crud.web.Servlets;
 import org.scleropages.maldini.security.SecurityOption;
 import org.scleropages.maldini.security.authc.AuthenticationManager;
-import org.scleropages.maldini.security.authc.mgmt.model.Authentication;
+import org.scleropages.maldini.security.authc.mgmt.model.AuthenticationModel;
 import org.scleropages.maldini.security.authc.token.client.StatelessUsernamePasswordToken;
 import org.scleropages.maldini.security.authc.token.client.UsernamePasswordToken;
 import org.scleropages.maldini.security.authc.token.client.jwt.JwtEncodedToken;
@@ -66,7 +66,7 @@ public class AuthenticationAction {
 
 
     @PostMapping("create")
-    public void create(Authentication authentication) {
+    public void create(AuthenticationModel authentication) {
         authenticationManager.create(authentication);
     }
 
