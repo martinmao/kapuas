@@ -17,6 +17,10 @@ package org.scleropages.maldini.security.provider.shiro;
 
 import com.google.common.collect.Maps;
 import org.apache.shiro.SecurityUtils;
+import org.apache.shiro.authc.SimpleAuthenticationInfo;
+import org.apache.shiro.realm.AuthenticatingRealm;
+import org.apache.shiro.util.ByteSource;
+import org.scleropages.maldini.security.SecurityBizException;
 import org.scleropages.maldini.security.SecurityContext;
 import org.scleropages.maldini.security.SecurityContextHolder;
 import org.scleropages.maldini.security.authc.Authentication;
@@ -27,6 +31,7 @@ import org.scleropages.maldini.security.authc.token.client.EncodedToken;
 import org.scleropages.maldini.security.authc.token.client.jwt.JwtEncodedToken;
 import org.scleropages.maldini.security.authc.token.server.jwt.JwtToken;
 import org.scleropages.maldini.security.authc.token.server.jwt.JwtTokenFactory;
+import org.scleropages.maldini.security.provider.shiro.realm.DefaultTokenRealm;
 import org.scleropages.maldini.session.StatelessToken;
 import org.springframework.beans.BeansException;
 import org.springframework.context.ApplicationContext;
@@ -47,9 +52,21 @@ public class ShiroAuthenticator implements Authenticator, ApplicationContextAwar
 
     private ApplicationContext applicationContext;
 
+    private AuthenticatingRealm authenticatingRealm;
+
     @Override
     public void authentication(AuthenticationToken token, Authentication authentication) {
-        throw new IllegalArgumentException("not implementation.");
+        if (null == authentication)
+            throw new SecurityBizException(SecurityBizException.AUTHC_FAILURE_MESSAGE);
+        SimpleAuthenticationInfo simpleAuthenticationInfo = new SimpleAuthenticationInfo(
+                authentication.getPrincipal(),
+                authentication.getCredentials(),
+                ByteSource.Util.bytes(authentication.getSecureSalt()),
+                getClass().getName());
+
+        boolean matcherResult = authenticatingRealm.getCredentialsMatcher().doCredentialsMatch(ShiroAuthenticationTokens.asShiroToken(token), simpleAuthenticationInfo);
+        if (!matcherResult)
+            throw new SecurityBizException(SecurityBizException.AUTHC_FAILURE_MESSAGE);
     }
 
     @Override
@@ -85,6 +102,7 @@ public class ShiroAuthenticator implements Authenticator, ApplicationContextAwar
         this.jwtProviders = Maps.newHashMap();
         beansOfType.forEach((beanName, jwtProvider) -> jwtProviders.put(jwtProvider.getSource(), jwtProvider));
         this.jwtTokenFactory = applicationContext.getBean(JwtTokenFactory.class);
+        this.authenticatingRealm = applicationContext.getBean(DefaultTokenRealm.class);
     }
 
     @Override

@@ -73,7 +73,8 @@ public class GenericAuthenticationManager implements AuthenticationManager, Gene
     @Override
     @BizError("01")
     public void authentication(AuthenticationToken token) {
-        authenticator.authentication(token, getByPrincipal(String.valueOf(token.getPrincipal())));
+        Authentication byPrincipal = getByPrincipal(String.valueOf(token.getPrincipal()));
+        authenticator.authentication(token, byPrincipal);
     }
 
     @Override
