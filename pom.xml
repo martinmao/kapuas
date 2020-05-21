@@ -2,16 +2,16 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>org.scleropages.maldini</groupId>
-    <artifactId>maldini-root</artifactId>
+    <groupId>org.scleropages.kapuas</groupId>
+    <artifactId>kapuas-root</artifactId>
     <packaging>pom</packaging>
     <version>0.0.1-SNAPSHOT</version>
     <modules>
-        <module>maldini-application-starter</module>
-        <module>maldini-application</module>
-        <module>maldini-core</module>
+        <module>kapuas-core</module>
+        <module>kapuas-application</module>
+        <module>kapuas-application-starter</module>
     </modules>
-    <name>Maldini-${project.version} Parent</name>
+    <name>Kapuas-${project.version} Parent</name>
     <description>Top project pom.xml file</description>
 
 
@@ -25,7 +25,7 @@
         <jjwt.version>0.9.1</jjwt.version>
         <org.mapstruct.version>1.3.1.Final</org.mapstruct.version>
         <fastjson.version>1.2.68</fastjson.version>
-        <ball.version>0.0.1-SNAPSHOT</ball.version>
+        <bukitmerah.version>0.0.1-SNAPSHOT</bukitmerah.version>
     </properties>
 
 
@@ -75,10 +75,11 @@
                 <version>${fastjson.version}</version>
             </dependency>
             <dependency>
-                <groupId>org.scleropages.ball</groupId>
-                <artifactId>ball-all</artifactId>
-                <version>${ball.version}</version>
+                <groupId>org.scleropages.bukitmerah</groupId>
+                <artifactId>bukitmerah-all</artifactId>
+                <version>${bukitmerah.version}</version>
             </dependency>
+
             <dependency>
                 <groupId>mysql</groupId>
                 <artifactId>mysql-connector-java</artifactId>
@@ -156,6 +157,11 @@
                             <artifactId>validation-api</artifactId>
                             <version>2.0.1.Final</version>
                         </dependency>
+                        <dependency>
+                            <groupId>org.scleropages.kapuas</groupId>
+                            <artifactId>kapuas-core</artifactId>
+                            <version>${project.version}</version>
+                        </dependency>
                     </dependencies>
                     <configuration>
                         <generator>
@@ -174,7 +180,7 @@
                                     <!-- A comma separated list of Java packages, that contain your entities -->
                                     <property>
                                         <key>packages</key>
-                                        <value>org.scleropages.maldini</value>
+                                        <value>org.scleropages.kapuas</value>
                                     </property>
                                     <!-- Whether JPA 2.1 AttributeConverters should be auto-mapped to jOOQ Converters.
                                     Custom <forcedType/> configurations will have a higher priority than these auto-mapped converters. This defaults to true. -->
@@ -192,7 +198,7 @@
                                 </properties>
                             </database>
                             <target>
-                                <packageName>org.scleropages.maldini.jooq</packageName>
+                                <packageName>org.scleropages.kapuas.jooq</packageName>
                                 <directory>target/generated-sources/jooq</directory>
                             </target>
                         </generator>
