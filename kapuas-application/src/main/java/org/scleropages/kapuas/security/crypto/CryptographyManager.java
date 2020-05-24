@@ -46,7 +46,7 @@ import java.security.SignatureException;
  */
 @Service
 @Validated
-@BizError("30")
+@BizError("40")
 public class CryptographyManager implements GenericManager<Cryptography, Long, CryptographyMapper> {
 
     protected final Logger logger = LoggerFactory.getLogger(getClass());

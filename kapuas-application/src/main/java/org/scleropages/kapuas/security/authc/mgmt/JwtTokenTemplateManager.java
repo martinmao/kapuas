@@ -17,6 +17,7 @@ package org.scleropages.kapuas.security.authc.mgmt;
 
 import org.scleropages.core.util.Signatures;
 import org.scleropages.crud.GenericManager;
+import org.scleropages.crud.exception.BizError;
 import org.scleropages.kapuas.security.authc.mgmt.entity.JwtTokenTemplateEntity;
 import org.scleropages.kapuas.security.authc.mgmt.entity.JwtTokenTemplateEntityRepository;
 import org.scleropages.kapuas.security.authc.mgmt.model.JwtTokenTemplate;
@@ -40,6 +41,7 @@ import java.util.Map;
  */
 @Service
 @Validated
+@BizError("50")
 public class JwtTokenTemplateManager implements GenericManager<JwtTokenTemplate, Long, JwtTokenTemplateMapper> {
 
     private JwtTokenTemplateEntityRepository jwtTokenTemplateEntityRepository;
@@ -48,6 +50,7 @@ public class JwtTokenTemplateManager implements GenericManager<JwtTokenTemplate,
 
     @Transactional
     @Validated({JwtTokenTemplate.CreateModel.class})
+    @BizError("01")
     public void save(@Valid JwtTokenTemplate jwtTokenTemplate) {
         JwtTokenTemplateEntity entity = getModelMapper().mapForSave(jwtTokenTemplate);
         cryptographyManager.awareKeyEntity(jwtTokenTemplate.getCryptographyId(), entity);
@@ -70,6 +73,7 @@ public class JwtTokenTemplateManager implements GenericManager<JwtTokenTemplate,
     }
 
     @Transactional(readOnly = true)
+    @BizError("02")
     public JwtTokenTemplate getByAssociatedTypeAndAssociatedId(Integer associatedType, String associatedId) {
         Assert.notNull(associatedType,"associatedType is required.");
         Assert.hasText(associatedId,"associatedId is required.");
@@ -77,11 +81,12 @@ public class JwtTokenTemplateManager implements GenericManager<JwtTokenTemplate,
     }
 
     @Transactional(readOnly = true)
+    @BizError("03")
     public JwtTokenTemplate getVerifyKeyEncodedAndAlgorithmByAssociatedTypeAndAssociatedId(Integer associatedType, String associatedId) {
         Assert.notNull(associatedType,"associatedType is required.");
         Assert.hasText(associatedId,"associatedId is required.");
         Map<String, Object> data = jwtTokenTemplateEntityRepository.getVerifyKeyEncodedAndAlgorithmByAssociatedTypeAndAssociatedId(associatedType, associatedId);
-        Assert.notNull(data, "no jwt token template found.");
+        Assert.notEmpty(data, "no jwt token template found.");
         JwtTokenTemplate jwtTokenTemplate = new JwtTokenTemplate();
         jwtTokenTemplate.setAlgorithm((String) data.get("alg_"));
         jwtTokenTemplate.setVerifyKeyEncoded((byte[]) data.get("verify_key_encoded"));
@@ -91,6 +96,7 @@ public class JwtTokenTemplateManager implements GenericManager<JwtTokenTemplate,
     }
 
     @Transactional(readOnly = true)
+    @BizError("04")
     public JwtTokenTemplate getById(Long id) {
         return getModelMapper().mapForRead(jwtTokenTemplateEntityRepository.get(id).get());
     }

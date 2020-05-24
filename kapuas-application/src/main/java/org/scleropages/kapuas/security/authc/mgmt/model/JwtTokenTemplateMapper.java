@@ -24,5 +24,4 @@ import org.scleropages.kapuas.security.authc.mgmt.entity.JwtTokenTemplateEntity;
  */
 @Mapper(config = ModelMapper.DefaultConfig.class)
 public interface JwtTokenTemplateMapper extends ModelMapper<JwtTokenTemplateEntity, JwtTokenTemplate> {
-
 }
