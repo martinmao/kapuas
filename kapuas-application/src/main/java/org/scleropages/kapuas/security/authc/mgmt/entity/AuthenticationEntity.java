@@ -19,6 +19,7 @@ package org.scleropages.kapuas.security.authc.mgmt.entity;
 import org.apache.commons.lang3.builder.ToStringBuilder;
 import org.apache.commons.lang3.builder.ToStringStyle;
 import org.scleropages.crud.dao.orm.jpa.entity.IdEntity;
+import org.scleropages.crud.types.Available;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -31,7 +32,7 @@ import javax.persistence.Table;
 @Entity
 @Table(name = "sec_authc")
 @SequenceGenerator(name = "authc_id", sequenceName = "seq_sec_authc", allocationSize = IdEntity.SEQ_DEFAULT_ALLOCATION_SIZE, initialValue = IdEntity.SEQ_DEFAULT_INITIAL_VALUE)
-public class AuthenticationEntity extends IdEntity {
+public class AuthenticationEntity extends IdEntity implements Available {
 
     /* authentication basic info */
     private String principal; // required; unique
@@ -177,4 +178,18 @@ public class AuthenticationEntity extends IdEntity {
         return sb.toString();
     }
 
+    @Override
+    public void enable() {
+        setEnabled(true);
+    }
+
+    @Override
+    public void disable() {
+        setEnabled(false);
+    }
+
+    @Override
+    public boolean availableState() {
+        return getEnabled();
+    }
 }

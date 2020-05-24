@@ -40,6 +40,7 @@ public class JwtTokenTemplateEntity extends IdEntity implements CryptographyMana
     private String algorithm;
     private String subject;
     private String issuer;
+    private Long expiration;
     private Integer associatedType;
     private String associatedId;
     private byte[] signKeyEncoded;
@@ -59,6 +60,11 @@ public class JwtTokenTemplateEntity extends IdEntity implements CryptographyMana
     @Column(name = "issuer_", nullable = false)
     public String getIssuer() {
         return issuer;
+    }
+
+    @Column(name = "exp_", nullable = false)
+    public Long getExpiration() {
+        return expiration;
     }
 
     @Column(name = "associated_type", nullable = false)
@@ -97,6 +103,10 @@ public class JwtTokenTemplateEntity extends IdEntity implements CryptographyMana
 
     public void setIssuer(String issuer) {
         this.issuer = issuer;
+    }
+
+    public void setExpiration(Long expiration) {
+        this.expiration = expiration;
     }
 
     public void setAssociatedType(Integer associatedType) {

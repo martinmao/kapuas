@@ -15,7 +15,6 @@
  */
 package org.scleropages.kapuas.security.authc.mgmt.model;
 
-import org.scleropages.crud.types.Available;
 import org.scleropages.kapuas.security.authc.Authentication;
 
 import javax.validation.constraints.NotEmpty;
@@ -25,7 +24,7 @@ import javax.validation.constraints.Null;
 /**
  * @author <a href="mailto:martinmao@icloud.com">Martin Mao</a>
  */
-public class AuthenticationModel implements Authentication, Available {
+public class AuthenticationModel implements Authentication {
 
 
     private Long id;
@@ -122,6 +121,11 @@ public class AuthenticationModel implements Authentication, Available {
 
     public void setEnabled(Boolean enabled) {
         this.enabled = enabled;
+        if(enabled){
+            setExpired(false);
+            setLocked(false);
+            setCredentialsExpired(false);
+        }
     }
 
     public void setExpired(Boolean expired) {
@@ -138,24 +142,6 @@ public class AuthenticationModel implements Authentication, Available {
 
     public void setSecureSalt(byte[] secureSalt) {
         this.secureSalt = secureSalt;
-    }
-
-    @Override
-    public void enable() {
-        this.enabled = true;
-        this.expired = false;
-        this.locked = false;
-        this.credentialsExpired = false;
-    }
-
-    @Override
-    public void disable() {
-        this.enabled = false;
-    }
-
-    @Override
-    public boolean isAvailable() {
-        return enabled;
     }
 
     public static interface CreateModel {

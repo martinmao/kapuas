@@ -27,6 +27,7 @@ public class JwtTokenTemplate {
     private Long id;
     private String subject;
     private String issuer;
+    private Long expiration;
     private Integer associatedType;
     private String associatedId;
     private String algorithm;
@@ -48,6 +49,11 @@ public class JwtTokenTemplate {
     @NotEmpty(groups = {CreateModel.class})
     public String getIssuer() {
         return issuer;
+    }
+
+    @NotNull(groups = {CreateModel.class})
+    public Long getExpiration() {
+        return expiration;
     }
 
     public Integer getAssociatedType() {
@@ -88,6 +94,10 @@ public class JwtTokenTemplate {
 
     public void setIssuer(String issuer) {
         this.issuer = issuer;
+    }
+
+    public void setExpiration(Long expiration) {
+        this.expiration = expiration;
     }
 
     public void setAssociatedType(Integer associatedType) {

@@ -110,6 +110,7 @@ public class GenericAuthenticationManager implements AuthenticationManager, Gene
     @BizError("06")
     public void create(Authentication authentication) {
         AuthenticationEntity authenticationEntity = getModelMapper().mapForSave((AuthenticationModel) authentication);
+        authenticationEntity.enable();
         hashPassword(authenticationEntity);
         authenticationEntityRepository.save(authenticationEntity);
     }
@@ -128,7 +129,6 @@ public class GenericAuthenticationManager implements AuthenticationManager, Gene
         return getModelMapper().mapForRead(authenticationEntityRepository.getByPrincipal(principal));
     }
 
-    @Override
     @Validated(AuthenticationModel.UpdateModel.class)
     @Transactional
     @BizError("09")

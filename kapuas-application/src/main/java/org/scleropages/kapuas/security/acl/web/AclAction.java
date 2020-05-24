@@ -140,18 +140,18 @@ public class AclAction implements GenericAction {
 
 
     @DeleteMapping("entries/{resourceType}/{resourceId}/{principalName}")
-    public void deleteAclEntry(@PathVariable String resourceType, @PathVariable String resourceId, @PathVariable String principalName, @RequestParam(name = "permission") String... permissionNames) {
+    public void deleteAclEntry(@PathVariable String resourceType, @PathVariable String resourceId, @PathVariable String principalName, @RequestParam(name = "permission", required = false) String... permissionNames) {
         ResourceModel model = new ResourceModel();
         model.setType(resourceType);
         model.setId(resourceId);
 
         AclPrincipalModel aclPrincipalModel = new AclPrincipalModel(principalName);
 
-        PermissionModel[] permissionModels = new PermissionModel[permissionNames.length];
-        for (int i = 0; i < permissionNames.length; i++) {
-            permissionModels[i] = new PermissionModel(permissionNames[i]);
-        }
-
+        PermissionModel[] permissionModels = null != permissionNames ? new PermissionModel[permissionNames.length] : null;
+        if (null != permissionModels)
+            for (int i = 0; i < permissionNames.length; i++) {
+                permissionModels[i] = new PermissionModel(permissionNames[i]);
+            }
         aclManager.deleteAclEntry(model, aclPrincipalModel, permissionModels);
     }
 

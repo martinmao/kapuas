@@ -29,7 +29,7 @@ import java.io.Serializable;
  *
  * @author <a href="mailto:martinmao@icloud.com">Martin Mao</a>
  */
-public class Application implements Available, AuthenticationDetails {
+public class Application implements AuthenticationDetails {
 
     private Long id;
     private String name;
@@ -125,20 +125,6 @@ public class Application implements Available, AuthenticationDetails {
         this.apiGateway = apiGateway;
     }
 
-    @Override
-    public void enable() {
-        this.enabled = true;
-    }
-
-    @Override
-    public void disable() {
-        this.enabled = false;
-    }
-
-    @Override
-    public boolean isAvailable() {
-        return enabled;
-    }
 
     @Override
     public String tag() {

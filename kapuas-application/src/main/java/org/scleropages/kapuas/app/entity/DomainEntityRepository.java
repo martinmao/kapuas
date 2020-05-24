@@ -23,6 +23,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.util.Assert;
 
 import javax.persistence.criteria.JoinType;
+import java.util.List;
 
 /**
  * @author <a href="mailto:martinmao@icloud.com">Martin Mao</a>
@@ -49,5 +50,10 @@ public interface DomainEntityRepository extends GenericRepository<DomainEntity, 
             return builder.equal(root.get("id"), id);
         };
         return findOne(specification).orElseThrow(() -> new IllegalArgumentException("no domain found."));
+    }
+
+    default List<Long> findAllIdsByParentDomainId(Long parentId) {
+        AppDomain appDomain = dslTable();
+        return dslContext().select(appDomain.ID).from(appDomain).where(appDomain.PARENT_APP_DOMAIN_ID.eq(parentId)).fetchInto(Long.class);
     }
 }

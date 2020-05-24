@@ -16,6 +16,7 @@
 package org.scleropages.kapuas.security.crypto.entity;
 
 import org.scleropages.crud.dao.orm.jpa.entity.IdEntity;
+import org.scleropages.crud.types.Available;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -31,7 +32,7 @@ import javax.persistence.Table;
 @Entity
 @Table(name = "sec_key")
 @SequenceGenerator(name = "sec_key_id", sequenceName = "seq_sec_key", allocationSize = IdEntity.SEQ_DEFAULT_ALLOCATION_SIZE, initialValue = IdEntity.SEQ_DEFAULT_INITIAL_VALUE)
-public class KeyEntity extends IdEntity {
+public class KeyEntity extends IdEntity implements Available {
 
     private String algorithm;
 
@@ -121,5 +122,20 @@ public class KeyEntity extends IdEntity {
 
     public void setRefKey(KeyEntity refKey) {
         this.refKey = refKey;
+    }
+
+    @Override
+    public void enable() {
+        setEnabled(true);
+    }
+
+    @Override
+    public void disable() {
+        setEnabled(false);
+    }
+
+    @Override
+    public boolean availableState() {
+        return getEnabled();
     }
 }

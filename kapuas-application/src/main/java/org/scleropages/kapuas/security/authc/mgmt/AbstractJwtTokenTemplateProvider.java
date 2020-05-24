@@ -38,7 +38,7 @@ public abstract class AbstractJwtTokenTemplateProvider<T> implements JwtProvider
     private static final String JWT_HEADER_AUTH_ID = "aui";//auth id.
 
     @Value("#{ @environment['jwt.token.template.expiration'] ?: 1800000 }")
-    private long jwtTokenExpiration;
+    private long jwtTokenExpiration;//废弃的字段，配置在JwtTokenTemplate上
     @Value("#{ @environment['jwt.token.template.not-before'] ?: 0 }")
     private long jwtTokenNotBefore;
 
@@ -63,7 +63,8 @@ public abstract class AbstractJwtTokenTemplateProvider<T> implements JwtProvider
         tokenBuilder.withIssuer(jwtTokenTemplate.getIssuer());
         tokenBuilder.withAudience(authenticated.host());
         tokenBuilder.withIssuedAt(new Date(now));
-        tokenBuilder.withExpiration(new Date(now + jwtTokenExpiration));
+        tokenBuilder.withExpiration(new Date(now + jwtTokenTemplate.getExpiration()));
+
         tokenBuilder.withNotBefore(new Date(now + jwtTokenNotBefore));
         postJwtTokenBuild(authenticated, jwtTokenFactory, tokenBuilder, requestContext);
         return jwtTokenFactory.encode(jwtTokenTemplate.getAlgorithm(), jwtTokenTemplate.getSignKeyEncoded(), tokenBuilder.build());

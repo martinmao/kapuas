@@ -60,6 +60,12 @@
         <heap>1000</heap> <!--keep maximum 1000 entries of (associated_id and associated_type)->sec_jwtt in heap memory-->
     </cache>
 
+    <cache alias="org.scleropages.kapuas.security.authc.mgmt.entity.JwtTokenTemplateEntityRepository.getByAssociatedTypeAndAssociatedId">
+        <expiry>
+            <ttl unit="minutes">10</ttl>
+        </expiry>
+        <heap>1000</heap> <!--keep maximum 1000 entries of (associated_id and associated_type)->sec_jwtt in heap memory-->
+    </cache>
 
     <cache-template name="heap-cache">
         <expiry>

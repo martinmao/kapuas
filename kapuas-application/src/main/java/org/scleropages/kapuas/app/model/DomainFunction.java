@@ -15,8 +15,6 @@
  */
 package org.scleropages.kapuas.app.model;
 
-import org.scleropages.crud.types.Available;
-
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Null;
@@ -26,7 +24,7 @@ import javax.validation.constraints.Null;
  *
  * @author <a href="mailto:martinmao@icloud.com">Martin Mao</a>
  */
-public class DomainFunction implements Available {
+public class DomainFunction{
 
     private Long id;
     private String name;
@@ -122,20 +120,6 @@ public class DomainFunction implements Available {
         this.domainId = domainId;
     }
 
-    @Override
-    public void enable() {
-        this.enabled = true;
-    }
-
-    @Override
-    public void disable() {
-        this.enabled = false;
-    }
-
-    @Override
-    public boolean isAvailable() {
-        return enabled;
-    }
 
     public static interface CreateModel {
     }

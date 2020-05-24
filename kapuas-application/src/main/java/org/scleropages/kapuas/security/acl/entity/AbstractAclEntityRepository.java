@@ -61,12 +61,12 @@ public interface AbstractAclEntityRepository<E extends AbstractAclEntity, T exte
 
     default Long getIdByResourceTypeIdAndResourceId(Long typeId, String resourceId) {
         T actualAclTable = dslTable();
-        Record record = dslContext().select(actualAclTable.field(AbstractAclEntity.ID_COLUMN)).from(actualAclTable)
-                .where(actualAclTable.field(AbstractAclEntity.RESOURCE_TYPE_ID_COLUMN).eq(typeId))
-                .and(actualAclTable.field(AbstractAclEntity.RESOURCE_ID_COLUMN).eq(resourceId)).fetchOne();
+        Record record = dslContext().select(actualAclTable.field(AbstractAclEntity.ID_COLUMN.toUpperCase())).from(actualAclTable)
+                .where(actualAclTable.field(AbstractAclEntity.RESOURCE_TYPE_ID_COLUMN.toUpperCase()).eq(typeId))
+                .and(actualAclTable.field(AbstractAclEntity.RESOURCE_ID_COLUMN.toUpperCase()).eq(resourceId)).fetchOne();
         if (null == record)
             throw new IllegalArgumentException("can't find acl by given resource.");
-        return (Long) record.get(actualAclTable.field(AbstractAclEntity.ID_COLUMN));
+        return (Long) record.get(actualAclTable.field(AbstractAclEntity.ID_COLUMN.toUpperCase()));
     }
 
     Boolean existsByResourceTypeIdAndResourceId(Long typeId, String resourceId);

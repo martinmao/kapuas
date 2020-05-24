@@ -116,11 +116,10 @@ public class GenericKeyManager implements KeyManager, GenericManager<Key, Long, 
         return randomGenerator.nextBytes(length);
     }
 
-    @Override
     @Transactional
     @BizError("04")
     public void save(Key model) {
-        model.enable();
+        model.setEnabled(true);
         keyEntityRepository.save(getModelMapper().mapForSave(model));
     }
 

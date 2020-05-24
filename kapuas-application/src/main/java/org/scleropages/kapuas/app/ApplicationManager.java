@@ -101,7 +101,6 @@ public class ApplicationManager implements AuthenticationDetailsProvider<Applica
         return apiEntityRepository.findPage(searchFilters, pageable).map(apiEntity -> getModelMapper(ApiMapper.class).mapForRead(apiEntity));
     }
 
-    @Override
     @Transactional
     @Validated({Application.UpdateModel.class})
     @BizError("04")
@@ -121,15 +120,15 @@ public class ApplicationManager implements AuthenticationDetailsProvider<Applica
     public Application create(@Valid Application application) {
         Assert.isTrue(!applicationEntityRepository.existsByName(application.getName()), "application name already exists.");
         Authentication authentication = authenticationManager.randomAuthentication(randomAppIdBytesLength, randomAppSecureBytesLength, randomBytesEncoded);
-        application.enable();
         application.setAppId(authentication.getPrincipal());
-        ApplicationEntity savedApplication = applicationEntityRepository.save(getModelMapper().mapForSave(application));
+        ApplicationEntity savedApplication = getModelMapper().mapForSave(application);
+        savedApplication.enable();
+        savedApplication = applicationEntityRepository.save(savedApplication);
 
 
-        AuthenticationModel authenticationModel=new AuthenticationModel(authentication.getPrincipal(),authentication.getCredentials());
+        AuthenticationModel authenticationModel = new AuthenticationModel(authentication.getPrincipal(), authentication.getCredentials());
         authenticationModel.setAssociatedId(String.valueOf(savedApplication.getId()));
         authenticationModel.setAssociatedType(AUTHENTICATION_DETAILS_PROVIDER_ID);
-        authenticationModel.enable();
         authenticationManager.create(authenticationModel);
 
         Application result = new Application();
@@ -156,15 +155,10 @@ public class ApplicationManager implements AuthenticationDetailsProvider<Applica
         return applicationEntityRepository.findPage(searchFilters, pageable).map(applicationEntity -> getModelMapper().mapForRead(applicationEntity));
     }
 
-    public void awareApplicationEntity(Long id, EntityAware entityAware) {
-        entityAware.setEntity(applicationEntityRepository.findById(id).get());
-    }
-
     public void awareApiEntity(Long id, EntityAware entityAware) {
         entityAware.setEntity(apiEntityRepository.getById(id));
     }
 
-    @Override
     @Transactional(readOnly = true)
     @BizError("09")
     public Application getById(Long id) {

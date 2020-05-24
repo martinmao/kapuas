@@ -641,6 +641,7 @@ public class GenericAclManager implements AclManager {
     @Override
     @Validated(AclPrincipalModel.CreateModel.class)
     @Transactional
+    @BizError("14")
     public void createAclPrincipal(AclPrincipalModel aclPrincipalModel) {
         Assert.isTrue(!aclPrincipalEntityRepository.existsByName(aclPrincipalModel.getName()), "principal exists.");
         AclPrincipalEntity aclPrincipalEntity = new AclPrincipalEntity();
@@ -652,6 +653,7 @@ public class GenericAclManager implements AclManager {
 
     @Override
     @Transactional(readOnly = true)
+    @BizError("15")
     public Page<AclPrincipal> findAclPrincipals(Map<String, SearchFilter> searchFilters, Pageable pageable) {
 
         Page<AclPrincipalEntity> entities = aclPrincipalEntityRepository.findAll(SearchFilterSpecifications.bySearchFilter(searchFilters.values(), AclPrincipalEntity.class), pageable);
@@ -668,6 +670,7 @@ public class GenericAclManager implements AclManager {
     @Override
     @Transactional
     @Validated(AclStrategy.CreateModel.class)
+    @BizError("16")
     public void createAclStrategy(AclStrategy aclStrategy) {
         String resource = aclStrategy.getResource();
         Assert.isTrue(permissionEntityRepository.getLocalPermissionEntityRepository().getResourceTypeIdByResourceType(resource) == null, resource + " already configure.");
@@ -719,6 +722,7 @@ public class GenericAclManager implements AclManager {
 
     @Override
     @Transactional(readOnly = true)
+    @BizError("17")
     public AclStrategy getAclStrategy(String resource) {
         Assert.hasText(resource, "given resource must not be empty text.");
         List<PermissionEntity> permissions = permissionEntityRepository.getLocalPermissionEntityRepository().findAllByResourceType(resource);

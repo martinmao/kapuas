@@ -15,8 +15,6 @@
  */
 package org.scleropages.kapuas.app.model;
 
-import org.scleropages.crud.types.Available;
-
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Null;
@@ -26,9 +24,10 @@ import javax.validation.constraints.Null;
  *
  * @author <a href="mailto:martinmao@icloud.com">Martin Mao</a>
  */
-public class Domain implements Available {
+public class Domain {
 
     private Long id;
+    private String name;
     private String namespace;
     private String tag;
     private String description;
@@ -43,6 +42,12 @@ public class Domain implements Available {
     }
 
     @NotBlank(groups = {CreateModel.class})
+    public String getName() {
+        return name;
+    }
+
+    @Null(groups = {CreateModel.class})
+    @Null(groups = {UpdateModel.class})
     public String getNamespace() {
         return namespace;
     }
@@ -75,6 +80,10 @@ public class Domain implements Available {
         this.id = id;
     }
 
+    public void setName(String name) {
+        this.name = name;
+    }
+
     public void setNamespace(String namespace) {
         this.namespace = namespace;
     }
@@ -97,21 +106,6 @@ public class Domain implements Available {
 
     public void setParentId(Long parentId) {
         this.parentId = parentId;
-    }
-
-    @Override
-    public void enable() {
-        this.enabled = true;
-    }
-
-    @Override
-    public void disable() {
-        this.enabled = false;
-    }
-
-    @Override
-    public boolean isAvailable() {
-        return enabled;
     }
 
     public static interface CreateModel {

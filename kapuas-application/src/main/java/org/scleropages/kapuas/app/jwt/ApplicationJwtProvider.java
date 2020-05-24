@@ -39,12 +39,13 @@ import java.util.Map;
 @Component
 public class ApplicationJwtProvider extends AbstractJwtTokenTemplateProvider<Application> {
 
-    private static final String REQUEST_CONTEXT_PARAMETER_FUNCTION_NAME = "app_func";
+    private static final String REQUEST_CONTEXT_PARAMETER_FUNCTION_NAME = "domain_func";//acl管理粒度在 domain function
 
     @Value("#{ @environment['jwt.token.app_auth.acl_resource'] ?: 'domain_function_access' }")
     private String applicationJwtAclResourceType;
     @Value("#{ @environment['jwt.token.app_auth.acl_permission'] ?: null }")
     private String applicationJwtAclPermission;
+
 
     private AclManager aclManager;
 

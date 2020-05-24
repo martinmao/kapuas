@@ -32,9 +32,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.Assert;
 import org.springframework.validation.annotation.Validated;
 
 import javax.validation.Valid;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -55,44 +57,66 @@ public class DomainManager implements GenericManager<Domain, Long, DomainMapper>
 
     private ApplicationManager applicationManager;
 
-    @Override
+
     @Validated({Domain.UpdateModel.class})
     @Transactional
     @BizError("01")
     public void save(@Valid Domain model) {
+        save(model, false);
+    }
+
+
+    protected void save(Domain model, boolean forceDeepChanges) {
         DomainEntity domainEntity = domainEntityRepository.getByIdWithParentDomainEntity(model.getId());
-        boolean namespaceChanged = !Objects.equals(domainEntity.getNamespace(), model.getNamespace());
+        boolean namespaceChanged = isNameChangedAndApplyChanges(domainEntity, model);
         getModelMapper().mapForUpdate(model, domainEntity);
+        DomainEntity associatedParent = domainEntity.getParentDomainEntity();
         if (null != model.getParentId()) {
-            DomainEntity associatedParent = domainEntity.getParentDomainEntity();
+            Assert.isTrue(!Objects.equals(model.getParentId(),domainEntity.getId()),"not allowed parent-id is equals to id.");
             Long currentParentId = model.getParentId();
-            if (null == associatedParent || !Objects.equals(associatedParent.getId(), currentParentId)) {
+            if (null == associatedParent || !Objects.equals(associatedParent.getId(), currentParentId)) {//parent has bean changed.
                 DomainEntity currentParent = domainEntityRepository.getByIdOrNamespace(currentParentId, null);
-                domainEntity.setNamespace(
-                        currentParent.getNamespace()
-                                + DOMAIN_SEPARATOR
-                                + StringUtils.removeStart(domainEntity.getNamespace(),
-                                null != associatedParent ? associatedParent.getNamespace() : null));
+                domainEntity.setParentDomainEntity(currentParent);
                 namespaceChanged = true;
             }
         }
-        if (namespaceChanged) {
+        if (forceDeepChanges || namespaceChanged) {
+            DomainEntity currentParent = domainEntity.getParentDomainEntity();
+            domainEntity.setNamespace(
+                    (null != currentParent ? currentParent.getNamespace() + DOMAIN_SEPARATOR : StringUtils.EMPTY)
+                            + domainEntity.getName());
+
+            domainEntityRepository.saveAndFlush(domainEntity);//apply changes instantly.
+
+            //apply changes to sub domains
+            List<Long> subDomainIds = domainEntityRepository.findAllIdsByParentDomainId(domainEntity.getId());
+            subDomainIds.forEach(subDomainId -> {
+                Domain subDomain = new Domain();
+                subDomain.setId(subDomainId);
+                save(subDomain, true);
+            });
+
+            //apply changes to sub domain functions
             domainFunctionEntityRepository.findAllByDomainEntity_Id(domainEntity.getId()).forEach(
                     functionEntity -> computeAndApplyFunctionFullName(domainEntity, functionEntity));
         }
     }
 
+
+
     @Validated({Domain.CreateModel.class})
     @Transactional
     @BizError("02")
     public void create(@Valid Domain model) {
-        model.enable();
         DomainEntity domainEntity = getModelMapper().mapForSave(model);
+        domainEntity.enable();
         Long parentId = model.getParentId();
         if (null != parentId) {
             DomainEntity parentDomainEntity = domainEntityRepository.getByIdOrNamespace(parentId, null);
             domainEntity.setParentDomainEntity(parentDomainEntity);
-            domainEntity.setNamespace(parentDomainEntity.getNamespace() + DOMAIN_SEPARATOR + domainEntity.getNamespace());
+            domainEntity.setNamespace(parentDomainEntity.getNamespace() + DOMAIN_SEPARATOR + domainEntity.getName());
+        } else {
+            domainEntity.setNamespace(domainEntity.getName());
         }
         domainEntityRepository.save(domainEntity);
     }
@@ -117,8 +141,8 @@ public class DomainManager implements GenericManager<Domain, Long, DomainMapper>
     @Transactional
     @BizError("05")
     public void create(@Valid DomainFunction function) {
-        function.enable();
         DomainFunctionEntity functionEntity = getModelMapper(DomainFunctionMapper.class).mapForSave(function);
+        functionEntity.enable();
         applicationManager.awareApiEntity(function.getApiId(), functionEntity);
         DomainEntity domainEntity = domainEntityRepository.getByIdOrNamespace(function.getDomainId(), null);
         functionEntity.setAppId(functionEntity.getApiEntity().getApplicationEntity().getAppId());
@@ -139,6 +163,19 @@ public class DomainManager implements GenericManager<Domain, Long, DomainMapper>
         }
     }
 
+    protected boolean isNameChangedAndApplyChanges(DomainEntity domainEntity, Domain model) {
+        if (StringUtils.isBlank(model.getName()))
+            return false;
+        String currentName = domainEntity.getName();
+        String applyName = model.getName();
+        boolean nameChanged = !Objects.equals(currentName, applyName);
+        if (nameChanged) {
+            domainEntity.setNamespace(StringUtils.removeEnd(domainEntity.getNamespace(), currentName) + applyName);
+            domainEntity.setName(applyName);
+        }
+        return nameChanged;
+    }
+
     @Transactional(readOnly = true)
     @BizError("06")
     public Page<DomainFunction> findDomainFunctionPage(Map<String, SearchFilter> searchFilters, Pageable pageable) {
@@ -151,7 +188,6 @@ public class DomainManager implements GenericManager<Domain, Long, DomainMapper>
         return domainFunctionEntityRepository.getAppIdByFunctionFullName(funcFullName);
     }
 
-    @Override
     public Domain getById(Long id) {
         return getModelMapper().mapForRead(domainEntityRepository.findById(id).get());
     }

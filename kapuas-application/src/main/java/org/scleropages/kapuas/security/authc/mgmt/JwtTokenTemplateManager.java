@@ -90,7 +90,6 @@ public class JwtTokenTemplateManager implements GenericManager<JwtTokenTemplate,
         return jwtTokenTemplate;
     }
 
-    @Override
     @Transactional(readOnly = true)
     public JwtTokenTemplate getById(Long id) {
         return getModelMapper().mapForRead(jwtTokenTemplateEntityRepository.get(id).get());

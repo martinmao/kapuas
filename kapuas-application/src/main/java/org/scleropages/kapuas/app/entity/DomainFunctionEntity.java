@@ -17,6 +17,7 @@ package org.scleropages.kapuas.app.entity;
 
 import org.scleropages.crud.dao.orm.jpa.entity.EntityAware;
 import org.scleropages.crud.dao.orm.jpa.entity.IdEntity;
+import org.scleropages.crud.types.Available;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -33,7 +34,7 @@ import javax.persistence.UniqueConstraint;
 @Entity
 @Table(name = "app_domain_func", uniqueConstraints = @UniqueConstraint(columnNames = {"full_name", "app_api_id"}))
 @SequenceGenerator(name = "app_domain_func_id", sequenceName = "seq_app_domain_func", allocationSize = IdEntity.SEQ_DEFAULT_ALLOCATION_SIZE, initialValue = IdEntity.SEQ_DEFAULT_INITIAL_VALUE)
-public class DomainFunctionEntity extends IdEntity implements EntityAware<IdEntity> {
+public class DomainFunctionEntity extends IdEntity implements EntityAware<IdEntity>, Available {
 
     private String name;
     private String fullName;
@@ -138,5 +139,20 @@ public class DomainFunctionEntity extends IdEntity implements EntityAware<IdEnti
             setDomainEntity((DomainEntity) idEntity);
         else
             throw new IllegalArgumentException("unsupported payload type: " + idEntity.getClass().getName());
+    }
+
+    @Override
+    public void enable() {
+        setEnabled(true);
+    }
+
+    @Override
+    public void disable() {
+        setEnabled(false);
+    }
+
+    @Override
+    public boolean availableState() {
+        return getEnabled();
     }
 }

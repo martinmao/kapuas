@@ -16,6 +16,7 @@
 package org.scleropages.kapuas.app.entity;
 
 import org.scleropages.crud.dao.orm.jpa.entity.IdEntity;
+import org.scleropages.crud.types.Available;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
@@ -28,7 +29,7 @@ import javax.persistence.Table;
 @Entity
 @Table(name = "app_info")
 @SequenceGenerator(name = "app_info_id", sequenceName = "seq_app_info", allocationSize = IdEntity.SEQ_DEFAULT_ALLOCATION_SIZE, initialValue = IdEntity.SEQ_DEFAULT_INITIAL_VALUE)
-public class ApplicationEntity extends IdEntity {
+public class ApplicationEntity extends IdEntity implements Available {
 
     private String appId;
     private String name;
@@ -109,5 +110,20 @@ public class ApplicationEntity extends IdEntity {
 
     public void setEnabled(Boolean enabled) {
         this.enabled = enabled;
+    }
+
+    @Override
+    public void enable() {
+        setEnabled(true);
+    }
+
+    @Override
+    public void disable() {
+        setEnabled(false);
+    }
+
+    @Override
+    public boolean availableState() {
+        return getEnabled();
     }
 }

@@ -15,8 +15,6 @@
  */
 package org.scleropages.kapuas.security.crypto.model;
 
-import org.scleropages.crud.types.Available;
-
 import javax.validation.constraints.Max;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotBlank;
@@ -26,7 +24,7 @@ import javax.validation.constraints.Null;
 /**
  * @author <a href="mailto:martinmao@icloud.com">Martin Mao</a>
  */
-public class Key implements Available {
+public class Key{
 
     public static final int KEY_TYPE = 0;
     public static final int KEY_PAIR_TYPE_PRIVATE = 1;
@@ -120,20 +118,5 @@ public class Key implements Available {
 
     public void setKeyType(Integer keyType) {
         this.keyType = keyType;
-    }
-
-    @Override
-    public void enable() {
-        this.enabled = true;
-    }
-
-    @Override
-    public void disable() {
-        this.enabled = false;
-    }
-
-    @Override
-    public boolean isAvailable() {
-        return enabled;
     }
 }

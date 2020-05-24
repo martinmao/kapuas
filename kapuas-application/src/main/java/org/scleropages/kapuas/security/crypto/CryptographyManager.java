@@ -55,7 +55,7 @@ public class CryptographyManager implements GenericManager<Cryptography, Long, C
 
     private CryptographyEntityRepository cryptographyEntityRepository;
 
-    @Override
+
     @Transactional
     @Validated({Cryptography.CreateModel.class})
     @BizError("01")
@@ -110,7 +110,7 @@ public class CryptographyManager implements GenericManager<Cryptography, Long, C
 
     }
 
-    @Override
+
     @Transactional(readOnly = true)
     @BizError("02")
     public Cryptography getById(Long id) {
