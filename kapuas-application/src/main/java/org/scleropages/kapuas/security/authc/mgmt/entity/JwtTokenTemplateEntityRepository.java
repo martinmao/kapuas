@@ -29,7 +29,7 @@ public interface JwtTokenTemplateEntityRepository extends GenericRepository<JwtT
     @Cacheable
     JwtTokenTemplateEntity getByAssociatedTypeAndAssociatedId(Integer associatedType,String associatedId);
 
-    @Query(nativeQuery = true, value = "select verify_key_encoded, alg_ from sec_jwtt where associated_type=? and associated_id=?")
+    @Query(nativeQuery = true, value = "select case when verify_key_encoded is not null then verify_key_encoded else sign_key_encoded end as verify_key_encoded , alg_ from sec_jwtt where associated_type=? and associated_id=?")
     Map<String,Object> getVerifyKeyEncodedAndAlgorithmByAssociatedTypeAndAssociatedId(Integer associatedType, String associatedId);
 
 }
