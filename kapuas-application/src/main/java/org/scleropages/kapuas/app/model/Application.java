@@ -15,7 +15,6 @@
  */
 package org.scleropages.kapuas.app.model;
 
-import org.scleropages.crud.types.Available;
 import org.scleropages.kapuas.security.AuthenticationDetails;
 
 import javax.validation.constraints.NotBlank;

@@ -13,22 +13,33 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.scleropages.kapuas.security.provider.shiro.realm.central;
+package org.scleropages.kapuas.spring.boot.autoconfigure;
 
-import org.apache.shiro.authc.UsernamePasswordToken;
-import org.scleropages.kapuas.security.authc.provider.Authenticating;
-import org.scleropages.kapuas.security.authc.provider.Authenticator;
-import org.scleropages.kapuas.security.provider.shiro.AuthenticationTokenManager;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
 /**
  * @author <a href="mailto:martinmao@icloud.com">Martin Mao</a>
  */
-public class CentralTokenManager implements AuthenticationTokenManager<UsernamePasswordToken> {
+@ConfigurationProperties(prefix = "kapuas")
+public class KapuasProperties {
 
-    private Authenticator authenticator;
+    private String gateway;
 
-    @Override
-    public Authenticating find(UsernamePasswordToken authenticationToken) {
-        return null;
+    private String appId;
+
+    public String getGateway() {
+        return gateway;
+    }
+
+    public String getAppId() {
+        return appId;
+    }
+
+    public void setGateway(String gateway) {
+        this.gateway = gateway;
+    }
+
+    public void setAppId(String appId) {
+        this.appId = appId;
     }
 }

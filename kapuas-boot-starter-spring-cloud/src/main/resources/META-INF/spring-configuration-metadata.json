@@ -1,0 +1,22 @@
+{
+  "groups": [
+    {
+      "name": "kapuas"
+    }
+  ],
+  "properties": [
+
+    {
+      "name": "kapuas.gateway",
+      "type": "java.lang.String",
+      "description": "kapuas gateway url.",
+      "sourceType": "org.scleropages.kapuas.spring.boot.autoconfigure.KapuasProperties"
+    },
+    {
+      "name": "kapuas.app-id",
+      "type": "java.lang.String",
+      "description": "current app id registered from kapuas application.",
+      "sourceType": "org.scleropages.kapuas.spring.boot.autoconfigure.KapuasProperties"
+    }
+  ]
+}
