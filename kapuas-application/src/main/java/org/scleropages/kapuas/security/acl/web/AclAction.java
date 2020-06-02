@@ -18,12 +18,18 @@ package org.scleropages.kapuas.security.acl.web;
 import org.apache.commons.collections.MapUtils;
 import org.scleropages.crud.dao.orm.SearchFilter;
 import org.scleropages.crud.web.GenericAction;
+import org.scleropages.kapuas.openapi.annotation.ApiModel;
+import org.scleropages.kapuas.security.acl.Acl;
+import org.scleropages.kapuas.security.acl.AclEntry;
 import org.scleropages.kapuas.security.acl.AclManager;
+import org.scleropages.kapuas.security.acl.AclPrincipal;
+import org.scleropages.kapuas.security.acl.model.AclModel;
 import org.scleropages.kapuas.security.acl.model.AclPrincipalModel;
 import org.scleropages.kapuas.security.acl.model.AclStrategy;
 import org.scleropages.kapuas.security.acl.model.PermissionModel;
 import org.scleropages.kapuas.security.acl.model.ResourceModel;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -36,6 +42,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -53,12 +60,12 @@ public class AclAction implements GenericAction {
     }
 
     @GetMapping("strategy/{resource}")
-    public Object getAclStrategy(@PathVariable String resource) {
+    public AclStrategy getAclStrategy(@PathVariable String resource) {
         return aclManager.getAclStrategy(resource);
     }
 
     @GetMapping("strategy")
-    public Object getAllAclStrategies() {
+    public String[] getAllAclStrategies() {
         return aclManager.getAllAclStrategyResourceTypes();
     }
 
@@ -68,7 +75,7 @@ public class AclAction implements GenericAction {
     }
 
     @GetMapping("principal")
-    public Object queryPrincipal(HttpServletRequest request) {
+    public Page<AclPrincipal> queryPrincipal(HttpServletRequest request) {
         return aclManager.findAclPrincipals(buildSearchFilterFromRequest(request), buildPageableFromRequest(request));
     }
 
@@ -78,7 +85,7 @@ public class AclAction implements GenericAction {
     }
 
     @GetMapping("resource/{resourceType}")
-    public Object readAcl(HttpServletRequest request, @PathVariable String resourceType, @RequestParam(required = false) String variables) {
+    public Page<Acl> readAcl(HttpServletRequest request, @PathVariable String resourceType, @RequestParam(required = false) String variables) {
         ResourceModel model = new ResourceModel();
         model.setType(resourceType);
         Map<String, Object> variablesSearchParams = StringUtils.hasText(variables) ? buildObjectFromJsonPayload(variables, Map.class) : MapUtils.EMPTY_MAP;
@@ -86,7 +93,8 @@ public class AclAction implements GenericAction {
     }
 
     @GetMapping("resource/{resourceType}/{resourceId}")
-    public Object getAcl(@PathVariable String resourceType, @PathVariable String resourceId) {
+    @ApiModel(AclModel.class)
+    public Acl getAcl(@PathVariable String resourceType, @PathVariable String resourceId) {
         ResourceModel model = new ResourceModel();
         model.setType(resourceType);
         model.setId(resourceId);
@@ -110,7 +118,7 @@ public class AclAction implements GenericAction {
     }
 
     @GetMapping("resource/payload/{resourceType}")
-    public Object findAllAclBizPayload(@PathVariable String resourceType, @RequestParam(name = "aclId") Long... aclIds) {
+    public List<String> findAllAclBizPayload(@PathVariable String resourceType, @RequestParam(name = "aclId") Long... aclIds) {
         ResourceModel resourceModel = new ResourceModel();
         resourceModel.setType(resourceType);
         return aclManager.findAllAclBizPayload(resourceModel, aclIds);
@@ -156,7 +164,7 @@ public class AclAction implements GenericAction {
     }
 
     @GetMapping("entries/{resourceType}/{resourceId}")
-    public Object readAclEntries(HttpServletRequest request, @PathVariable String resourceType, @PathVariable String resourceId, String principal) {
+    public Page<AclEntry> readAclEntries(HttpServletRequest request, @PathVariable String resourceType, @PathVariable String resourceId, String principal) {
         ResourceModel resourceModel = new ResourceModel();
         resourceModel.setType(resourceType);
         resourceModel.setId(resourceId);
@@ -164,9 +172,9 @@ public class AclAction implements GenericAction {
     }
 
     @GetMapping("principal_entries/{principal}/{resourceType}")
-    public Object readPrincipalAclEntries(HttpServletRequest request,
-                                          @PathVariable String principal, @PathVariable String resourceType,
-                                          String resourceId, String permission, String variables) {
+    public Page<AclEntry> readPrincipalAclEntries(HttpServletRequest request,
+                                                  @PathVariable String principal, @PathVariable String resourceType,
+                                                  String resourceId, String permission, String variables) {
         ResourceModel resourceModel = new ResourceModel();
         resourceModel.setType(resourceType);
         resourceModel.setId(resourceId);
@@ -176,7 +184,7 @@ public class AclAction implements GenericAction {
     }
 
     @GetMapping("accessible/{principal}/{resourceType}/{resourceId}")
-    public Object isAccessible(@PathVariable String principal, @PathVariable String resourceType, @PathVariable String resourceId, String permission) {
+    public Boolean isAccessible(@PathVariable String principal, @PathVariable String resourceType, @PathVariable String resourceId, @RequestParam(name = "permission", required = false) String permission) {
         ResourceModel resourceModel = new ResourceModel();
         resourceModel.setType(resourceType);
         resourceModel.setId(resourceId);

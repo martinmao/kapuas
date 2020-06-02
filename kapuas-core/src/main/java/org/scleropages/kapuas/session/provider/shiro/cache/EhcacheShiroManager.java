@@ -195,7 +195,7 @@ public class EhcacheShiroManager implements CacheManager, Initializable, Destroy
    * </P>
    * <P>
    * However, if no {@code CacheManager} has been set a new {@link org.ehcache.Cache} will be initialized.
-   * It will use {@code ehcache.xml} configuration file at the root of the classpath.
+   * It will use {@code ehcache.xml} autoconfigure file at the root of the classpath.
    * </P>
    *
    * @throws CacheException if there are any CacheExceptions thrown by EhCache.

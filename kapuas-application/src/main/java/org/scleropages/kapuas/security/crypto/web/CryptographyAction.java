@@ -19,6 +19,7 @@ import org.scleropages.crud.web.GenericAction;
 import org.scleropages.kapuas.security.crypto.CryptographyManager;
 import org.scleropages.kapuas.security.crypto.model.Cryptography;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -44,23 +45,23 @@ public class CryptographyAction implements GenericAction {
     }
 
     @GetMapping("item/{id}")
-    public Object getCryptography(@PathVariable("id") Long id) {
+    public Cryptography getCryptography(@PathVariable("id") Long id) {
         return cryptographyManager.getById(id);
     }
 
     @GetMapping("{associatedType}")
-    public Object findPageCryptography(@PathVariable("associatedType") Integer associatedType, HttpServletRequest request) {
+    public Page<Cryptography> findPageCryptography(@PathVariable("associatedType") Integer associatedType, HttpServletRequest request) {
         return cryptographyManager.findPage(associatedType, buildPageableFromRequest(request));
     }
 
     @GetMapping("{associatedType}/{associatedId}")
-    public Object findPageCryptography(@PathVariable("associatedType") Integer associatedType, @PathVariable("associatedId") String associatedId, HttpServletRequest request) {
+    public Page<Cryptography> findPageCryptography(@PathVariable("associatedType") Integer associatedType, @PathVariable("associatedId") String associatedId, HttpServletRequest request) {
         return cryptographyManager.findPage(associatedType, associatedId, buildPageableFromRequest(request));
     }
 
 
     @GetMapping("{associatedType}/{associatedId}/{name}")
-    public Object getCryptography(@PathVariable("associatedType") Integer associatedType, @PathVariable("associatedId") String associatedId, @PathVariable("name") String name) {
+    public Cryptography getCryptography(@PathVariable("associatedType") Integer associatedType, @PathVariable("associatedId") String associatedId, @PathVariable("name") String name) {
         return cryptographyManager.findOne(associatedType, associatedId, name);
     }
 

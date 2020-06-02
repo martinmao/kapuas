@@ -218,7 +218,7 @@
                                     </property>
                                     <!-- The default schema for unqualified objects:
                                     - public: all unqualified objects are located in the PUBLIC (upper case) schema - none: all unqualified objects are located in the default schema (default)
-                                    This configuration can be overridden with the schema mapping feature -->
+                                    This autoconfigure can be overridden with the schema mapping feature -->
                                     <property>
                                         <key>unqualifiedSchema</key>
                                         <value>none</value>

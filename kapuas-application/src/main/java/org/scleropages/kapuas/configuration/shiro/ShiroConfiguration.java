@@ -99,7 +99,7 @@ public class ShiroConfiguration implements ApplicationListener<ContextRefreshedE
         filterFactoryBean.setSecurityManager(securityManager);
         Filter associated = filterFactoryBean.getFilters().putIfAbsent(DefaultFilter.authc.name(), formAuthenticationFilter());
         if (null != associated) {
-            logger.warn("detected configuration conflict. authc has been assigned to other filter: {}", associated);
+            logger.warn("detected autoconfigure conflict. authc has been assigned to other filter: {}", associated);
         }
         filterFactoryBean.setFilterChainDefinitionMap(shiroFilterChainDefinition.getFilterChainMap());
         return filterFactoryBean;

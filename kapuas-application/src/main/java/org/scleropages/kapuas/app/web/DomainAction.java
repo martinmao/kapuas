@@ -20,6 +20,7 @@ import org.scleropages.kapuas.app.DomainManager;
 import org.scleropages.kapuas.app.model.Domain;
 import org.scleropages.kapuas.app.model.DomainFunction;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -43,7 +44,7 @@ public class DomainAction implements GenericAction {
     }
 
     @GetMapping("page")
-    public Object findDomainPage(HttpServletRequest request) {
+    public Page<Domain> findDomainPage(HttpServletRequest request) {
         return domainManager.findDomainPage(buildSearchFilterFromRequest(request), buildPageableFromRequest(request));
     }
 
@@ -58,7 +59,7 @@ public class DomainAction implements GenericAction {
     }
 
     @GetMapping("func/page")
-    public Object findDomainFunctionPage(HttpServletRequest request) {
+    public Page<DomainFunction> findDomainFunctionPage(HttpServletRequest request) {
         return domainManager.findDomainFunctionPage(buildSearchFilterFromRequest(request), buildPageableFromRequest(request));
     }
 

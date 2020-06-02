@@ -17,8 +17,10 @@ package org.scleropages.kapuas.security.authc.mgmt.web;
 
 import org.scleropages.crud.web.Servlets;
 import org.scleropages.kapuas.security.SecurityOption;
+import org.scleropages.kapuas.security.authc.Authentication;
 import org.scleropages.kapuas.security.authc.AuthenticationManager;
 import org.scleropages.kapuas.security.authc.mgmt.model.AuthenticationModel;
+import org.scleropages.kapuas.security.authc.token.client.EncodedToken;
 import org.scleropages.kapuas.security.authc.token.client.StatelessUsernamePasswordToken;
 import org.scleropages.kapuas.security.authc.token.client.UsernamePasswordToken;
 import org.scleropages.kapuas.security.authc.token.client.jwt.JwtEncodedToken;
@@ -46,14 +48,14 @@ public class AuthenticationAction {
     }
 
     @PostMapping("jwt")
-    public Object createJwtToken(@RequestParam String username, @RequestParam String password, HttpServletRequest request) {
+    public EncodedToken createJwtToken(@RequestParam String username, @RequestParam String password, HttpServletRequest request) {
         return authenticationManager.createEncodedToken(
                 new StatelessUsernamePasswordToken(username, password, false, Servlets.getRemoteAddr(request)),
                 Servlets.getParametersStartingWith(request, "jwt_"), JwtEncodedToken.class);
     }
 
     @PostMapping("jwt/application")
-    public Object createApplicationJwtToken(@RequestParam String username, @RequestParam String password, HttpServletRequest request) {
+    public EncodedToken createApplicationJwtToken(@RequestParam String username, @RequestParam String password, HttpServletRequest request) {
         StatelessUsernamePasswordToken statelessUsernamePasswordToken = new StatelessUsernamePasswordToken(username, password, false, Servlets.getRemoteAddr(request));
         statelessUsernamePasswordToken.addAuthenticationOption(SecurityOption.AUTHENTICATION_OPTION_AUTO_LOAD_DETAILS, false);
         return authenticationManager.createEncodedToken(statelessUsernamePasswordToken, Servlets.getParametersStartingWith(request, "jwt_"), JwtEncodedToken.class);
@@ -71,7 +73,7 @@ public class AuthenticationAction {
     }
 
     @PostMapping("credentials/reset/{id}")
-    public Object resetCredentials(@PathVariable("id") Long id) {
+    public Authentication resetCredentials(@PathVariable("id") Long id) {
         return authenticationManager.resetCredentials(id);
     }
 
