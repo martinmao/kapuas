@@ -185,6 +185,7 @@ public abstract class SchemaUtil {
                     Class<?> propertyType = propertyDescriptor.getPropertyType();
                     if (isCycleDepends(graph, propertyType, javaType)) {
                         logger.warn("detected cycle depends from {}.{} to {}. ignore to process.", javaType.getSimpleName(), propertyName, propertyType.getSimpleName());
+                        continue;
                     }
                     if (propertyType.isInterface()) {
                         ApiModel apiModel = findFieldAnnotation(propertyField, propertyDescriptor, ApiModel.class);
