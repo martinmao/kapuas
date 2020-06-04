@@ -19,6 +19,7 @@ import org.scleropages.core.util.RandomGenerator;
 import org.scleropages.kapuas.security.authc.token.client.AuthenticationToken;
 import org.scleropages.kapuas.security.authc.token.client.EncodedToken;
 
+import javax.validation.Valid;
 import java.util.Map;
 
 /**
@@ -75,7 +76,7 @@ public interface AuthenticationManager {
      *
      * @param authentication
      */
-    void create(Authentication authentication);
+    void create(@Valid Authentication authentication);
 
     /**
      * delete a authentication by given id.

@@ -39,6 +39,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
+import javax.validation.Valid;
 import java.util.Map;
 
 /**
@@ -110,7 +111,7 @@ public class GenericAuthenticationManager implements AuthenticationManager, Gene
     @BizError("06")
     public void create(Authentication authentication) {
         AuthenticationEntity authenticationEntity = getModelMapper().mapForSave((AuthenticationModel) authentication);
-        authenticationEntity.enable();
+        authenticationEntity.activate();
         hashPassword(authenticationEntity);
         authenticationEntityRepository.save(authenticationEntity);
     }

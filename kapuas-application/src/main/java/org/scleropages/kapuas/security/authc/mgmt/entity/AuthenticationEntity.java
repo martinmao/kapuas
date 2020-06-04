@@ -85,7 +85,7 @@ public class AuthenticationEntity extends IdEntity implements Available {
         return associatedType;
     }
 
-    @Column(name = "associated_id")
+    @Column(name = "associated_id", nullable = false)
     public String getAssociatedId() {
         return associatedId;
     }

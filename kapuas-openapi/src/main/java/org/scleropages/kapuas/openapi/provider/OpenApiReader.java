@@ -17,6 +17,7 @@ package org.scleropages.kapuas.openapi.provider;
 
 import org.scleropages.kapuas.openapi.OpenApi;
 
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -25,5 +26,5 @@ import java.util.Set;
  */
 public interface OpenApiReader {
 
-    OpenApi read(String basePackage, Set<Class<?>> classes);
+    OpenApi read(String basePackage, List<Class<?>> classes);
 }

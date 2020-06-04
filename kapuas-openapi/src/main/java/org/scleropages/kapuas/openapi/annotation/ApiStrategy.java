@@ -25,7 +25,7 @@ import static java.lang.annotation.ElementType.*;
 /**
  * @author <a href="mailto:martinmao@icloud.com">Martin Mao</a>
  */
-@Target({TYPE, METHOD, FIELD, PARAMETER})
+@Target({TYPE})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 public @interface ApiStrategy {
@@ -36,5 +36,5 @@ public @interface ApiStrategy {
      *
      * @return
      */
-    boolean ignorePropertyFieldNotFound() default false;
+    boolean ignorePropertyFieldNotFound() default true;
 }

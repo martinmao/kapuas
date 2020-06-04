@@ -15,6 +15,7 @@
  */
 package org.scleropages.kapuas.openapi.provider.swagger;
 
+import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.scleropages.kapuas.openapi.provider.OpenApiScanner;
 import org.slf4j.Logger;
@@ -50,8 +51,8 @@ public class BeanComponentApiScanner implements OpenApiScanner, EnvironmentAware
     private List<TypeFilter> includeFilters;
 
     @Override
-    public Set<Class<?>> scan(String basePackage) {
-        Set<Class<?>> candidateClasses = Sets.newHashSet();
+    public List<Class<?>> scan(String basePackage) {
+        List<Class<?>> candidateClasses = Lists.newArrayList();
         ClassPathScanningCandidateComponentProvider scanner = createScanner();
         int candidateClassSize = candidateClasses.size();
         if (LOGGER.isTraceEnabled()) {

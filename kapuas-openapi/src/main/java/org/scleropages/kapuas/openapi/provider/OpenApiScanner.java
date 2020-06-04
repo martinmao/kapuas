@@ -15,7 +15,7 @@
  */
 package org.scleropages.kapuas.openapi.provider;
 
-import java.util.Set;
+import java.util.List;
 
 /**
  * SPI interface used for api-classes scanning.
@@ -29,5 +29,5 @@ public interface OpenApiScanner {
      *
      * @return
      */
-    Set<Class<?>> scan(String basePackage);
+    List<Class<?>> scan(String basePackage);
 }

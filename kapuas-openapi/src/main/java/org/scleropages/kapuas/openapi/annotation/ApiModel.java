@@ -32,5 +32,9 @@ import static java.lang.annotation.ElementType.*;
 @Documented
 public @interface ApiModel {
 
+    /**
+     * 如果目标元素是接口需指定实现类.
+     * @return
+     */
     Class value();
 }

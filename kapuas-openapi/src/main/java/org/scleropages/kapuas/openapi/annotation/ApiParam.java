@@ -13,33 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.scleropages.kapuas.openapi.provider;
+package org.scleropages.kapuas.openapi.annotation;
 
-import com.google.common.collect.Maps;
-import org.scleropages.kapuas.openapi.OpenApi;
-import org.scleropages.kapuas.openapi.OpenApiContext;
+import java.lang.annotation.Documented;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-import java.util.Map;
-import java.util.Set;
+import static java.lang.annotation.ElementType.*;
 
 /**
+ * 适用于spring mvc 参数封装，spring mvc支持参数封装，但没有任何注解声明.要使参数生成在api文档，需要再参数上注明该注解
  * @author <a href="mailto:martinmao@icloud.com">Martin Mao</a>
  */
-public class GenericOpenApiContext implements OpenApiContext {
-
-    private final Map<String, OpenApi> openApis = Maps.newHashMap();
-
-    public void register(String id, OpenApi openApi) {
-        openApis.putIfAbsent(id, openApi);
-    }
-
-    @Override
-    public OpenApi openApi(String id) {
-        return openApis.get(id);
-    }
-
-    @Override
-    public Set<String> ids() {
-        return openApis.keySet();
-    }
+@Target({PARAMETER})
+@Retention(RetentionPolicy.RUNTIME)
+@Documented
+public @interface ApiParam {
 }

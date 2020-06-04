@@ -44,7 +44,7 @@ public class OpenApiAction {
     public void openApi(@PathVariable String id, HttpServletResponse response) {
         OpenApi openApi = OpenApiContextHolder.getOpenApiContext().openApi(id);
         Assert.notNull(openApi,"no open api found by given id.");
-        Views.renderYaml(response, OpenApiContextHolder.getOpenApiContext().openApi(id).render());
+        Views.renderYaml(response, openApi.render());
     }
 
 }

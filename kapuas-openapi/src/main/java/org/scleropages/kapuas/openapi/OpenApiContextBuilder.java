@@ -15,11 +15,13 @@
  */
 package org.scleropages.kapuas.openapi;
 
+import org.apache.commons.collections.ComparatorUtils;
 import org.scleropages.kapuas.openapi.provider.GenericOpenApiContext;
 import org.scleropages.kapuas.openapi.provider.OpenApiReader;
 import org.scleropages.kapuas.openapi.provider.OpenApiScanner;
 
-import java.util.Set;
+import java.util.Collections;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -46,7 +48,8 @@ public class OpenApiContextBuilder {
         if (buildFlag.compareAndSet(false, true)) {
             GenericOpenApiContext openApiContext = new GenericOpenApiContext();
             for (String basePackage : basePackages) {
-                Set<Class<?>> scanClasses = openApiScanner.scan(basePackage);
+                List<Class<?>> scanClasses = openApiScanner.scan(basePackage);
+                Collections.sort(scanClasses, (o1, o2) -> ComparatorUtils.naturalComparator().compare(o1.getSimpleName(), o2.getSimpleName()));
                 OpenApi read = openApiReader.read(basePackage, scanClasses);
                 openApiContext.register(basePackage, read);
             }

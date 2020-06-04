@@ -15,14 +15,7 @@
  */
 package org.scleropages.kapuas.openapi.provider.swagger;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.PrettyPrinter;
-import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
-import com.fasterxml.jackson.core.util.MinimalPrettyPrinter;
 import com.google.common.collect.Lists;
-import com.google.common.collect.Maps;
-import io.swagger.v3.core.util.Json;
-import io.swagger.v3.core.util.Yaml;
 import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
@@ -40,11 +33,16 @@ import io.swagger.v3.oas.models.parameters.PathParameter;
 import io.swagger.v3.oas.models.parameters.QueryParameter;
 import io.swagger.v3.oas.models.responses.ApiResponse;
 import io.swagger.v3.oas.models.responses.ApiResponses;
+import io.swagger.v3.oas.models.servers.Server;
+import io.swagger.v3.oas.models.tags.Tag;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
+import org.scleropages.core.util.Reflections;
 import org.scleropages.kapuas.openapi.OpenApi;
 import org.scleropages.kapuas.openapi.annotation.ApiIgnore;
+import org.scleropages.kapuas.openapi.annotation.ApiModel;
+import org.scleropages.kapuas.openapi.annotation.ApiParam;
 import org.scleropages.kapuas.openapi.provider.OpenApiReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -56,6 +54,7 @@ import org.springframework.core.annotation.MergedAnnotation;
 import org.springframework.core.annotation.MergedAnnotations;
 import org.springframework.core.annotation.SynthesizingMethodParameter;
 import org.springframework.util.ClassUtils;
+import org.springframework.util.ReflectionUtils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -66,7 +65,6 @@ import java.lang.reflect.Method;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 
 /**
  * 基于spring mvc 的 {@link OpenApiReader}实现（解析并生成 {@link OpenAPI}定义）.
@@ -80,14 +78,7 @@ public class SpringMvcOpenApiReader implements OpenApiReader {
 
     private static final String ANNOTATION_METHOD_NAME_REQUEST_MAPPING_METHOD = "method";
 
-    private static final String OPENAPI_RENDER_FORMAT_YAML = "yaml";
-
-    private static final String OPENAPI_RENDER_FORMAT_JSON = "json";
-
     protected final Logger logger = LoggerFactory.getLogger(getClass());
-
-    private final PrettyPrinter prettyPrinter = new DefaultPrettyPrinter();
-    private final PrettyPrinter nonePrettyPrinter = new MinimalPrettyPrinter();
 
     @Value("${openapi.title:[set your title via 'openapi.title']}")
     private String title;
@@ -107,6 +98,8 @@ public class SpringMvcOpenApiReader implements OpenApiReader {
     private String license;
     @Value("${openapi.license_url:[set your license url via 'openapi.license_url']}")
     private String licenseUrl;
+    @Value("${openapi.gateway:[set your host via 'openapi.gateway']}")
+    private String gateway;
 
 
     @Value("#{ @environment['openapi.render.format'] ?: 'yaml' }")
@@ -118,17 +111,10 @@ public class SpringMvcOpenApiReader implements OpenApiReader {
     @Value("#{ @environment['openapi.consume.media-type'] ?: 'application/json' }")
     private String defaultConsumeMediaType;
 
-    private OpenAPI openAPI;
-
-    private Map<Method, Operation> operations = Maps.newHashMap();
-
-    private Map<String, Method> operationIdToMethod = Maps.newHashMap();
-
     @Override
-    public OpenApi read(String basePackage, Set<Class<?>> classes) {
-        this.openAPI = new OpenAPI();
-        this.openAPI.setInfo(createApiInfo(basePackage));
-        this.openAPI.setPaths(new Paths());
+    public OpenApi read(String basePackage, List<Class<?>> classes) {
+        SwaggerOpenApi swaggerOpenApi = createOpenApi(basePackage, createOpenAPI(basePackage));
+
         classes.forEach(clazz -> {
             if (logger.isDebugEnabled())
                 logger.debug("resolving class: {}", clazz.getSimpleName());
@@ -136,58 +122,21 @@ public class SpringMvcOpenApiReader implements OpenApiReader {
                 logger.debug("ignore class: {} to resolve.", clazz.getSimpleName());
                 return;
             }
-            Method[] methods = clazz.getMethods();
+            Tag tag = new Tag();
+            tag.setName(clazz.getSimpleName());
+            swaggerOpenApi.nativeOpenApi().addTagsItem(tag);
+            Method[] methods = clazz.getDeclaredMethods();
             for (Method method : methods) {
-                if (!readableMethod(method)) {
-                    logger.debug("ignore method: {} to resolve.", method.getName());
-                    break;
-                }
-                resolveControllerMethod(clazz, method);
+                if (ClassUtils.isUserLevelMethod(method))
+                    if (!readableMethod(method)) {
+                        logger.debug("ignore method: {} to resolve.", method.getName());
+                        continue;
+                    }
+                resolveControllerMethod(clazz, method, swaggerOpenApi);
             }
         });
-        resolveSchemas();
-        return new OpenApi() {
-            @Override
-            public String openapi() {
-                return openAPI.getOpenapi();
-            }
-
-            @Override
-            public String id() {
-                return basePackage;
-            }
-
-            @Override
-            public Object nativeOpenApi() {
-                return openAPI;
-            }
-
-            @Override
-            public String render() {
-                if (OPENAPI_RENDER_FORMAT_YAML.equalsIgnoreCase(openApiRenderFormat)) {
-                    try {
-                        return Yaml.mapper().writer(openApiRenderPretty ? prettyPrinter : nonePrettyPrinter).writeValueAsString(openAPI);
-                    } catch (JsonProcessingException e) {
-                        throw new IllegalStateException("failure to render open api for: " + id(), e);
-                    }
-                } else if (OPENAPI_RENDER_FORMAT_JSON.equalsIgnoreCase(openApiRenderFormat)) {
-                    try {
-                        return Json.mapper().writer(openApiRenderPretty ? prettyPrinter : nonePrettyPrinter).writeValueAsString(openAPI);
-                    } catch (JsonProcessingException e) {
-                        throw new IllegalStateException("failure to render open api for: " + id(), e);
-                    }
-                } else {
-                    return openAPI.toString();
-                }
-            }
-        };
-    }
-
-    protected void resolveSchemas() {
-        List<Schema> allSchemas = SchemaUtil.getAllSchemas();
-        Components components = new Components();
-        allSchemas.forEach(schema -> components.addSchemas(schema.getName(), schema));
-        openAPI.setComponents(components);
+        resolveSchemas(swaggerOpenApi);
+        return swaggerOpenApi;
     }
 
 
@@ -197,22 +146,22 @@ public class SpringMvcOpenApiReader implements OpenApiReader {
      * @param controllerClass
      * @param controllerMethod
      */
-    protected void resolveControllerMethod(final Class controllerClass, final Method controllerMethod) {
+    protected void resolveControllerMethod(final Class controllerClass, final Method controllerMethod, SwaggerOpenApi swaggerOpenApi) {
 
         MergedAnnotation<RequestMapping> baseMapping = MergedAnnotations.from(controllerClass).get(RequestMapping.class);
         MergedAnnotation<RequestMapping> methodMapping = MergedAnnotations.from(controllerMethod).get(RequestMapping.class);
 
-        ResolveContext resolveContext = new ResolveContext(baseMapping, methodMapping);
+        ResolveContext resolveContext = new ResolveContext(baseMapping, methodMapping, swaggerOpenApi);
 
         //compute and merge request path(controller path * method path)
         String[] paths = computePath(resolveContext);
-
         for (String path : paths) {// foreach path create path item....
-            openAPI.getPaths().computeIfAbsent(path, s -> {
+            swaggerOpenApi.nativeOpenApi().getPaths().computeIfAbsent(path, s -> {
                 PathItem pathItem = new PathItem();
                 try {
                     postPathItemCreation(pathItem);
-                    Operation operation = createOperation(controllerMethod);
+                    Operation operation = createOperation(controllerMethod, resolveContext);
+                    operation.addTagsItem(controllerClass.getSimpleName());
                     bindOperationToPathItem(pathItem, operation, methodMapping);
                     resolveControllerMethodArguments(controllerMethod, resolveContext);
                 } catch (Exception e) {
@@ -242,10 +191,23 @@ public class SpringMvcOpenApiReader implements OpenApiReader {
             MethodParameter methodParameter = new SynthesizingMethodParameter(controllerMethod, i);
             if (null != methodParameter.getParameterAnnotation(PathVariable.class)) {
                 methodParameters.add(methodParameter);
-            } else if (null != methodParameter.getParameterAnnotation(RequestParam.class)) {
+                continue;
+            }
+            if (null != methodParameter.getParameterAnnotation(RequestParam.class)) {
                 methodParameters.add(methodParameter);
-            } else if (null != methodParameter.getParameterAnnotation(RequestBody.class)) {
+                continue;
+            }
+            if (null != methodParameter.getParameterAnnotation(RequestBody.class)) {
                 methodParameters.add(methodParameter);
+                continue;
+            }
+            if (null != methodParameter.getParameterAnnotation(ApiModel.class)) {
+                methodParameters.add(methodParameter);
+                continue;
+            }
+            if (null != methodParameter.getParameterAnnotation(ApiParam.class)) {
+                methodParameters.add(methodParameter);
+                continue;
             }
         }
         methodParameters.add(new SynthesizingMethodParameter(controllerMethod, -1));//方法返回值
@@ -253,7 +215,7 @@ public class SpringMvcOpenApiReader implements OpenApiReader {
     }
 
     protected void resolveControllerMethodParameter(final Method controllerMethod, final MethodParameter methodParameter, ResolveContext resolveContext, int index) {
-        Operation operation = operations.get(controllerMethod);
+        Operation operation = resolveContext.swaggerOpenApi.getOperation(controllerMethod);
         PathVariable pathVariable = methodParameter.getParameterAnnotation(PathVariable.class);
         if (null != pathVariable) {
             operation.addParametersItem(createPathParameter(pathVariable, methodParameter, resolveContext, index));
@@ -268,6 +230,28 @@ public class SpringMvcOpenApiReader implements OpenApiReader {
         if (null != requestBody) {
             operation.setRequestBody(createRequestBody(requestBody, methodParameter, resolveContext));
             return;
+        }
+        //spring mvc 参数封装时，必须指定@ApiIgnore才可作为参数进行解析.
+        ApiParam apiParam = methodParameter.getParameterAnnotation(ApiParam.class);
+        if (null != apiParam) {
+            ApiIgnore apiIgnore = methodParameter.getParameterAnnotation(ApiIgnore.class);
+            Class<?> parameterType = methodParameter.getParameterType();
+            SchemaUtil.createSchema(methodParameter);
+            Schema schema = SchemaUtil.getSchema(parameterType,
+                    null != apiIgnore && ArrayUtils.isNotEmpty(apiIgnore.value()) ? apiIgnore.value()[0] : parameterType);
+            Map<String, Schema> properties = schema.getProperties();
+            properties.forEach((name, propertySchema) -> {
+                QueryParameter parameter = new QueryParameter();
+                parameter.setRequired(false);
+                parameter.setName(name);
+                Schema parameterSchema = new Schema();
+                parameterSchema.setName(propertySchema.getName());
+                parameterSchema.setType(propertySchema.getType());
+                parameterSchema.setFormat(propertySchema.getFormat());
+                parameter.setSchema(parameterSchema);
+                operation.addParametersItem(parameter);
+                postParameterCreation(methodParameter, parameter, schema);
+            });
         }
         if (methodParameter.getParameterIndex() == -1) {
             operation.setResponses(createApiResponses(methodParameter, resolveContext));
@@ -344,12 +328,13 @@ public class SpringMvcOpenApiReader implements OpenApiReader {
         postParameterCreation(methodParameter, parameter, schema);
     }
 
-    protected final Operation createOperation(final Method controllerMethod) {
-        return operations.computeIfAbsent(controllerMethod, method -> {
+    protected final Operation createOperation(final Method controllerMethod, ResolveContext resolveContext) {
+        return resolveContext.swaggerOpenApi.computeOperationIfAbsent(controllerMethod, method -> {
             Operation operation = new Operation();
             operation.setParameters(Lists.newArrayList());
             operation.setTags(Lists.newArrayList());
             String qualifiedMethodName = ClassUtils.getQualifiedMethodName(controllerMethod);
+            Map<String, Method> operationIdToMethod = resolveContext.swaggerOpenApi.getOperationIdToMethod();
             if (operationIdToMethod.containsKey(qualifiedMethodName))
                 qualifiedMethodName += controllerMethod.getParameterCount();
             if (operationIdToMethod.containsKey(qualifiedMethodName)) {
@@ -428,7 +413,8 @@ public class SpringMvcOpenApiReader implements OpenApiReader {
         if (null != AnnotationUtils.findAnnotation(method, Hidden.class))
             return false;
         ApiIgnore methodIgnore = AnnotationUtils.findAnnotation(method, ApiIgnore.class);
-        if (null != methodIgnore && ArrayUtils.isEmpty(methodIgnore.returnValue())) {//方法返回值限定
+        //方法返回值策略如果为空，则忽略处理
+        if (null != methodIgnore && ArrayUtils.isEmpty(methodIgnore.returnValue())) {
             return false;
         }
         if (null == AnnotationUtils.findAnnotation(method, RequestMapping.class))
@@ -461,6 +447,18 @@ public class SpringMvcOpenApiReader implements OpenApiReader {
         return info;
     }
 
+
+    protected OpenAPI createOpenAPI(String basePackage) {
+        OpenAPI openAPI = new OpenAPI();
+        openAPI.setInfo(createApiInfo(basePackage));
+
+        openAPI.setPaths(new Paths());
+        Server server = new Server();
+        server.setUrl(gateway);
+        openAPI.addServersItem(server);
+        return openAPI;
+    }
+
     /*******************************************sub class callback methods.************************************************************/
 
 
@@ -480,15 +478,25 @@ public class SpringMvcOpenApiReader implements OpenApiReader {
     private class ResolveContext {
         private final MergedAnnotation<RequestMapping> baseMapping;
         private final MergedAnnotation<RequestMapping> methodMapping;
+        private final SwaggerOpenApi swaggerOpenApi;
 
-        public ResolveContext(MergedAnnotation<RequestMapping> baseMapping, MergedAnnotation<RequestMapping> methodMapping) {
+        public ResolveContext(MergedAnnotation<RequestMapping> baseMapping, MergedAnnotation<RequestMapping> methodMapping, SwaggerOpenApi swaggerOpenApi) {
             this.baseMapping = baseMapping;
             this.methodMapping = methodMapping;
+            this.swaggerOpenApi = swaggerOpenApi;
         }
     }
 
 
-    public void setDefaultConsumeMediaType(String defaultConsumeMediaType) {
-        this.defaultConsumeMediaType = defaultConsumeMediaType;
+    protected SwaggerOpenApi createOpenApi(String basePackage, OpenAPI openAPI) {
+        return new SwaggerOpenApi(basePackage, openAPI, openApiRenderFormat, openApiRenderPretty);
+    }
+
+
+    protected void resolveSchemas(SwaggerOpenApi openAPI) {
+        List<Schema> allSchemas = SchemaUtil.getAllSchemas();
+        Components components = new Components();
+        allSchemas.forEach(schema -> components.addSchemas(schema.getName(), schema));
+        openAPI.nativeOpenApi().setComponents(components);
     }
 }

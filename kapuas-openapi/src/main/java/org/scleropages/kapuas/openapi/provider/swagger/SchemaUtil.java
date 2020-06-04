@@ -17,6 +17,11 @@ package org.scleropages.kapuas.openapi.provider.swagger;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.graph.GraphBuilder;
+import com.google.common.graph.Graphs;
+import com.google.common.graph.MutableGraph;
+import com.google.common.graph.MutableValueGraph;
+import com.google.common.graph.ValueGraphBuilder;
 import com.google.common.primitives.Primitives;
 import io.swagger.v3.oas.models.media.ArraySchema;
 import io.swagger.v3.oas.models.media.BooleanSchema;
@@ -81,39 +86,39 @@ public abstract class SchemaUtil {
         return Collections.unmodifiableList(schemas);
     }
 
+    public static Schema getSchema(Class javaType, Class ruleType) {
+        return javaTypeToSchemas.get(javaType).get(ruleType);
+    }
+
 
     public static final Schema createSchema(MethodParameter methodParameter) {
         ApiStrategy apiStrategy = AnnotationUtils.findAnnotation(methodParameter.getParameterType(), ApiStrategy.class);
         if (null != apiStrategy) {
             return createSchema(methodParameter, apiStrategy.ignorePropertyFieldNotFound());
         }
-        return createSchema(methodParameter, false);
+        return createSchema(methodParameter, true);
     }
+
 
     public static final Schema createSchema(MethodParameter methodParameter, boolean ignorePropertyFieldNotFound) {
         Assert.notNull(methodParameter, "methodParameter must not be null.");
         Class<?> javaType = methodParameter.getParameterType();
         if (javaType.isInterface()) {
-            //参数上指定了实现类
+            //参数实现类需要从参数注解上获取
             ApiModel apiModel = methodParameter.getParameterAnnotation(ApiModel.class);
             if (methodParameter.getParameterIndex() == -1) {
-                //返回值指定了实现类
+                //返回值实现类需要从方法注释上获取
                 apiModel = methodParameter.getMethodAnnotation(ApiModel.class);
             }
             if (null != apiModel)
                 javaType = apiModel.value();
         }
-        return createSchema(javaType, methodParameter, null, ignorePropertyFieldNotFound);
+        return createSchema(javaType, methodParameter, null, ignorePropertyFieldNotFound, GraphBuilder.directed().allowsSelfLoops(false).build());
     }
 
 
-    /**
-     * @param javaType                    java类型，必须
-     * @param ignorePropertyFieldNotFound 是否忽略javabean属性字段不存在的情况
-     * @return
-     */
     public static final Schema createSchema(Class javaType, boolean ignorePropertyFieldNotFound) {
-        return createSchema(javaType, null, null, ignorePropertyFieldNotFound);
+        return createSchema(javaType, null, null, ignorePropertyFieldNotFound, GraphBuilder.directed().allowsSelfLoops(false).build());
     }
 
     /**
@@ -122,7 +127,7 @@ public abstract class SchemaUtil {
      * @param field           java字段类型，可选
      * @return
      */
-    private static final Schema createSchema(Class javaType, MethodParameter methodParameter, Field field, boolean ignorePropertyFieldNotFound) {
+    private static final Schema createSchema(Class javaType, MethodParameter methodParameter, Field field, boolean ignorePropertyFieldNotFound, MutableGraph<Class> graph) {
         Assert.notNull(javaType, "javaType is required.");
         if ((ClassUtils.isAssignable(String.class, javaType) || ClassUtils.isPrimitiveOrWrapper(javaType))) {
             return createPrimitiveSchema(javaType);
@@ -132,7 +137,7 @@ public abstract class SchemaUtil {
             return arraySchema;
         } else if (javaType.isArray()) {
             ArraySchema arraySchema = new ArraySchema();
-            arraySchema.setItems(createSchema(javaType.getComponentType(), methodParameter, field, ignorePropertyFieldNotFound));
+            arraySchema.setItems(createSchema(javaType.getComponentType(), methodParameter, field, ignorePropertyFieldNotFound, graph));
             return arraySchema;
         } else if (ClassUtils.isAssignable(Collection.class, javaType)) {
             ArraySchema arraySchema = new ArraySchema();
@@ -149,7 +154,7 @@ public abstract class SchemaUtil {
                 objectSchema.setFormat("object");
                 return objectSchema;
             } else {
-                arraySchema.setItems(createSchema(itemType, methodParameter, field, ignorePropertyFieldNotFound));
+                arraySchema.setItems(createSchema(itemType, methodParameter, field, ignorePropertyFieldNotFound, graph));
             }
             return arraySchema;
         } else if (ClassUtils.isAssignable(Map.class, javaType)) {
@@ -165,11 +170,11 @@ public abstract class SchemaUtil {
                 }
             }
             //otherwise resolve as pojo bean.
-            return computeObjectSchemaIfAbsent(javaType, readRuleInterfaceType(javaType, methodParameter), methodParameter, ignorePropertyFieldNotFound);
+            return computeObjectSchemaIfAbsent(javaType, readRuleInterfaceType(javaType, methodParameter), methodParameter, ignorePropertyFieldNotFound, graph);
         }
     }
 
-    private static Schema computeObjectSchemaIfAbsent(Class javaType, Class ruleInterfaceType, MethodParameter methodParameter, boolean ignorePropertyFieldNotFound) {
+    private static Schema computeObjectSchemaIfAbsent(Class javaType, Class ruleInterfaceType, MethodParameter methodParameter, boolean ignorePropertyFieldNotFound, MutableGraph<Class> graph) {
         Schema targetSchema = javaTypeToSchemas.computeIfAbsent(javaType, clazz -> Maps.newHashMap()).computeIfAbsent(ruleInterfaceType, clazz -> {
             ObjectSchema objectSchema = new ObjectSchema();
             PropertyDescriptor[] propertyDescriptors = BeanUtils.getPropertyDescriptors(javaType);
@@ -178,13 +183,16 @@ public abstract class SchemaUtil {
                 Field propertyField = ReflectionUtils.findField(javaType, propertyName);
                 if (readable(propertyField, propertyDescriptor, methodParameter, ignorePropertyFieldNotFound)) {
                     Class<?> propertyType = propertyDescriptor.getPropertyType();
+                    if (isCycleDepends(graph, propertyType, javaType)) {
+                        logger.warn("detected cycle depends from {}.{} to {}. ignore to process.", javaType.getSimpleName(), propertyName, propertyType.getSimpleName());
+                    }
                     if (propertyType.isInterface()) {
                         ApiModel apiModel = findFieldAnnotation(propertyField, propertyDescriptor, ApiModel.class);
                         if (null != apiModel) {
                             propertyType = apiModel.value();
                         }
                     }
-                    objectSchema.addProperties(propertyName, createSchema(propertyType, methodParameter, propertyField, ignorePropertyFieldNotFound));
+                    objectSchema.addProperties(propertyName, createSchema(propertyType, methodParameter, propertyField, ignorePropertyFieldNotFound, graph));
                 }
             }
             return objectSchema;
@@ -224,7 +232,7 @@ public abstract class SchemaUtil {
                 return false;
         }
 
-        if (ignorePropertyFieldNotFound && null == propertyField)
+        if (!ignorePropertyFieldNotFound && null == propertyField)
             return false;
         ApiIgnore fieldIgnore = findFieldAnnotation(propertyField, propertyDescriptor, ApiIgnore.class);
         if (null != fieldIgnore && ArrayUtils.isEmpty(fieldIgnore.value()))//field上没有设置@ApiIgnore.values直接忽略.
@@ -286,7 +294,7 @@ public abstract class SchemaUtil {
      * @param javaType
      * @return
      */
-    private static final Schema createPrimitiveSchema(Class javaType) {
+    public static final Schema createPrimitiveSchema(Class javaType) {
         javaType = Primitives.wrap(javaType);
         if (javaType.isAssignableFrom(Long.class)) {
             IntegerSchema integerSchema = new IntegerSchema();
@@ -319,5 +327,67 @@ public abstract class SchemaUtil {
             return new StringSchema();
         }
         throw new IllegalArgumentException("unsupported primitive type: " + javaType);
+    }
+
+    /**
+     * @param dependsGraph
+     * @param refFrom
+     * @param refTo
+     * @return
+     */
+    private static boolean isCycleDepends(MutableGraph<Class> dependsGraph, Class refFrom, Class refTo) {
+        try {
+            if (!dependsGraph.putEdge(refFrom, refTo)) {
+                return true;
+            }
+        } catch (UnsupportedOperationException | IllegalArgumentException e) {//allowsSelfLoops=false
+            return true;
+        }
+        if (Graphs.hasCycle(dependsGraph)) {
+            dependsGraph.removeEdge(refFrom, refTo);
+            return true;
+        }
+        return false;
+    }
+
+
+    public static void main(String[] args) {
+
+        MutableGraph<Object> mutableGraph = GraphBuilder.directed().allowsSelfLoops(false).build();
+
+        System.out.println(mutableGraph.addNode("root"));
+        System.out.println(mutableGraph.putEdge("root", "a"));
+        System.out.println(mutableGraph.putEdge("a", "b"));
+        System.out.println(mutableGraph.putEdge("a", "c"));
+        System.out.println(mutableGraph.putEdge("b", "c"));
+        System.out.println(mutableGraph.putEdge("c", "d"));
+        System.out.println(mutableGraph.putEdge("d", "b"));
+        System.out.println(mutableGraph.putEdge("d", "e"));
+        System.out.println(mutableGraph.putEdge("b", "e"));
+        System.out.println(mutableGraph.putEdge("e", "a"));
+        System.out.println(Graphs.hasCycle(mutableGraph));
+        System.out.println(mutableGraph.hasEdgeConnecting("a", "c"));//a,c是否存在直接连接
+        System.out.println(mutableGraph.adjacentNodes("a"));//返回a所有相邻节点
+        System.out.println(mutableGraph.incidentEdges("a"));//返回a所有直接连线
+        System.out.println("-------------");
+        System.out.println(mutableGraph.predecessors("b"));//返回b直接前置节点
+        System.out.println(mutableGraph.successors("b"));//返回b直接后续节点
+        System.out.println(mutableGraph.inDegree("d"));//返回d入口连线数
+        System.out.println(mutableGraph.outDegree("d"));//返回d出口连线数
+        System.out.println("-------------");
+        System.out.println(Graphs.reachableNodes(mutableGraph, "b"));//返回b所有可以达到的节点
+
+
+        MutableValueGraph<String, String> mutableValueGraph = ValueGraphBuilder.directed().allowsSelfLoops(false).build();
+
+        System.out.println(mutableValueGraph.putEdgeValue("a", "b", "a->b"));
+        System.out.println(mutableValueGraph.putEdgeValue("a", "c", "a->c"));
+        System.out.println(mutableValueGraph.putEdgeValue("b", "c", "b->c"));
+        System.out.println(mutableValueGraph.putEdgeValue("c", "d", "c->d"));
+        System.out.println(mutableValueGraph.putEdgeValue("d", "b", "d->b"));
+        System.out.println(Graphs.hasCycle(mutableValueGraph.asGraph()));
+        System.out.println(mutableValueGraph.hasEdgeConnecting("a", "c"));
+        System.out.println(mutableValueGraph);
+
     }
 }

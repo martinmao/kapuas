@@ -16,6 +16,8 @@
 package org.scleropages.kapuas.security.authc.mgmt.web;
 
 import org.scleropages.crud.web.Servlets;
+import org.scleropages.kapuas.openapi.annotation.ApiIgnore;
+import org.scleropages.kapuas.openapi.annotation.ApiParam;
 import org.scleropages.kapuas.security.SecurityOption;
 import org.scleropages.kapuas.security.authc.Authentication;
 import org.scleropages.kapuas.security.authc.AuthenticationManager;
@@ -68,7 +70,7 @@ public class AuthenticationAction {
 
 
     @PostMapping("create")
-    public void create(AuthenticationModel authentication) {
+    public void create(@ApiParam @ApiIgnore({AuthenticationModel.CreateModel.class}) AuthenticationModel authentication) {
         authenticationManager.create(authentication);
     }
 
