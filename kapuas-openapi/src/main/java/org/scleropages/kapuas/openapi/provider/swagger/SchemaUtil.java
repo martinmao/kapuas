@@ -32,6 +32,7 @@ import io.swagger.v3.oas.models.media.ObjectSchema;
 import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.oas.models.media.StringSchema;
 import org.apache.commons.lang3.ArrayUtils;
+import org.scleropages.core.util.GenericTypes;
 import org.scleropages.kapuas.openapi.annotation.ApiIgnore;
 import org.scleropages.kapuas.openapi.annotation.ApiModel;
 import org.scleropages.kapuas.openapi.annotation.ApiStrategy;
@@ -45,8 +46,11 @@ import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 import org.springframework.util.ReflectionUtils;
 
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Null;
 import java.beans.PropertyDescriptor;
+import java.beans.Transient;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.util.Collection;
@@ -129,7 +133,7 @@ public abstract class SchemaUtil {
      */
     private static final Schema createSchema(Class javaType, MethodParameter methodParameter, Field field, boolean ignorePropertyFieldNotFound, MutableGraph<Class> graph) {
         Assert.notNull(javaType, "javaType is required.");
-        if ((ClassUtils.isAssignable(String.class, javaType) || ClassUtils.isPrimitiveOrWrapper(javaType))) {
+        if (isBasicType(javaType)) {
             return createPrimitiveSchema(javaType);
         } else if (ClassUtils.isPrimitiveArray(javaType) || ClassUtils.isPrimitiveWrapperArray(javaType)) {
             ArraySchema arraySchema = new ArraySchema();
@@ -174,6 +178,7 @@ public abstract class SchemaUtil {
         }
     }
 
+
     private static Schema computeObjectSchemaIfAbsent(Class javaType, Class ruleInterfaceType, MethodParameter methodParameter, boolean ignorePropertyFieldNotFound, MutableGraph<Class> graph) {
         Schema targetSchema = javaTypeToSchemas.computeIfAbsent(javaType, clazz -> Maps.newHashMap()).computeIfAbsent(ruleInterfaceType, clazz -> {
             ObjectSchema objectSchema = new ObjectSchema();
@@ -183,7 +188,7 @@ public abstract class SchemaUtil {
                 Field propertyField = ReflectionUtils.findField(javaType, propertyName);
                 if (readable(propertyField, propertyDescriptor, methodParameter, ignorePropertyFieldNotFound)) {
                     Class<?> propertyType = propertyDescriptor.getPropertyType();
-                    if (isCycleDepends(graph, propertyType, javaType)) {
+                    if (isCycleDepends(graph, javaType, propertyType, propertyDescriptor)) {
                         logger.warn("detected cycle depends from {}.{} to {}. ignore to process.", javaType.getSimpleName(), propertyName, propertyType.getSimpleName());
                         continue;
                     }
@@ -193,16 +198,45 @@ public abstract class SchemaUtil {
                             propertyType = apiModel.value();
                         }
                     }
-                    objectSchema.addProperties(propertyName, createSchema(propertyType, methodParameter, propertyField, ignorePropertyFieldNotFound, graph));
+                    Schema propertySchema = createSchema(propertyType, methodParameter, propertyField, ignorePropertyFieldNotFound, graph);
+                    postSchemaCreation(propertySchema, methodParameter, propertyField, propertyDescriptor);
+                    objectSchema.addProperties(propertyName, propertySchema);
                 }
             }
             return objectSchema;
         });
-        String targetSchemaName = javaType.equals(ruleInterfaceType) ? javaType.getName() : javaType.getName() + ruleInterfaceType.getName();
+        String targetSchemaName = javaType.equals(ruleInterfaceType) ? javaType.getName() : javaType.getName() + "." + ruleInterfaceType.getSimpleName();
         targetSchema.setName(targetSchemaName);
         ObjectSchema schemaRef = new ObjectSchema();
         schemaRef.$ref(DEFAULT_SCHEMAS_PATH + targetSchemaName);
         return schemaRef;
+    }
+
+    private static void postSchemaCreation(Schema schema, MethodParameter methodParameter, Field propertyField, PropertyDescriptor propertyDescriptor) {
+        Class[] ignoreClasses = getIgnoreClasses(methodParameter);
+        Class[] fieldRequired = null;
+        NotNull notNull = findFieldAnnotation(propertyField, propertyDescriptor, NotNull.class);
+        if (null != notNull) {
+            if (ArrayUtils.isEmpty(notNull.groups())) {
+                schema.nullable(false);
+            } else {
+                fieldRequired = notNull.groups();
+            }
+        } else {
+            NotEmpty notEmpty = findFieldAnnotation(propertyField, propertyDescriptor, NotEmpty.class);
+            if (null != notEmpty) {
+                if (ArrayUtils.isEmpty(notEmpty.groups())) {
+                    schema.nullable(false);
+                } else {
+                    fieldRequired = notEmpty.groups();
+                }
+            }
+        }
+        if (null != ignoreClasses && null != fieldRequired) {
+            if (rulesMatch(fieldRequired, ignoreClasses)) {
+                schema.nullable(false);
+            }
+        }
     }
 
     private static Class readRuleInterfaceType(Class javaType, MethodParameter methodParameter) {
@@ -232,27 +266,19 @@ public abstract class SchemaUtil {
             if (Objects.equals(propertyDescriptor.getName(), ignoreProperty))
                 return false;
         }
-
+        if (null != findFieldAnnotation(propertyField, propertyDescriptor, Transient.class))
+            return false;
         if (!ignorePropertyFieldNotFound && null == propertyField)
             return false;
         ApiIgnore fieldIgnore = findFieldAnnotation(propertyField, propertyDescriptor, ApiIgnore.class);
         if (null != fieldIgnore && ArrayUtils.isEmpty(fieldIgnore.value()))//field上没有设置@ApiIgnore.values直接忽略.
             return false;
 
-        Class[] ignoreClasses = null;
-        if (null != methodParameter && methodParameter.getParameterIndex() > -1) {//方法参数规则限定
-            ApiIgnore parameterIgnore = methodParameter.getParameterAnnotation(ApiIgnore.class);
-            if (null != parameterIgnore)
-                ignoreClasses = parameterIgnore.value();
-        } else if (null != methodParameter && methodParameter.getParameterIndex() == -1) {//方法返回值规则限定
-            ApiIgnore returnTypeIgnore = methodParameter.getMethodAnnotation(ApiIgnore.class);
-            if (null != returnTypeIgnore)
-                ignoreClasses = returnTypeIgnore.returnValue();
-        }
+        Class[] ignoreClasses = getIgnoreClasses(methodParameter);
 
         //匹配参数@ApiIgnore 配置以及 field @ApiIgnore配置
         if (null != fieldIgnore && null != ignoreClasses) {
-            if (ignoreMatch(fieldIgnore.value(), ignoreClasses))
+            if (rulesMatch(fieldIgnore.value(), ignoreClasses))
                 return false;
         }
 
@@ -261,16 +287,28 @@ public abstract class SchemaUtil {
         if (null != nill && ArrayUtils.isEmpty(nill.groups()))//field上没有设置groups直接忽略.
             return false;
         if (null != nill && null != ignoreClasses) {
-            if (ignoreMatch(nill.groups(), ignoreClasses))
+            if (rulesMatch(nill.groups(), ignoreClasses))
                 return false;
         }
         return true;
     }
 
-    private static boolean ignoreMatch(Class<?>[] matchFrom, Class<?>[] matchTo) {
+    private static Class[] getIgnoreClasses(MethodParameter methodParameter) {
+        if (null != methodParameter) {
+            ApiIgnore parameterIgnore =
+                    methodParameter.getParameterIndex() > -1 ?
+                            methodParameter.getParameterAnnotation(ApiIgnore.class) : //方法参数
+                            methodParameter.getMethodAnnotation(ApiIgnore.class);//方法返回值
+            if (null != parameterIgnore)
+                return parameterIgnore.value();
+        }
+        return null;
+    }
+
+    private static boolean rulesMatch(Class<?>[] matchFrom, Class<?>[] matchTo) {
         for (Class from : matchFrom) {
             for (Class to : matchTo) {
-                if (from.equals(to)) {//只要存在交集就忽略
+                if (from.equals(to)) {//只要存在交集就匹配
                     return true;
                 }
             }
@@ -330,13 +368,22 @@ public abstract class SchemaUtil {
         throw new IllegalArgumentException("unsupported primitive type: " + javaType);
     }
 
-    /**
-     * @param dependsGraph
-     * @param refFrom
-     * @param refTo
-     * @return
-     */
-    private static boolean isCycleDepends(MutableGraph<Class> dependsGraph, Class refFrom, Class refTo) {
+
+    private static boolean isCycleDepends(MutableGraph<Class> dependsGraph, Class refFrom, Class refTo, PropertyDescriptor propertyDescriptor) {
+
+        if (isBasicType(refTo))
+            return false;
+        if (refTo.isArray()) {
+            return isCycleDepends(dependsGraph, refFrom, refTo.getComponentType(), propertyDescriptor);
+        }
+        if (ClassUtils.isAssignable(Collection.class, refTo)) {
+            Class<?> resolveGeneric = GenericTypes.getMethodReturnGenericType(refFrom, propertyDescriptor, 0);
+            if (null != resolveGeneric)
+                return isCycleDepends(dependsGraph, refFrom, resolveGeneric, propertyDescriptor);
+        }
+        if (ClassUtils.isAssignable(Map.class, refTo)) {
+            return false;
+        }
         try {
             if (!dependsGraph.putEdge(refFrom, refTo)) {
                 return true;
@@ -349,6 +396,11 @@ public abstract class SchemaUtil {
             return true;
         }
         return false;
+    }
+
+
+    public static boolean isBasicType(Class javaType) {
+        return ClassUtils.isPrimitiveOrWrapper(javaType) || ClassUtils.isAssignable(String.class, javaType) || ClassUtils.isAssignable(Date.class, javaType);
     }
 
 

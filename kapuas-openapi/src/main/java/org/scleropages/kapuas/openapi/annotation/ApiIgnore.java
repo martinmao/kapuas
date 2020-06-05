@@ -75,11 +75,17 @@ import static java.lang.annotation.ElementType.*;
  *          ....
  *      }
  *
+ *      &#64;ApiIgnore({Order.Get.class})//返回值忽略Order.id属性
+ *      public Order getOrder(Long orderId){
+ *
+ *      }
+ *
  * }
  * public class Order{
  *     public static interface Create{}
  *     public static interface Update{}
- *     &#64;ApiIgnore({Create.class})
+ *     public static interface Get{}
+ *     &#64;ApiIgnore({Create.class,Get.class})
  *     private Long id;
  *     &#64;ApiIgnore({Update.class})
  *     private Date createTime;
@@ -100,11 +106,4 @@ public @interface ApiIgnore {
      * @return
      */
     Class<?>[] value() default {};
-
-    /**
-     * 仅限于方法返回值，限定规则作用域
-     *
-     * @return
-     */
-    Class<?>[] returnValue() default {};
 }

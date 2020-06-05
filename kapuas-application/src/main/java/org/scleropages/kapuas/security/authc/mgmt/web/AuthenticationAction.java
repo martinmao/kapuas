@@ -72,6 +72,7 @@ public class AuthenticationAction {
     @PostMapping("create")
     public void create(@ApiParam @ApiIgnore({AuthenticationModel.CreateModel.class}) AuthenticationModel authentication) {
         authenticationManager.create(authentication);
+
     }
 
     @PostMapping("credentials/reset/{id}")

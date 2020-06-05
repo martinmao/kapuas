@@ -18,6 +18,7 @@ package org.scleropages.kapuas.security.acl.web;
 import org.apache.commons.collections.MapUtils;
 import org.scleropages.crud.dao.orm.SearchFilter;
 import org.scleropages.crud.web.GenericAction;
+import org.scleropages.kapuas.openapi.annotation.ApiIgnore;
 import org.scleropages.kapuas.openapi.annotation.ApiModel;
 import org.scleropages.kapuas.security.acl.Acl;
 import org.scleropages.kapuas.security.acl.AclEntry;
@@ -55,7 +56,7 @@ public class AclAction implements GenericAction {
     private AclManager aclManager;
 
     @PostMapping("strategy")
-    public void createAclStrategy(@RequestBody AclStrategy aclStrategy) {
+    public void createAclStrategy(@ApiIgnore(AclStrategy.CreateModel.class) @RequestBody AclStrategy aclStrategy) {
         aclManager.createAclStrategy(aclStrategy);
     }
 

@@ -88,7 +88,7 @@
 
             <dependency>
                 <groupId>io.swagger.core.v3</groupId>
-                <artifactId>swagger-integration</artifactId>
+                <artifactId>swagger-core</artifactId>
                 <version>${swagger.version}</version>
             </dependency>
 

@@ -18,6 +18,7 @@ package org.scleropages.kapuas.security.acl.model;
 import org.apache.commons.lang3.StringUtils;
 
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.Null;
 import java.beans.Transient;
 
 /**
@@ -79,6 +80,7 @@ public class AclStrategy {
         this.expression = expression;
     }
 
+    @Null(groups = CreateModel.class)
     public PermissionModel[] getPermissions() {
         return permissions;
     }

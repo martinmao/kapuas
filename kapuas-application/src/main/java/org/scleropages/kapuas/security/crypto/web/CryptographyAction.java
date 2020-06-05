@@ -16,6 +16,7 @@
 package org.scleropages.kapuas.security.crypto.web;
 
 import org.scleropages.crud.web.GenericAction;
+import org.scleropages.kapuas.openapi.annotation.ApiIgnore;
 import org.scleropages.kapuas.security.crypto.CryptographyManager;
 import org.scleropages.kapuas.security.crypto.model.Cryptography;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,10 +41,11 @@ public class CryptographyAction implements GenericAction {
     private CryptographyManager cryptographyManager;
 
     @PostMapping
-    public void createCryptography(@RequestBody Cryptography cryptography) {
+    public void createCryptography(@ApiIgnore({Cryptography.CreateModel.class}) @RequestBody Cryptography cryptography) {
         cryptographyManager.save(cryptography);
     }
 
+    @ApiIgnore({Cryptography.CreateModel.class})
     @GetMapping("item/{id}")
     public Cryptography getCryptography(@PathVariable("id") Long id) {
         return cryptographyManager.getById(id);

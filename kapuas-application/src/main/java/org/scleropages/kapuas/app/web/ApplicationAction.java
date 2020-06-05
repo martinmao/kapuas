@@ -56,7 +56,7 @@ public class ApplicationAction implements GenericAction {
     }
 
     @GetMapping("page")
-    public Page<Application> findPageApplication(HttpServletRequest request) {
+    public Page<Application> findApplicationPage(HttpServletRequest request) {
         return applicationManager.findApplicationPage(buildSearchFilterFromRequest(request), buildPageableFromRequest(request));
     }
 

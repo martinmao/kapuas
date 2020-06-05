@@ -38,7 +38,6 @@ import io.swagger.v3.oas.models.tags.Tag;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
-import org.scleropages.core.util.Reflections;
 import org.scleropages.kapuas.openapi.OpenApi;
 import org.scleropages.kapuas.openapi.annotation.ApiIgnore;
 import org.scleropages.kapuas.openapi.annotation.ApiModel;
@@ -48,13 +47,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.BridgeMethodResolver;
+import org.springframework.core.DefaultParameterNameDiscoverer;
 import org.springframework.core.MethodParameter;
+import org.springframework.core.ParameterNameDiscoverer;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.core.annotation.MergedAnnotation;
 import org.springframework.core.annotation.MergedAnnotations;
 import org.springframework.core.annotation.SynthesizingMethodParameter;
 import org.springframework.util.ClassUtils;
-import org.springframework.util.ReflectionUtils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -110,6 +110,8 @@ public class SpringMvcOpenApiReader implements OpenApiReader {
 
     @Value("#{ @environment['openapi.consume.media-type'] ?: 'application/json' }")
     private String defaultConsumeMediaType;
+
+    private final ParameterNameDiscoverer parameterNameDiscoverer = new DefaultParameterNameDiscoverer();
 
     @Override
     public OpenApi read(String basePackage, List<Class<?>> classes) {
@@ -170,7 +172,7 @@ public class SpringMvcOpenApiReader implements OpenApiReader {
                 return pathItem;
             });
         }
-        if (logger.isDebugEnabled()) {
+        if (logger.isDebugEnabled() && paths.length > 0) {
             logger.debug("successfully resolve {}.{} with paths:{}", controllerClass.getSimpleName(), controllerMethod.getName(), ArrayUtils.toString(paths));
         }
     }
@@ -189,6 +191,8 @@ public class SpringMvcOpenApiReader implements OpenApiReader {
         int count = bridgedMethod.getParameterCount();
         for (int i = 0; i < count; i++) {
             MethodParameter methodParameter = new SynthesizingMethodParameter(controllerMethod, i);
+            methodParameter.initParameterNameDiscovery(parameterNameDiscoverer);
+
             if (null != methodParameter.getParameterAnnotation(PathVariable.class)) {
                 methodParameters.add(methodParameter);
                 continue;
@@ -382,19 +386,25 @@ public class SpringMvcOpenApiReader implements OpenApiReader {
     protected String[] computePath(ResolveContext resolveContext) {
         String[] basePaths = resolveContext.baseMapping.getStringArray(ANNOTATION_METHOD_NAME_REQUEST_MAPPING_PATH);
         String[] methodPaths = resolveContext.methodMapping.getStringArray(ANNOTATION_METHOD_NAME_REQUEST_MAPPING_PATH);
-        String[] paths = new String[basePaths.length * methodPaths.length];
+        int methodPathsLength = methodPaths.length;
+        int totalPath = basePaths.length * (methodPathsLength > 0 ? methodPathsLength : 1);
+        String[] paths = new String[totalPath];
         int i = 0;
         for (String basePath : basePaths) {
             if (basePath.charAt(0) != '/') {
                 basePath = '/' + basePath;
             }
-            if (basePath.charAt(basePath.length() - 1) != '/') {
+            if (methodPathsLength != 0 && basePath.charAt(basePath.length() - 1) != '/') {
                 basePath += '/';
             }
-            for (String methodPath : methodPaths) {
-                methodPath = StringUtils.removeEnd(StringUtils.removeStart(methodPath, "/"), "/");
-                paths[i] = basePath + methodPath;
-                i++;
+            if (methodPathsLength == 0) {
+                paths[i] = basePath;
+            } else {
+                for (String methodPath : methodPaths) {
+                    methodPath = StringUtils.removeEnd(StringUtils.removeStart(methodPath, "/"), "/");
+                    paths[i] = basePath + methodPath;
+                    i++;
+                }
             }
         }
         return paths;
@@ -414,7 +424,7 @@ public class SpringMvcOpenApiReader implements OpenApiReader {
             return false;
         ApiIgnore methodIgnore = AnnotationUtils.findAnnotation(method, ApiIgnore.class);
         //方法返回值策略如果为空，则忽略处理
-        if (null != methodIgnore && ArrayUtils.isEmpty(methodIgnore.returnValue())) {
+        if (null != methodIgnore && ArrayUtils.isEmpty(methodIgnore.value())) {
             return false;
         }
         if (null == AnnotationUtils.findAnnotation(method, RequestMapping.class))
