@@ -31,6 +31,7 @@ import io.swagger.v3.oas.models.media.NumberSchema;
 import io.swagger.v3.oas.models.media.ObjectSchema;
 import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.oas.models.media.StringSchema;
+import org.apache.commons.collections.ComparatorUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.scleropages.core.util.GenericTypes;
 import org.scleropages.kapuas.openapi.annotation.ApiIgnore;
@@ -73,38 +74,21 @@ public abstract class SchemaUtil {
 
     private static final Logger logger = LoggerFactory.getLogger(SchemaUtil.class);
 
-    /**
-     * cache all schema definitions.
-     * type class->rule interface class(User.Create.class/User.Update.class)->schema
-     */
-    private static final Map<Class, Map<Class, Schema>> javaTypeToSchemas = Maps.newHashMap();
 
 
-    public static List<Schema> getAllSchemas() {
-        List<Schema> schemas = Lists.newArrayList();
-        javaTypeToSchemas.forEach((typeClazz, classSchemaMap) -> {
-            classSchemaMap.forEach((ruleInterfaceClazz, schema) -> {
-                schemas.add(schema);
-            });
-        });
-        return Collections.unmodifiableList(schemas);
-    }
-
-    public static Schema getSchema(Class javaType, Class ruleType) {
-        return javaTypeToSchemas.get(javaType).get(ruleType);
-    }
 
 
-    public static final Schema createSchema(MethodParameter methodParameter) {
+
+    public static final Schema createSchema(MethodParameter methodParameter,Map<Class, Map<Class, Schema>> javaTypeToSchemas) {
         ApiStrategy apiStrategy = AnnotationUtils.findAnnotation(methodParameter.getParameterType(), ApiStrategy.class);
         if (null != apiStrategy) {
-            return createSchema(methodParameter, apiStrategy.ignorePropertyFieldNotFound());
+            return createSchema(methodParameter, apiStrategy.ignorePropertyFieldNotFound(),javaTypeToSchemas);
         }
-        return createSchema(methodParameter, true);
+        return createSchema(methodParameter, true,javaTypeToSchemas);
     }
 
 
-    public static final Schema createSchema(MethodParameter methodParameter, boolean ignorePropertyFieldNotFound) {
+    public static final Schema createSchema(MethodParameter methodParameter, boolean ignorePropertyFieldNotFound,Map<Class, Map<Class, Schema>> javaTypeToSchemas) {
         Assert.notNull(methodParameter, "methodParameter must not be null.");
         Class<?> javaType = methodParameter.getParameterType();
         if (javaType.isInterface()) {
@@ -117,12 +101,12 @@ public abstract class SchemaUtil {
             if (null != apiModel)
                 javaType = apiModel.value();
         }
-        return createSchema(javaType, methodParameter, null, ignorePropertyFieldNotFound, GraphBuilder.directed().allowsSelfLoops(false).build());
+        return createSchema(javaType, methodParameter, null, ignorePropertyFieldNotFound, javaTypeToSchemas,GraphBuilder.directed().allowsSelfLoops(false).build());
     }
 
 
-    public static final Schema createSchema(Class javaType, boolean ignorePropertyFieldNotFound) {
-        return createSchema(javaType, null, null, ignorePropertyFieldNotFound, GraphBuilder.directed().allowsSelfLoops(false).build());
+    public static final Schema createSchema(Class javaType, boolean ignorePropertyFieldNotFound,Map<Class, Map<Class, Schema>> javaTypeToSchemas) {
+        return createSchema(javaType, null, null, ignorePropertyFieldNotFound, javaTypeToSchemas,GraphBuilder.directed().allowsSelfLoops(false).build());
     }
 
     /**
@@ -131,7 +115,7 @@ public abstract class SchemaUtil {
      * @param field           java字段类型，可选
      * @return
      */
-    private static final Schema createSchema(Class javaType, MethodParameter methodParameter, Field field, boolean ignorePropertyFieldNotFound, MutableGraph<Class> graph) {
+    private static final Schema createSchema(Class javaType, MethodParameter methodParameter, Field field, boolean ignorePropertyFieldNotFound,Map<Class, Map<Class, Schema>> javaTypeToSchemas, MutableGraph<Class> graph) {
         Assert.notNull(javaType, "javaType is required.");
         if (isBasicType(javaType)) {
             return createPrimitiveSchema(javaType);
@@ -141,7 +125,7 @@ public abstract class SchemaUtil {
             return arraySchema;
         } else if (javaType.isArray()) {
             ArraySchema arraySchema = new ArraySchema();
-            arraySchema.setItems(createSchema(javaType.getComponentType(), methodParameter, field, ignorePropertyFieldNotFound, graph));
+            arraySchema.setItems(createSchema(javaType.getComponentType(), methodParameter, field, ignorePropertyFieldNotFound, javaTypeToSchemas,graph));
             return arraySchema;
         } else if (ClassUtils.isAssignable(Collection.class, javaType)) {
             ArraySchema arraySchema = new ArraySchema();
@@ -158,7 +142,7 @@ public abstract class SchemaUtil {
                 objectSchema.setFormat("object");
                 return objectSchema;
             } else {
-                arraySchema.setItems(createSchema(itemType, methodParameter, field, ignorePropertyFieldNotFound, graph));
+                arraySchema.setItems(createSchema(itemType, methodParameter, field, ignorePropertyFieldNotFound,javaTypeToSchemas, graph));
             }
             return arraySchema;
         } else if (ClassUtils.isAssignable(Map.class, javaType)) {
@@ -174,12 +158,12 @@ public abstract class SchemaUtil {
                 }
             }
             //otherwise resolve as pojo bean.
-            return computeObjectSchemaIfAbsent(javaType, readRuleInterfaceType(javaType, methodParameter), methodParameter, ignorePropertyFieldNotFound, graph);
+            return computeObjectSchemaIfAbsent(javaType, readRuleInterfaceType(javaType, methodParameter), methodParameter, ignorePropertyFieldNotFound,javaTypeToSchemas, graph);
         }
     }
 
 
-    private static Schema computeObjectSchemaIfAbsent(Class javaType, Class ruleInterfaceType, MethodParameter methodParameter, boolean ignorePropertyFieldNotFound, MutableGraph<Class> graph) {
+    private static Schema computeObjectSchemaIfAbsent(Class javaType, Class ruleInterfaceType, MethodParameter methodParameter, boolean ignorePropertyFieldNotFound,Map<Class, Map<Class, Schema>> javaTypeToSchemas, MutableGraph<Class> graph) {
         Schema targetSchema = javaTypeToSchemas.computeIfAbsent(javaType, clazz -> Maps.newHashMap()).computeIfAbsent(ruleInterfaceType, clazz -> {
             ObjectSchema objectSchema = new ObjectSchema();
             PropertyDescriptor[] propertyDescriptors = BeanUtils.getPropertyDescriptors(javaType);
@@ -198,7 +182,7 @@ public abstract class SchemaUtil {
                             propertyType = apiModel.value();
                         }
                     }
-                    Schema propertySchema = createSchema(propertyType, methodParameter, propertyField, ignorePropertyFieldNotFound, graph);
+                    Schema propertySchema = createSchema(propertyType, methodParameter, propertyField, ignorePropertyFieldNotFound,javaTypeToSchemas, graph);
                     postSchemaCreation(propertySchema, methodParameter, propertyField, propertyDescriptor);
                     objectSchema.addProperties(propertyName, propertySchema);
                 }

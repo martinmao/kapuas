@@ -35,9 +35,11 @@ import io.swagger.v3.oas.models.responses.ApiResponse;
 import io.swagger.v3.oas.models.responses.ApiResponses;
 import io.swagger.v3.oas.models.servers.Server;
 import io.swagger.v3.oas.models.tags.Tag;
+import org.apache.commons.collections.ComparatorUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
+import org.scleropages.crud.exception.BizExceptionHttpView;
 import org.scleropages.kapuas.openapi.OpenApi;
 import org.scleropages.kapuas.openapi.annotation.ApiIgnore;
 import org.scleropages.kapuas.openapi.annotation.ApiModel;
@@ -55,6 +57,7 @@ import org.springframework.core.annotation.MergedAnnotation;
 import org.springframework.core.annotation.MergedAnnotations;
 import org.springframework.core.annotation.SynthesizingMethodParameter;
 import org.springframework.util.ClassUtils;
+import org.springframework.util.ReflectionUtils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -62,9 +65,11 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.lang.reflect.Method;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.function.Supplier;
 
 /**
  * 基于spring mvc 的 {@link OpenApiReader}实现（解析并生成 {@link OpenAPI}定义）.
@@ -77,6 +82,11 @@ public class SpringMvcOpenApiReader implements OpenApiReader {
     private static final String ANNOTATION_METHOD_NAME_REQUEST_MAPPING_PATH = "path";
 
     private static final String ANNOTATION_METHOD_NAME_REQUEST_MAPPING_METHOD = "method";
+
+    private static final String SUCCESS_RESPONSE_STATUS = "200";
+    private static final String BAD_REQUEST_RESPONSE_STATUS = "400";
+    private static final String BIZ_STATE_VIOLATION_STATUS = "300";
+
 
     protected final Logger logger = LoggerFactory.getLogger(getClass());
 
@@ -127,7 +137,9 @@ public class SpringMvcOpenApiReader implements OpenApiReader {
             Tag tag = new Tag();
             tag.setName(clazz.getSimpleName());
             swaggerOpenApi.nativeOpenApi().addTagsItem(tag);
-            Method[] methods = clazz.getDeclaredMethods();
+            Method[] methods = ReflectionUtils.getDeclaredMethods(clazz);
+
+            Arrays.sort(methods, (o1, o2) -> ComparatorUtils.naturalComparator().compare(o1.getName(), o2.getName()));
             for (Method method : methods) {
                 if (ClassUtils.isUserLevelMethod(method))
                     if (!readableMethod(method)) {
@@ -240,8 +252,9 @@ public class SpringMvcOpenApiReader implements OpenApiReader {
         if (null != apiParam) {
             ApiIgnore apiIgnore = methodParameter.getParameterAnnotation(ApiIgnore.class);
             Class<?> parameterType = methodParameter.getParameterType();
-            SchemaUtil.createSchema(methodParameter);
-            Schema schema = SchemaUtil.getSchema(parameterType,
+
+            SchemaUtil.createSchema(methodParameter,resolveContext.swaggerOpenApi.getJavaTypeToSchemas());
+            Schema schema = resolveContext.swaggerOpenApi.getSchema(parameterType,
                     null != apiIgnore && ArrayUtils.isNotEmpty(apiIgnore.value()) ? apiIgnore.value()[0] : parameterType);
             Map<String, Schema> properties = schema.getProperties();
             properties.forEach((name, propertySchema) -> {
@@ -263,16 +276,30 @@ public class SpringMvcOpenApiReader implements OpenApiReader {
     }
 
     protected ApiResponses createApiResponses(MethodParameter methodParameter, ResolveContext resolveContext) {
+
         ApiResponses apiResponses = new ApiResponses();
-        ApiResponse apiResponse = new ApiResponse();
-        Content content = new Content();
-        apiResponse.setContent(content);
-        if (!Objects.equals(methodParameter.getParameterType().getName(), "void")) {
-            processContent(resolveContext.methodMapping.getStringArray("produces"), content, SchemaUtil.createSchema(methodParameter));
-        }
-        apiResponse.setDescription("successfully.");
-        apiResponses.addApiResponse("200", apiResponse);
+        Map<Class, Map<Class, Schema>> javaTypeToSchemas = resolveContext.swaggerOpenApi.getJavaTypeToSchemas();
+
+        apiResponses.addApiResponse(SUCCESS_RESPONSE_STATUS, createResponse(methodParameter, resolveContext, () -> SchemaUtil.createSchema(methodParameter,javaTypeToSchemas), "Successfully.", true));
+        Supplier<Schema> errorSchemaSupplier = () -> SchemaUtil.createSchema(BizExceptionHttpView.class, true,javaTypeToSchemas);
+        apiResponses.addApiResponse(BAD_REQUEST_RESPONSE_STATUS, createResponse(methodParameter, resolveContext, errorSchemaSupplier, "Bad request.", false));
+        apiResponses.addApiResponse(BIZ_STATE_VIOLATION_STATUS, createResponse(methodParameter, resolveContext, errorSchemaSupplier, "Biz state violation.", false));
         return apiResponses;
+    }
+
+    protected ApiResponse createResponse(MethodParameter methodParameter, ResolveContext resolveContext, Supplier<Schema> schemaSupplier, String desc, boolean checkVoid) {
+        ApiResponse successResponse = new ApiResponse();
+        Content content = new Content();
+        successResponse.setContent(content);
+        if (checkVoid) {
+            if (!Objects.equals(methodParameter.getParameterType().getName(), "void")) {
+                processContent(resolveContext.methodMapping.getStringArray("produces"), content, schemaSupplier.get());
+            }
+        } else {
+            processContent(resolveContext.methodMapping.getStringArray("produces"), content, schemaSupplier.get());
+        }
+        successResponse.setDescription(desc);
+        return successResponse;
     }
 
     protected io.swagger.v3.oas.models.parameters.RequestBody createRequestBody(RequestBody requestBody, MethodParameter methodParameter, ResolveContext resolveContext) {
@@ -280,7 +307,7 @@ public class SpringMvcOpenApiReader implements OpenApiReader {
         swaggerBody.setRequired(requestBody.required());
         Content content = new Content();
         swaggerBody.setContent(content);
-        Schema schema = SchemaUtil.createSchema(methodParameter);
+        Schema schema = SchemaUtil.createSchema(methodParameter,resolveContext.swaggerOpenApi.getJavaTypeToSchemas());
         processContent(resolveContext.methodMapping.getStringArray("consumes"), content, schema);
         return swaggerBody;
     }
@@ -327,7 +354,7 @@ public class SpringMvcOpenApiReader implements OpenApiReader {
             parameterName = "arg" + methodParameter.getParameterIndex();
         parameter.setName(parameterName);
         parameter.setRequired(required);
-        Schema schema = SchemaUtil.createSchema(methodParameter);
+        Schema schema = SchemaUtil.createSchema(methodParameter,resolveContext.swaggerOpenApi.getJavaTypeToSchemas());
         parameter.setSchema(schema);
         postParameterCreation(methodParameter, parameter, schema);
     }
@@ -504,7 +531,7 @@ public class SpringMvcOpenApiReader implements OpenApiReader {
 
 
     protected void resolveSchemas(SwaggerOpenApi openAPI) {
-        List<Schema> allSchemas = SchemaUtil.getAllSchemas();
+        List<Schema> allSchemas = openAPI.getAllSchemas();
         Components components = new Components();
         allSchemas.forEach(schema -> components.addSchemas(schema.getName(), schema));
         openAPI.nativeOpenApi().setComponents(components);

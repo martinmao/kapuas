@@ -41,7 +41,7 @@ public class PageSchemaResolver implements SchemaResolver {
 
     @Override
     public Schema resolve(Class source) {
-        return SchemaUtil.createSchema(PageImpl.class, false);
+        return null;
     }
 
     public static void main(String[] args) {

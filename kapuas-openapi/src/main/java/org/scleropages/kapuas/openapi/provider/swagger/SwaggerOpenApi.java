@@ -19,14 +19,19 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.PrettyPrinter;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.core.util.MinimalPrettyPrinter;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import io.swagger.v3.core.util.Json;
 import io.swagger.v3.core.util.Yaml;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
+import io.swagger.v3.oas.models.media.Schema;
+import org.apache.commons.collections.ComparatorUtils;
 import org.scleropages.kapuas.openapi.OpenApi;
 
 import java.lang.reflect.Method;
+import java.util.Collections;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
@@ -50,6 +55,32 @@ public class SwaggerOpenApi implements OpenApi<OpenAPI> {
     private Map<Method, Operation> operations = Maps.newHashMap();
 
     private Map<String, Method> operationIdToMethod = Maps.newHashMap();
+
+    /**
+     * cache all schema definitions.
+     * type class->rule interface class(User.Create.class/User.Update.class)->schema
+     */
+    private final Map<Class, Map<Class, Schema>> javaTypeToSchemas = Maps.newHashMap();
+
+
+    public  List<Schema> getAllSchemas() {
+        List<Schema> schemas = Lists.newArrayList();
+        javaTypeToSchemas.forEach((typeClazz, classSchemaMap) -> {
+            classSchemaMap.forEach((ruleInterfaceClazz, schema) -> {
+                schemas.add(schema);
+            });
+        });
+        Collections.sort(schemas,(o1, o2) -> ComparatorUtils.naturalComparator().compare(o1.getName(),o2.getName()));
+        return Collections.unmodifiableList(schemas);
+    }
+
+    public  Schema getSchema(Class javaType, Class ruleType) {
+        return javaTypeToSchemas.get(javaType).get(ruleType);
+    }
+
+    protected Map<Class, Map<Class, Schema>> getJavaTypeToSchemas() {
+        return javaTypeToSchemas;
+    }
 
     public SwaggerOpenApi(String basePackage, OpenAPI openAPI, String openApiRenderFormat, boolean openApiRenderPretty) {
         this.basePackage = basePackage;
