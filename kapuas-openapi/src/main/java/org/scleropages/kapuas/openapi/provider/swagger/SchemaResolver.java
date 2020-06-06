@@ -16,23 +16,61 @@
 package org.scleropages.kapuas.openapi.provider.swagger;
 
 import io.swagger.v3.oas.models.media.Schema;
+import org.springframework.core.MethodParameter;
+import org.springframework.util.Assert;
+
+import java.lang.reflect.Field;
+import java.util.Objects;
+import java.util.Optional;
 
 /**
  * @author <a href="mailto:martinmao@icloud.com">Martin Mao</a>
  */
 public interface SchemaResolver {
 
+    static final String PROCESSING_FLAG_PREFIX = "PROCESSING_FLAG_PREFIX.";
+    static final Boolean PROCESSING_FLAG = new Boolean(true);
+
+    default boolean support(Class javaType, MethodParameter methodParameter, Field field, ResolveContext resolveContext) {
+        return (!Objects.equals(resolveContext.getAttribute(PROCESSING_FLAG_PREFIX + getClass().getSimpleName()), PROCESSING_FLAG)) && supportInternal(javaType, Optional.ofNullable(methodParameter), Optional.ofNullable(field), resolveContext);
+    }
+
     /**
-     * return true if given class can resolved.
-     * @param source
+     * return true if given class can be resolved.
+     *
+     * @param javaType
+     * @param methodParameter
+     * @param field
      * @return
      */
-    boolean support(Class source);
+    boolean supportInternal(Class javaType, Optional<MethodParameter> methodParameter, Optional<Field> field, ResolveContext resolveContext);
+
+
+    default Schema resolve(Class javaType, MethodParameter methodParameter, Field field, ResolveContext resolveContext) {
+        String name = PROCESSING_FLAG_PREFIX + getClass().getSimpleName();
+        resolveContext.setAttribute(name, PROCESSING_FLAG);
+        try {
+            return resolveInternal(javaType, Optional.ofNullable(methodParameter), Optional.ofNullable(field), resolveContext);
+        } finally {
+            Assert.isTrue(resolveContext.removeAttribute(name, PROCESSING_FLAG), "invalid state.");
+        }
+    }
+
 
     /**
      * resolved given class as {@link Schema}
-     * @param source
+     *
+     * @param javaType
+     * @param methodParameter
+     * @param field
+     * @param resolveContext
      * @return
      */
-    Schema resolve(Class source);
+    Schema resolveInternal(Class javaType, Optional<MethodParameter> methodParameter, Optional<Field> field, ResolveContext resolveContext);
+
+    /**
+     * api method. reset states(defined sub classes.)
+     */
+    void reset();
+
 }

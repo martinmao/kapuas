@@ -33,6 +33,7 @@ import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 /**
@@ -63,23 +64,19 @@ public class SwaggerOpenApi implements OpenApi<OpenAPI> {
     private final Map<Class, Map<Class, Schema>> javaTypeToSchemas = Maps.newHashMap();
 
 
-    public  List<Schema> getAllSchemas() {
+    public List<Schema> getAllSchemas() {
         List<Schema> schemas = Lists.newArrayList();
         javaTypeToSchemas.forEach((typeClazz, classSchemaMap) -> {
             classSchemaMap.forEach((ruleInterfaceClazz, schema) -> {
                 schemas.add(schema);
             });
         });
-        Collections.sort(schemas,(o1, o2) -> ComparatorUtils.naturalComparator().compare(o1.getName(),o2.getName()));
+        Collections.sort(schemas, (o1, o2) -> ComparatorUtils.naturalComparator().compare(o1.getName(), o2.getName()));
         return Collections.unmodifiableList(schemas);
     }
 
-    public  Schema getSchema(Class javaType, Class ruleType) {
+    public Schema getSchema(Class javaType, Class ruleType) {
         return javaTypeToSchemas.get(javaType).get(ruleType);
-    }
-
-    protected Map<Class, Map<Class, Schema>> getJavaTypeToSchemas() {
-        return javaTypeToSchemas;
     }
 
     public SwaggerOpenApi(String basePackage, OpenAPI openAPI, String openApiRenderFormat, boolean openApiRenderPretty) {
@@ -130,6 +127,10 @@ public class SwaggerOpenApi implements OpenApi<OpenAPI> {
 
     public Operation computeOperationIfAbsent(Method method, Function<Method, Operation> mappingFunction) {
         return operations.computeIfAbsent(method, mappingFunction);
+    }
+
+    public Schema computeSchemaIfAbsent(Class typeClass, Class ruleInterface, BiFunction<Class, Class, ? extends Schema> schemaLoader) {
+        return javaTypeToSchemas.computeIfAbsent(typeClass, clazz -> Maps.newHashMap()).computeIfAbsent(ruleInterface, clazz -> schemaLoader.apply(typeClass, ruleInterface));
     }
 
     public Map<String, Method> getOperationIdToMethod() {

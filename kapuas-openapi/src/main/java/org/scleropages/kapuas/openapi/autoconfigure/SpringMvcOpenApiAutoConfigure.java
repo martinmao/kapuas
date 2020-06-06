@@ -19,7 +19,10 @@ import com.google.common.collect.Lists;
 import org.apache.commons.lang3.StringUtils;
 import org.scleropages.kapuas.openapi.OpenApiContextBuilder;
 import org.scleropages.kapuas.openapi.provider.swagger.BeanComponentApiScanner;
+import org.scleropages.kapuas.openapi.provider.swagger.SchemaResolver;
 import org.scleropages.kapuas.openapi.provider.swagger.SpringMvcOpenApiReader;
+import org.scleropages.kapuas.openapi.provider.swagger.resolver.PageSchemaResolver;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -56,16 +59,23 @@ public class SpringMvcOpenApiAutoConfigure implements ApplicationListener<Contex
 
     @Bean
     @ConditionalOnMissingBean
-    public SpringMvcOpenApiReader springMvcOpenApiReader() {
+    public SpringMvcOpenApiReader springMvcOpenApiReader(ObjectProvider<SchemaResolver> schemaResolvers) {
         SpringMvcOpenApiReader springMvcOpenApiReader = new SpringMvcOpenApiReader();
+        schemaResolvers.orderedStream().forEachOrdered(schemaResolver -> springMvcOpenApiReader.addSchemaResolver(schemaResolver));
         return springMvcOpenApiReader;
     }
 
     @Bean
     @ConditionalOnMissingBean
-    public OpenApiContextBuilder openApiContextBuilder() {
-        OpenApiContextBuilder builder = new OpenApiContextBuilder(beanComponentApiScanner(), springMvcOpenApiReader(), StringUtils.split(basePackages, ","));
+    public OpenApiContextBuilder openApiContextBuilder(SpringMvcOpenApiReader springMvcOpenApiReader) {
+        OpenApiContextBuilder builder = new OpenApiContextBuilder(beanComponentApiScanner(), springMvcOpenApiReader, StringUtils.split(basePackages, ","));
         return builder;
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public PageSchemaResolver pageSchemaResolver() {
+        return new PageSchemaResolver();
     }
 
     @Override

@@ -24,6 +24,7 @@ import org.scleropages.kapuas.security.acl.Acl;
 import org.scleropages.kapuas.security.acl.AclEntry;
 import org.scleropages.kapuas.security.acl.AclManager;
 import org.scleropages.kapuas.security.acl.AclPrincipal;
+import org.scleropages.kapuas.security.acl.model.AclEntryModel;
 import org.scleropages.kapuas.security.acl.model.AclModel;
 import org.scleropages.kapuas.security.acl.model.AclPrincipalModel;
 import org.scleropages.kapuas.security.acl.model.AclStrategy;
@@ -86,6 +87,7 @@ public class AclAction implements GenericAction {
     }
 
     @GetMapping("resource/{resourceType}")
+    @ApiModel(AclModel.class)
     public Page<Acl> readAcl(HttpServletRequest request, @PathVariable String resourceType, @RequestParam(required = false) String variables) {
         ResourceModel model = new ResourceModel();
         model.setType(resourceType);
@@ -165,6 +167,7 @@ public class AclAction implements GenericAction {
     }
 
     @GetMapping("entries/{resourceType}/{resourceId}")
+    @ApiModel(AclEntryModel.class)
     public Page<AclEntry> readAclEntries(HttpServletRequest request, @PathVariable String resourceType, @PathVariable String resourceId, String principal) {
         ResourceModel resourceModel = new ResourceModel();
         resourceModel.setType(resourceType);

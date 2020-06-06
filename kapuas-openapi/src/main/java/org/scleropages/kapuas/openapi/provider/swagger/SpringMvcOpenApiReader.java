@@ -79,9 +79,6 @@ import java.util.function.Supplier;
  */
 public class SpringMvcOpenApiReader implements OpenApiReader {
 
-    private static final String ANNOTATION_METHOD_NAME_REQUEST_MAPPING_PATH = "path";
-
-    private static final String ANNOTATION_METHOD_NAME_REQUEST_MAPPING_METHOD = "method";
 
     private static final String SUCCESS_RESPONSE_STATUS = "200";
     private static final String BAD_REQUEST_RESPONSE_STATUS = "400";
@@ -123,8 +120,13 @@ public class SpringMvcOpenApiReader implements OpenApiReader {
 
     private final ParameterNameDiscoverer parameterNameDiscoverer = new DefaultParameterNameDiscoverer();
 
+    private final List<SchemaResolver> schemaResolvers = Lists.newArrayList();
+
     @Override
     public OpenApi read(String basePackage, List<Class<?>> classes) {
+        for (SchemaResolver schemaResolver : schemaResolvers) {
+            schemaResolver.reset();
+        }
         SwaggerOpenApi swaggerOpenApi = createOpenApi(basePackage, createOpenAPI(basePackage));
 
         classes.forEach(clazz -> {
@@ -165,7 +167,7 @@ public class SpringMvcOpenApiReader implements OpenApiReader {
         MergedAnnotation<RequestMapping> baseMapping = MergedAnnotations.from(controllerClass).get(RequestMapping.class);
         MergedAnnotation<RequestMapping> methodMapping = MergedAnnotations.from(controllerMethod).get(RequestMapping.class);
 
-        ResolveContext resolveContext = new ResolveContext(baseMapping, methodMapping, swaggerOpenApi);
+        ResolveContext resolveContext = new ResolveContext(baseMapping, methodMapping, swaggerOpenApi, schemaResolvers);
 
         //compute and merge request path(controller path * method path)
         String[] paths = computePath(resolveContext);
@@ -176,7 +178,7 @@ public class SpringMvcOpenApiReader implements OpenApiReader {
                     postPathItemCreation(pathItem);
                     Operation operation = createOperation(controllerMethod, resolveContext);
                     operation.addTagsItem(controllerClass.getSimpleName());
-                    bindOperationToPathItem(pathItem, operation, methodMapping);
+                    bindOperationToPathItem(pathItem, operation, resolveContext);
                     resolveControllerMethodArguments(controllerMethod, resolveContext);
                 } catch (Exception e) {
                     throw new IllegalStateException("failure to build operation for path: " + pathItem, e);
@@ -231,7 +233,7 @@ public class SpringMvcOpenApiReader implements OpenApiReader {
     }
 
     protected void resolveControllerMethodParameter(final Method controllerMethod, final MethodParameter methodParameter, ResolveContext resolveContext, int index) {
-        Operation operation = resolveContext.swaggerOpenApi.getOperation(controllerMethod);
+        Operation operation = resolveContext.getSwaggerOpenApi().getOperation(controllerMethod);
         PathVariable pathVariable = methodParameter.getParameterAnnotation(PathVariable.class);
         if (null != pathVariable) {
             operation.addParametersItem(createPathParameter(pathVariable, methodParameter, resolveContext, index));
@@ -252,9 +254,9 @@ public class SpringMvcOpenApiReader implements OpenApiReader {
         if (null != apiParam) {
             ApiIgnore apiIgnore = methodParameter.getParameterAnnotation(ApiIgnore.class);
             Class<?> parameterType = methodParameter.getParameterType();
-
-            SchemaUtil.createSchema(methodParameter,resolveContext.swaggerOpenApi.getJavaTypeToSchemas());
-            Schema schema = resolveContext.swaggerOpenApi.getSchema(parameterType,
+            SwaggerOpenApi swaggerOpenApi = resolveContext.getSwaggerOpenApi();
+            SchemaUtil.createSchema(methodParameter, resolveContext);
+            Schema schema = swaggerOpenApi.getSchema(parameterType,
                     null != apiIgnore && ArrayUtils.isNotEmpty(apiIgnore.value()) ? apiIgnore.value()[0] : parameterType);
             Map<String, Schema> properties = schema.getProperties();
             properties.forEach((name, propertySchema) -> {
@@ -278,10 +280,9 @@ public class SpringMvcOpenApiReader implements OpenApiReader {
     protected ApiResponses createApiResponses(MethodParameter methodParameter, ResolveContext resolveContext) {
 
         ApiResponses apiResponses = new ApiResponses();
-        Map<Class, Map<Class, Schema>> javaTypeToSchemas = resolveContext.swaggerOpenApi.getJavaTypeToSchemas();
 
-        apiResponses.addApiResponse(SUCCESS_RESPONSE_STATUS, createResponse(methodParameter, resolveContext, () -> SchemaUtil.createSchema(methodParameter,javaTypeToSchemas), "Successfully.", true));
-        Supplier<Schema> errorSchemaSupplier = () -> SchemaUtil.createSchema(BizExceptionHttpView.class, true,javaTypeToSchemas);
+        apiResponses.addApiResponse(SUCCESS_RESPONSE_STATUS, createResponse(methodParameter, resolveContext, () -> SchemaUtil.createSchema(methodParameter, resolveContext), "Successfully.", true));
+        Supplier<Schema> errorSchemaSupplier = () -> SchemaUtil.createSchema(BizExceptionHttpView.class, true, resolveContext);
         apiResponses.addApiResponse(BAD_REQUEST_RESPONSE_STATUS, createResponse(methodParameter, resolveContext, errorSchemaSupplier, "Bad request.", false));
         apiResponses.addApiResponse(BIZ_STATE_VIOLATION_STATUS, createResponse(methodParameter, resolveContext, errorSchemaSupplier, "Biz state violation.", false));
         return apiResponses;
@@ -293,10 +294,10 @@ public class SpringMvcOpenApiReader implements OpenApiReader {
         successResponse.setContent(content);
         if (checkVoid) {
             if (!Objects.equals(methodParameter.getParameterType().getName(), "void")) {
-                processContent(resolveContext.methodMapping.getStringArray("produces"), content, schemaSupplier.get());
+                processContent(resolveContext.getMethodMappingProduces(), content, schemaSupplier.get());
             }
         } else {
-            processContent(resolveContext.methodMapping.getStringArray("produces"), content, schemaSupplier.get());
+            processContent(resolveContext.getMethodMappingProduces(), content, schemaSupplier.get());
         }
         successResponse.setDescription(desc);
         return successResponse;
@@ -307,8 +308,8 @@ public class SpringMvcOpenApiReader implements OpenApiReader {
         swaggerBody.setRequired(requestBody.required());
         Content content = new Content();
         swaggerBody.setContent(content);
-        Schema schema = SchemaUtil.createSchema(methodParameter,resolveContext.swaggerOpenApi.getJavaTypeToSchemas());
-        processContent(resolveContext.methodMapping.getStringArray("consumes"), content, schema);
+        Schema schema = SchemaUtil.createSchema(methodParameter, resolveContext);
+        processContent(resolveContext.getMethodMappingConsumes(), content, schema);
         return swaggerBody;
     }
 
@@ -335,7 +336,7 @@ public class SpringMvcOpenApiReader implements OpenApiReader {
         PathParameter parameter = new PathParameter();
         String parameterName = MergedAnnotations.from(pathVariable).get(PathVariable.class).getString("name");
         if (StringUtils.isBlank(parameterName)) {
-            String[] path = resolveContext.methodMapping.getStringArray("path");
+            String[] path = resolveContext.getMethodMappingPaths();
             if (ArrayUtils.isNotEmpty(path)) {
                 String[] paths = StringUtils.substringsBetween(path[0], "{", "}");
                 if (null != paths && paths.length >= index) {
@@ -354,18 +355,19 @@ public class SpringMvcOpenApiReader implements OpenApiReader {
             parameterName = "arg" + methodParameter.getParameterIndex();
         parameter.setName(parameterName);
         parameter.setRequired(required);
-        Schema schema = SchemaUtil.createSchema(methodParameter,resolveContext.swaggerOpenApi.getJavaTypeToSchemas());
+        Schema schema = SchemaUtil.createSchema(methodParameter, resolveContext);
         parameter.setSchema(schema);
         postParameterCreation(methodParameter, parameter, schema);
     }
 
     protected final Operation createOperation(final Method controllerMethod, ResolveContext resolveContext) {
-        return resolveContext.swaggerOpenApi.computeOperationIfAbsent(controllerMethod, method -> {
+        SwaggerOpenApi swaggerOpenApi = resolveContext.getSwaggerOpenApi();
+        return swaggerOpenApi.computeOperationIfAbsent(controllerMethod, method -> {
             Operation operation = new Operation();
             operation.setParameters(Lists.newArrayList());
             operation.setTags(Lists.newArrayList());
             String qualifiedMethodName = ClassUtils.getQualifiedMethodName(controllerMethod);
-            Map<String, Method> operationIdToMethod = resolveContext.swaggerOpenApi.getOperationIdToMethod();
+            Map<String, Method> operationIdToMethod = swaggerOpenApi.getOperationIdToMethod();
             if (operationIdToMethod.containsKey(qualifiedMethodName))
                 qualifiedMethodName += controllerMethod.getParameterCount();
             if (operationIdToMethod.containsKey(qualifiedMethodName)) {
@@ -378,8 +380,8 @@ public class SpringMvcOpenApiReader implements OpenApiReader {
         });
     }
 
-    protected final void bindOperationToPathItem(PathItem pathItem, Operation operation, MergedAnnotation<RequestMapping> methodMapping) {
-        RequestMethod[] httpMethods = methodMapping.getEnumArray(ANNOTATION_METHOD_NAME_REQUEST_MAPPING_METHOD, RequestMethod.class);
+    protected final void bindOperationToPathItem(PathItem pathItem, Operation operation, ResolveContext resolveContext) {
+        RequestMethod[] httpMethods = resolveContext.getRequestMethods();
         for (RequestMethod httpMethod : httpMethods) {
             switch (httpMethod) {
                 case GET:
@@ -411,8 +413,8 @@ public class SpringMvcOpenApiReader implements OpenApiReader {
     }
 
     protected String[] computePath(ResolveContext resolveContext) {
-        String[] basePaths = resolveContext.baseMapping.getStringArray(ANNOTATION_METHOD_NAME_REQUEST_MAPPING_PATH);
-        String[] methodPaths = resolveContext.methodMapping.getStringArray(ANNOTATION_METHOD_NAME_REQUEST_MAPPING_PATH);
+        String[] basePaths = resolveContext.getBaseMappingPaths();
+        String[] methodPaths = resolveContext.getMethodMappingPaths();
         int methodPathsLength = methodPaths.length;
         int totalPath = basePaths.length * (methodPathsLength > 0 ? methodPathsLength : 1);
         String[] paths = new String[totalPath];
@@ -512,19 +514,6 @@ public class SpringMvcOpenApiReader implements OpenApiReader {
     }
 
 
-    private class ResolveContext {
-        private final MergedAnnotation<RequestMapping> baseMapping;
-        private final MergedAnnotation<RequestMapping> methodMapping;
-        private final SwaggerOpenApi swaggerOpenApi;
-
-        public ResolveContext(MergedAnnotation<RequestMapping> baseMapping, MergedAnnotation<RequestMapping> methodMapping, SwaggerOpenApi swaggerOpenApi) {
-            this.baseMapping = baseMapping;
-            this.methodMapping = methodMapping;
-            this.swaggerOpenApi = swaggerOpenApi;
-        }
-    }
-
-
     protected SwaggerOpenApi createOpenApi(String basePackage, OpenAPI openAPI) {
         return new SwaggerOpenApi(basePackage, openAPI, openApiRenderFormat, openApiRenderPretty);
     }
@@ -535,5 +524,9 @@ public class SpringMvcOpenApiReader implements OpenApiReader {
         Components components = new Components();
         allSchemas.forEach(schema -> components.addSchemas(schema.getName(), schema));
         openAPI.nativeOpenApi().setComponents(components);
+    }
+
+    public void addSchemaResolver(SchemaResolver schemaResolver) {
+        this.schemaResolvers.add(schemaResolver);
     }
 }
