@@ -73,9 +73,8 @@ public class PageSchemaResolver implements SchemaResolver {
             contentType = ResolvableType.forField(fd).resolveGeneric(0);
         }
         Schema contentSchema = SchemaUtil.createSchema(contentType, mp, fd, resolveContext);
-//        copedSchema.setName(Page.class.getName() + "_" + contentType.getSimpleName());
+        copedSchema.setName(Page.class.getName() + "_" + contentType.getSimpleName());
         contentArray.setItems(contentSchema);
-//        copedSchema.addProperties("content", contentSchema);
         return copedSchema;
     }
 

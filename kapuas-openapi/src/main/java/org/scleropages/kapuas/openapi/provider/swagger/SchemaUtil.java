@@ -81,29 +81,21 @@ public abstract class SchemaUtil {
 
     public static final Schema createSchema(MethodParameter methodParameter, boolean ignorePropertyFieldNotFound, ResolveContext resolveContext) {
         Assert.notNull(methodParameter, "methodParameter must not be null.");
-        Class<?> javaType = methodParameter.getParameterType();
-        if (javaType.isInterface()) {
-            ApiModel apiModel;
-            if (methodParameter.getParameterIndex() > -1) {//参数实现类需要从参数注解上获取
-                apiModel = methodParameter.getParameterAnnotation(ApiModel.class);
-            } else {
-                //返回值实现类需要从方法注释上获取
-                apiModel = methodParameter.getMethodAnnotation(ApiModel.class);
-            }
-            Class concreteType = null != apiModel ? apiModel.value() : null;
-            if (null != concreteType && ClassUtils.isAssignable(javaType, concreteType))
-                javaType = apiModel.value();
-        }
-        return createSchema(javaType, methodParameter, null, ignorePropertyFieldNotFound, resolveContext, GraphBuilder.directed().allowsSelfLoops(false).build());
+        Assert.notNull(resolveContext, "resolveContext must not be null.");
+        return createSchema(getParameterConcreteType(methodParameter, null), methodParameter, null, ignorePropertyFieldNotFound, resolveContext, createMutableGraph());
     }
 
 
     public static final Schema createSchema(Class javaType, boolean ignorePropertyFieldNotFound, ResolveContext resolveContext) {
-        return createSchema(javaType, null, null, ignorePropertyFieldNotFound, resolveContext, GraphBuilder.directed().allowsSelfLoops(false).build());
+        Assert.notNull(javaType, "javaType must not be null.");
+        Assert.notNull(resolveContext, "resolveContext must not be null.");
+        return createSchema(javaType, null, null, ignorePropertyFieldNotFound, resolveContext, createMutableGraph());
     }
 
     public static final Schema createSchema(Class javaType, MethodParameter methodParameter, Field field, ResolveContext resolveContext) {
-        return createSchema(javaType, methodParameter, field, true, resolveContext, GraphBuilder.directed().allowsSelfLoops(false).build());
+        Assert.notNull(methodParameter, "methodParameter must not be null.");
+        Assert.notNull(resolveContext, "resolveContext must not be null.");
+        return createSchema(getParameterConcreteType(methodParameter, javaType), methodParameter, field, true, resolveContext, createMutableGraph());
     }
 
 
@@ -176,7 +168,7 @@ public abstract class SchemaUtil {
                     }
                     if (propertyType.isInterface()) {
                         ApiModel apiModel = findFieldAnnotation(propertyField, propertyDescriptor, ApiModel.class);
-                        if (null != apiModel) {
+                        if (null != apiModel&& ClassUtils.isAssignable(propertyType, apiModel.value())) {
                             propertyType = apiModel.value();
                         }
                     }
@@ -350,6 +342,9 @@ public abstract class SchemaUtil {
         throw new IllegalArgumentException("unsupported primitive type: " + javaType);
     }
 
+    private static MutableGraph createMutableGraph() {
+        return GraphBuilder.directed().allowsSelfLoops(false).build();
+    }
 
     private static boolean isCycleDepends(MutableGraph<Class> dependsGraph, Class refFrom, Class refTo, PropertyDescriptor propertyDescriptor) {
 
@@ -378,6 +373,23 @@ public abstract class SchemaUtil {
             return true;
         }
         return false;
+    }
+
+    private static Class getParameterConcreteType(MethodParameter methodParameter, Class javaType) {
+        Class parameterType = null != javaType ? javaType : methodParameter.getParameterType();
+        if (parameterType.isInterface()) {
+            ApiModel apiModel;
+            if (methodParameter.getParameterIndex() > -1) {//参数实现类需要从参数注解上获取
+                apiModel = methodParameter.getParameterAnnotation(ApiModel.class);
+            } else {
+                //返回值实现类需要从方法注释上获取
+                apiModel = methodParameter.getMethodAnnotation(ApiModel.class);
+            }
+            Class concreteType = null != apiModel ? apiModel.value() : null;
+            if (null != concreteType && ClassUtils.isAssignable(parameterType, concreteType))
+                parameterType = concreteType;
+        }
+        return parameterType;
     }
 
 

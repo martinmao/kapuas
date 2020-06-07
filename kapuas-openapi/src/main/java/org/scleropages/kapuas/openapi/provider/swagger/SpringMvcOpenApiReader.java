@@ -143,12 +143,15 @@ public class SpringMvcOpenApiReader implements OpenApiReader {
 
             Arrays.sort(methods, (o1, o2) -> ComparatorUtils.naturalComparator().compare(o1.getName(), o2.getName()));
             for (Method method : methods) {
-                if (ClassUtils.isUserLevelMethod(method))
+                if (ClassUtils.isUserLevelMethod(method)) {
                     if (!readableMethod(method)) {
                         logger.debug("ignore method: {} to resolve.", method.getName());
                         continue;
                     }
-                resolveControllerMethod(clazz, method, swaggerOpenApi);
+                    resolveControllerMethod(clazz, method, swaggerOpenApi);
+                } else {
+                    logger.debug("not an user level method: {} ignore to resolve.", method.getName());
+                }
             }
         });
         resolveSchemas(swaggerOpenApi);
@@ -172,22 +175,19 @@ public class SpringMvcOpenApiReader implements OpenApiReader {
         //compute and merge request path(controller path * method path)
         String[] paths = computePath(resolveContext);
         for (String path : paths) {// foreach path create path item....
-            swaggerOpenApi.nativeOpenApi().getPaths().computeIfAbsent(path, s -> {
-                PathItem pathItem = new PathItem();
-                try {
-                    postPathItemCreation(pathItem);
-                    Operation operation = createOperation(controllerMethod, resolveContext);
-                    operation.addTagsItem(controllerClass.getSimpleName());
-                    bindOperationToPathItem(pathItem, operation, resolveContext);
-                    resolveControllerMethodArguments(controllerMethod, resolveContext);
-                } catch (Exception e) {
-                    throw new IllegalStateException("failure to build operation for path: " + pathItem, e);
-                }
-                return pathItem;
-            });
+            PathItem pathItem = swaggerOpenApi.nativeOpenApi().getPaths().computeIfAbsent(path, s -> new PathItem());
+            try {
+                postPathItemCreation(pathItem);
+                Operation operation = createOperation(controllerMethod, resolveContext);
+                operation.addTagsItem(controllerClass.getSimpleName());
+                bindOperationToPathItem(pathItem, operation, resolveContext);
+                resolveControllerMethodArguments(controllerMethod, resolveContext);
+            } catch (Exception e) {
+                logger.warn("failure to build operation for path: " + pathItem, e);
+            }
         }
         if (logger.isDebugEnabled() && paths.length > 0) {
-            logger.debug("successfully resolve {}.{} with paths:{}", controllerClass.getSimpleName(), controllerMethod.getName(), ArrayUtils.toString(paths));
+            logger.debug("add path:{} to {}.{}", ArrayUtils.toString(paths), controllerClass.getSimpleName(), controllerMethod.getName());
         }
     }
 
