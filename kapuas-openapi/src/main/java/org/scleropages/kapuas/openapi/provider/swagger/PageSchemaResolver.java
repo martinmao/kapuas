@@ -13,14 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.scleropages.kapuas.openapi.provider.swagger.resolver;
+package org.scleropages.kapuas.openapi.provider.swagger;
 
 import io.swagger.v3.oas.models.media.ArraySchema;
 import io.swagger.v3.oas.models.media.Schema;
-import org.apache.commons.beanutils.BeanUtils;
-import org.scleropages.kapuas.openapi.provider.swagger.ResolveContext;
-import org.scleropages.kapuas.openapi.provider.swagger.SchemaResolver;
-import org.scleropages.kapuas.openapi.provider.swagger.SchemaUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.core.MethodParameter;
@@ -29,7 +25,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.util.ClassUtils;
 
 import java.lang.reflect.Field;
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -45,35 +40,30 @@ public class PageSchemaResolver implements SchemaResolver {
 
 
     @Override
-    public boolean supportInternal(Class javaType, Optional<MethodParameter> methodParameter, Optional<Field> field, ResolveContext resolveContext) {
+    public boolean supportInternal(Class javaType, MethodParameter methodParameter, FieldPropertyDescriptor fieldPropertyDescriptor, ResolveContext resolveContext) {
         return ClassUtils.isAssignable(Page.class, javaType);
     }
 
     @Override
-    public Schema resolveInternal(Class javaType, Optional<MethodParameter> methodParameter, Optional<Field> field, ResolveContext resolveContext) {
+    public Schema resolveInternal(Class javaType, MethodParameter methodParameter, FieldPropertyDescriptor fieldPropertyDescriptor, ResolveContext resolveContext) {
         if (pageSchemaCreated.compareAndSet(false, true)) {
-            SchemaUtil.createSchema(javaType, true, resolveContext);
+            SchemaUtil.createSchema(javaType, resolveContext);
         }
         Schema copedSchema = new Schema();
-        try {
-            BeanUtils.copyProperties(copedSchema, resolveContext.getSwaggerOpenApi().getSchema(Page.class, Page.class));
-        } catch (Exception e) {
-            if (logger.isDebugEnabled())
-                logger.warn("failure to copy schema of: " + copedSchema.getClass().getName(), e);
-        }
+        Schema sourceSchema = resolveContext.getSwaggerOpenApi().getSchema(Page.class, Page.class);
+        sourceSchema.getProperties().forEach((k, v) -> copedSchema.addProperties((String) k, (Schema) v));
         ArraySchema contentArray = new ArraySchema();
         copedSchema.addProperties("content", contentArray);
         Class<?> contentType = null;
-        MethodParameter mp = methodParameter.isPresent() ? methodParameter.get() : null;
-        Field fd = field.isPresent() ? field.get() : null;
-        if (methodParameter.isPresent() && (!field.isPresent())) {
-            contentType = ResolvableType.forMethodParameter(mp).resolveGeneric(0);
+        Field propertyField = null != fieldPropertyDescriptor ? fieldPropertyDescriptor.getPropertyField() : null;
+        if (null != propertyField) {
+            contentType = ResolvableType.forField(propertyField).resolveGeneric(0);
         }
-        if (field.isPresent()) {
-            contentType = ResolvableType.forField(fd).resolveGeneric(0);
+        if (null != methodParameter && contentType == null) {
+            contentType = ResolvableType.forMethodParameter(methodParameter).resolveGeneric(0);
         }
-        Schema contentSchema = SchemaUtil.createSchema(contentType, mp, fd, resolveContext);
-        copedSchema.setName(Page.class.getName() + "_" + contentType.getSimpleName());
+        Schema contentSchema = SchemaUtil.createSchema(contentType, resolveContext);
+        copedSchema.setName(Page.class.getName() + contentType.getSimpleName());
         contentArray.setItems(contentSchema);
         return copedSchema;
     }

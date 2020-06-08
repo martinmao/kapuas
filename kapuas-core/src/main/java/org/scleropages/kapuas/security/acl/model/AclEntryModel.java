@@ -15,6 +15,8 @@
  */
 package org.scleropages.kapuas.security.acl.model;
 
+import org.scleropages.kapuas.openapi.annotation.ApiIgnore;
+import org.scleropages.kapuas.openapi.annotation.ApiModel;
 import org.scleropages.kapuas.security.acl.Acl;
 import org.scleropages.kapuas.security.acl.AclEntry;
 import org.scleropages.kapuas.security.acl.AclPrincipal;
@@ -29,9 +31,16 @@ import java.io.Serializable;
 public class AclEntryModel implements AclEntry {
 
     private Long id;
+    @ApiModel(AclModel.class)
+    @ApiIgnore
     private Acl acl;
+    @ApiModel(AclPrincipalModel.class)
     private AclPrincipal grant;
+    @ApiIgnore
+    @ApiModel(PermissionModel.class)
     private Permission permission;
+    @ApiIgnore
+    @ApiModel(ResourceModel.class)
     private Resource resource;
 
     private final String aclPrincipalName;

@@ -21,7 +21,7 @@ import org.scleropages.kapuas.openapi.OpenApiContextBuilder;
 import org.scleropages.kapuas.openapi.provider.swagger.BeanComponentApiScanner;
 import org.scleropages.kapuas.openapi.provider.swagger.SchemaResolver;
 import org.scleropages.kapuas.openapi.provider.swagger.SpringMvcOpenApiReader;
-import org.scleropages.kapuas.openapi.provider.swagger.resolver.PageSchemaResolver;
+import org.scleropages.kapuas.openapi.provider.swagger.PageSchemaResolver;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;

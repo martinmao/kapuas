@@ -77,6 +77,7 @@ public class AclAction implements GenericAction {
     }
 
     @GetMapping("principal")
+    @ApiModel(AclPrincipalModel.class)
     public Page<AclPrincipal> queryPrincipal(HttpServletRequest request) {
         return aclManager.findAclPrincipals(buildSearchFilterFromRequest(request), buildPageableFromRequest(request));
     }

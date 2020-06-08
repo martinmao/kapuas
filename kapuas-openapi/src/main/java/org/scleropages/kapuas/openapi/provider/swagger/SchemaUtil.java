@@ -15,6 +15,7 @@
  */
 package org.scleropages.kapuas.openapi.provider.swagger;
 
+import com.google.common.collect.Lists;
 import com.google.common.graph.GraphBuilder;
 import com.google.common.graph.Graphs;
 import com.google.common.graph.MutableGraph;
@@ -42,7 +43,6 @@ import org.springframework.core.ResolvableType;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
-import org.springframework.util.ReflectionUtils;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
@@ -53,6 +53,7 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
 import java.util.Collection;
 import java.util.Date;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -71,81 +72,70 @@ public abstract class SchemaUtil {
 
 
     public static final Schema createSchema(MethodParameter methodParameter, ResolveContext resolveContext) {
-        ApiStrategy apiStrategy = AnnotationUtils.findAnnotation(methodParameter.getParameterType(), ApiStrategy.class);
-        if (null != apiStrategy) {
-            return createSchema(methodParameter, apiStrategy.ignorePropertyFieldNotFound(), resolveContext);
-        }
-        return createSchema(methodParameter, true, resolveContext);
-    }
-
-
-    public static final Schema createSchema(MethodParameter methodParameter, boolean ignorePropertyFieldNotFound, ResolveContext resolveContext) {
         Assert.notNull(methodParameter, "methodParameter must not be null.");
         Assert.notNull(resolveContext, "resolveContext must not be null.");
-        return createSchema(getParameterConcreteType(methodParameter, null), methodParameter, null, ignorePropertyFieldNotFound, resolveContext, createMutableGraph());
+        return createSchema(getParameterConcreteType(methodParameter, null), methodParameter, null, isIgnorePropertyFieldNotFound(methodParameter.getParameterType()), resolveContext, createMutableGraph());
     }
 
 
-    public static final Schema createSchema(Class javaType, boolean ignorePropertyFieldNotFound, ResolveContext resolveContext) {
+    public static final Schema createSchema(Class javaType, ResolveContext resolveContext) {
         Assert.notNull(javaType, "javaType must not be null.");
         Assert.notNull(resolveContext, "resolveContext must not be null.");
-        return createSchema(javaType, null, null, ignorePropertyFieldNotFound, resolveContext, createMutableGraph());
-    }
-
-    public static final Schema createSchema(Class javaType, MethodParameter methodParameter, Field field, ResolveContext resolveContext) {
-        Assert.notNull(methodParameter, "methodParameter must not be null.");
-        Assert.notNull(resolveContext, "resolveContext must not be null.");
-        return createSchema(getParameterConcreteType(methodParameter, javaType), methodParameter, field, true, resolveContext, createMutableGraph());
+        return createSchema(javaType, null, null, isIgnorePropertyFieldNotFound(javaType), resolveContext, createMutableGraph());
     }
 
 
-    private static final Schema createSchema(Class javaType, MethodParameter methodParameter, Field field, boolean ignorePropertyFieldNotFound, ResolveContext resolveContext, MutableGraph<Class> graph) {
+    private static final Schema createSchema(Class javaType, MethodParameter methodParameter, FieldPropertyDescriptor fieldPropertyDescriptor, boolean ignorePropertyFieldNotFound, ResolveContext resolveContext, MutableGraph<Class> graph) {
         Assert.notNull(javaType, "javaType is required.");
         if (isBasicType(javaType)) {
-            return createPrimitiveSchema(javaType);
-        } else if (ClassUtils.isPrimitiveArray(javaType) || ClassUtils.isPrimitiveWrapperArray(javaType)) {
+            return createBasicSchema(javaType);
+        } else if (isBasicArrayType(javaType)) {
             ArraySchema arraySchema = new ArraySchema();
-            arraySchema.setItems(createPrimitiveSchema(javaType.getComponentType()));
+            arraySchema.setItems(createBasicSchema(javaType.getComponentType()));
             return arraySchema;
         } else if (javaType.isArray()) {
             ArraySchema arraySchema = new ArraySchema();
-            arraySchema.setItems(createSchema(javaType.getComponentType(), methodParameter, field, ignorePropertyFieldNotFound, resolveContext, graph));
+            Class elementType = javaType.getComponentType();
+            if (null != fieldPropertyDescriptor) {
+                elementType = getPropertyElementConcreteType(fieldPropertyDescriptor);
+            }
+            arraySchema.setItems(createSchema(elementType, methodParameter, fieldPropertyDescriptor, ignorePropertyFieldNotFound, resolveContext, graph));
             return arraySchema;
         } else if (ClassUtils.isAssignable(Collection.class, javaType)) {
             ArraySchema arraySchema = new ArraySchema();
-            Class<?> itemType = null;
-            if (null != field) {//从field获取集合泛型
-                itemType = ResolvableType.forField(field).asCollection().resolveGeneric(0);
+            Class<?> elementType = null;
+            if (null != fieldPropertyDescriptor) {//从field获取集合泛型
+                elementType = getPropertyElementConcreteType(fieldPropertyDescriptor);
             }
-            if (null == itemType && null != methodParameter) {//从方法参数获取集合泛型
-                itemType = ResolvableType.forMethodParameter(methodParameter).asCollection().resolveGeneric(0);
+            if (null == elementType && null != methodParameter) {//从方法参数获取集合泛型
+                elementType = getParameterConcreteType(methodParameter, ResolvableType.forMethodParameter(methodParameter).asCollection().resolveGeneric(0));
             }
-            if (null == itemType) {
-                logger.warn("can not resolve generic type of parameter [{}] or field [{}] use object schema directly.", methodParameter, field);
+            if (null == elementType) {
+                logger.warn("can not resolve generic-type of java.util.Collection from parameter: [{}] or field: [{}] use object schema directly.", methodParameter, fieldPropertyDescriptor);
                 ObjectSchema objectSchema = new ObjectSchema();
                 objectSchema.setFormat("object");
                 return objectSchema;
             } else {
-                arraySchema.setItems(createSchema(itemType, methodParameter, field, ignorePropertyFieldNotFound, resolveContext, graph));
+                arraySchema.setItems(createSchema(elementType, methodParameter, fieldPropertyDescriptor, ignorePropertyFieldNotFound, resolveContext, graph));
             }
             return arraySchema;
         } else if (ClassUtils.isAssignable(Map.class, javaType)) {
-            logger.warn("can not resolve java.util.Map of parameter [{}] or field [{}] use object schema directly.", methodParameter, field);
+            logger.warn("can not resolve java.util.Map of parameter: [{}] or field: [{}] use object schema directly.", methodParameter, fieldPropertyDescriptor);
             ObjectSchema objectSchema = new ObjectSchema();
             objectSchema.setFormat("map");
             return objectSchema;
         } else {
             for (SchemaResolver schemaResolver : resolveContext.getSchemaResolvers()) {
-                if (schemaResolver.support(javaType, methodParameter, field, resolveContext)) {
-                    return schemaResolver.resolve(javaType, methodParameter, field, resolveContext);
+                if (schemaResolver.support(javaType, methodParameter, fieldPropertyDescriptor, resolveContext)) {
+                    return schemaResolver.resolve(javaType, methodParameter, fieldPropertyDescriptor, resolveContext);
                 }
             }
-            if (javaType.isInterface()) {
-                ApiModel apiModel = AnnotationUtils.findAnnotation(javaType, ApiModel.class);
-                if (null != apiModel) {
-                    javaType = apiModel.value();
-                }
-            }
+//            if (javaType.isInterface()) {
+//                ApiModel apiModel = AnnotationUtils.findAnnotation(javaType, ApiModel.class);
+//                if (null != apiModel) {
+//                    javaType = apiModel.value();
+//                }
+//            }
             //otherwise resolve as pojo bean.
             return computeObjectSchemaIfAbsent(javaType, readRuleInterfaceType(javaType, methodParameter), methodParameter, ignorePropertyFieldNotFound, resolveContext, graph);
         }
@@ -153,27 +143,23 @@ public abstract class SchemaUtil {
 
 
     private static Schema computeObjectSchemaIfAbsent(Class javaType, Class ruleInterfaceType, MethodParameter methodParameter, boolean ignorePropertyFieldNotFound, ResolveContext resolveContext, MutableGraph<Class> graph) {
-
+        List<String> requiredProperties = Lists.newArrayList();
         Schema targetSchema = resolveContext.getSwaggerOpenApi().computeSchemaIfAbsent(javaType, ruleInterfaceType, (cls1, cls2) -> {
             ObjectSchema objectSchema = new ObjectSchema();
             PropertyDescriptor[] propertyDescriptors = BeanUtils.getPropertyDescriptors(javaType);
             for (PropertyDescriptor propertyDescriptor : propertyDescriptors) {
+                FieldPropertyDescriptor fieldPropertyDescriptor = new FieldPropertyDescriptor(javaType, propertyDescriptor);
                 String propertyName = propertyDescriptor.getName();
-                Field propertyField = ReflectionUtils.findField(javaType, propertyName);
-                if (readable(propertyField, propertyDescriptor, methodParameter, ignorePropertyFieldNotFound)) {
-                    Class<?> propertyType = propertyDescriptor.getPropertyType();
+                if (readable(fieldPropertyDescriptor, methodParameter, ignorePropertyFieldNotFound)) {
+                    Class<?> propertyType = getPropertyConcreteType(fieldPropertyDescriptor);
                     if (isCycleDepends(graph, javaType, propertyType, propertyDescriptor)) {
                         logger.warn("detected cycle depends from {}.{} to {}. ignore to process.", javaType.getSimpleName(), propertyName, propertyType.getSimpleName());
                         continue;
                     }
-                    if (propertyType.isInterface()) {
-                        ApiModel apiModel = findFieldAnnotation(propertyField, propertyDescriptor, ApiModel.class);
-                        if (null != apiModel&& ClassUtils.isAssignable(propertyType, apiModel.value())) {
-                            propertyType = apiModel.value();
-                        }
+                    Schema propertySchema = createSchema(propertyType, methodParameter, fieldPropertyDescriptor, ignorePropertyFieldNotFound, resolveContext, graph);
+                    if (isRequiredProperty(methodParameter, fieldPropertyDescriptor)) {
+                        requiredProperties.add(propertyName);
                     }
-                    Schema propertySchema = createSchema(propertyType, methodParameter, propertyField, ignorePropertyFieldNotFound, resolveContext, graph);
-                    postSchemaCreation(propertySchema, methodParameter, propertyField, propertyDescriptor);
                     objectSchema.addProperties(propertyName, propertySchema);
                 }
             }
@@ -181,26 +167,27 @@ public abstract class SchemaUtil {
         });
         String targetSchemaName = javaType.equals(ruleInterfaceType) ? javaType.getName() : javaType.getName() + "." + ruleInterfaceType.getSimpleName();
         targetSchema.setName(targetSchemaName);
+        targetSchema.setRequired(requiredProperties);
         ObjectSchema schemaRef = new ObjectSchema();
         schemaRef.$ref(DEFAULT_SCHEMAS_PATH + targetSchemaName);
         return schemaRef;
     }
 
-    private static void postSchemaCreation(Schema schema, MethodParameter methodParameter, Field propertyField, PropertyDescriptor propertyDescriptor) {
+    private static boolean isRequiredProperty(MethodParameter methodParameter, FieldPropertyDescriptor fieldPropertyDescriptor) {
         Class[] ignoreClasses = getIgnoreClasses(methodParameter);
         Class[] fieldRequired = null;
-        NotNull notNull = findFieldAnnotation(propertyField, propertyDescriptor, NotNull.class);
+        NotNull notNull = findFieldAnnotation(fieldPropertyDescriptor, NotNull.class);
         if (null != notNull) {
             if (ArrayUtils.isEmpty(notNull.groups())) {
-                schema.nullable(false);
+                return true;
             } else {
                 fieldRequired = notNull.groups();
             }
         } else {
-            NotEmpty notEmpty = findFieldAnnotation(propertyField, propertyDescriptor, NotEmpty.class);
+            NotEmpty notEmpty = findFieldAnnotation(fieldPropertyDescriptor, NotEmpty.class);
             if (null != notEmpty) {
                 if (ArrayUtils.isEmpty(notEmpty.groups())) {
-                    schema.nullable(false);
+                    return true;
                 } else {
                     fieldRequired = notEmpty.groups();
                 }
@@ -208,9 +195,10 @@ public abstract class SchemaUtil {
         }
         if (null != ignoreClasses && null != fieldRequired) {
             if (rulesMatch(fieldRequired, ignoreClasses)) {
-                schema.nullable(false);
+                return true;
             }
         }
+        return false;
     }
 
     private static Class readRuleInterfaceType(Class javaType, MethodParameter methodParameter) {
@@ -234,17 +222,16 @@ public abstract class SchemaUtil {
     }
 
 
-    private static boolean readable(Field propertyField, PropertyDescriptor propertyDescriptor, MethodParameter methodParameter, boolean ignorePropertyFieldNotFound) {
-
+    private static boolean readable(FieldPropertyDescriptor fieldPropertyDescriptor, MethodParameter methodParameter, boolean ignorePropertyFieldNotFound) {
         for (String ignoreProperty : IGNORE_PROPERTY_NAMES) {
-            if (Objects.equals(propertyDescriptor.getName(), ignoreProperty))
+            if (Objects.equals(fieldPropertyDescriptor.getPropertyDescriptor().getName(), ignoreProperty))
                 return false;
         }
-        if (null != findFieldAnnotation(propertyField, propertyDescriptor, Transient.class))
+        if (null != findFieldAnnotation(fieldPropertyDescriptor, Transient.class))
             return false;
-        if (!ignorePropertyFieldNotFound && null == propertyField)
+        if (!ignorePropertyFieldNotFound && null == fieldPropertyDescriptor.getPropertyField())
             return false;
-        ApiIgnore fieldIgnore = findFieldAnnotation(propertyField, propertyDescriptor, ApiIgnore.class);
+        ApiIgnore fieldIgnore = findFieldAnnotation(fieldPropertyDescriptor, ApiIgnore.class);
         if (null != fieldIgnore && ArrayUtils.isEmpty(fieldIgnore.value()))//field上没有设置@ApiIgnore.values直接忽略.
             return false;
 
@@ -257,7 +244,7 @@ public abstract class SchemaUtil {
         }
 
         //兼容 jsr303匹配参数@ApiIgnore 配置以及 field @Null配置
-        Null nill = findFieldAnnotation(propertyField, propertyDescriptor, Null.class);
+        Null nill = findFieldAnnotation(fieldPropertyDescriptor, Null.class);
         if (null != nill && ArrayUtils.isEmpty(nill.groups()))//field上没有设置groups直接忽略.
             return false;
         if (null != nill && null != ignoreClasses) {
@@ -266,6 +253,7 @@ public abstract class SchemaUtil {
         }
         return true;
     }
+
 
     private static Class[] getIgnoreClasses(MethodParameter methodParameter) {
         if (null != methodParameter) {
@@ -291,7 +279,9 @@ public abstract class SchemaUtil {
     }
 
 
-    private static <A> A findFieldAnnotation(Field field, PropertyDescriptor propertyDescriptor, Class<? extends Annotation> annotationClazz) {
+    private static <A> A findFieldAnnotation(FieldPropertyDescriptor fieldPropertyDescriptor, Class<? extends Annotation> annotationClazz) {
+        Field field = fieldPropertyDescriptor.getPropertyField();
+        PropertyDescriptor propertyDescriptor = fieldPropertyDescriptor.getPropertyDescriptor();
         Annotation annotation = null;
         if (field != null)
             annotation = AnnotationUtils.findAnnotation(field, annotationClazz);
@@ -307,7 +297,7 @@ public abstract class SchemaUtil {
      * @param javaType
      * @return
      */
-    public static final Schema createPrimitiveSchema(Class javaType) {
+    public static final Schema createBasicSchema(Class javaType) {
         javaType = Primitives.wrap(javaType);
         if (javaType.isAssignableFrom(Long.class)) {
             IntegerSchema integerSchema = new IntegerSchema();
@@ -377,6 +367,8 @@ public abstract class SchemaUtil {
 
     private static Class getParameterConcreteType(MethodParameter methodParameter, Class javaType) {
         Class parameterType = null != javaType ? javaType : methodParameter.getParameterType();
+        if (parameterType == null)
+            return null;
         if (parameterType.isInterface()) {
             ApiModel apiModel;
             if (methodParameter.getParameterIndex() > -1) {//参数实现类需要从参数注解上获取
@@ -392,9 +384,69 @@ public abstract class SchemaUtil {
         return parameterType;
     }
 
+    private static Class getPropertyConcreteType(FieldPropertyDescriptor fieldPropertyDescriptor) {
+        PropertyDescriptor propertyDescriptor = fieldPropertyDescriptor.getPropertyDescriptor();
+        Field propertyField = fieldPropertyDescriptor.getPropertyField();
+        Class<?> propertyType = null != propertyDescriptor ? propertyDescriptor.getPropertyType() : propertyField.getType();
+        if (propertyType.isInterface()) {
+            ApiModel apiModel = findFieldAnnotation(fieldPropertyDescriptor, ApiModel.class);
+            if (null != apiModel && ClassUtils.isAssignable(propertyType, apiModel.value())) {
+                return apiModel.value();
+            }
+        }
+        return propertyDescriptor.getPropertyType();
+    }
+
+    private static Class getPropertyElementConcreteType(FieldPropertyDescriptor fieldPropertyDescriptor) {
+        Class elementType = getPropertyElementType(fieldPropertyDescriptor);
+        if (null == elementType)
+            return null;
+        ApiModel apiModel = findFieldAnnotation(fieldPropertyDescriptor, ApiModel.class);
+        if (null == apiModel)
+            return elementType;
+        Class value = apiModel.value();
+        if (ClassUtils.isAssignable(elementType, value))
+            return value;
+        return elementType;
+    }
+
+    private static Class getPropertyElementType(FieldPropertyDescriptor fieldPropertyDescriptor) {
+        PropertyDescriptor propertyDescriptor = fieldPropertyDescriptor.getPropertyDescriptor();
+        Field propertyField = fieldPropertyDescriptor.getPropertyField();
+        Class<?> propertyType = null != propertyDescriptor ? propertyDescriptor.getPropertyType() : propertyField.getType();
+        if (propertyType.isArray()) {
+            return propertyType.getComponentType();
+        } else if (ClassUtils.isAssignable(Collection.class, propertyType) && null != propertyDescriptor) {
+            Class<?> resolveGeneric = ResolvableType.forMethodReturnType(propertyDescriptor.getReadMethod()).asCollection().resolveGeneric(0);
+            if (null == resolveGeneric && null != propertyField)
+                resolveGeneric = ResolvableType.forField(propertyField).asCollection().resolveGeneric(0);
+            if (null != resolveGeneric)
+                return resolveGeneric;
+            return null;
+        }
+        throw new IllegalArgumentException("not a array or collection type: " + fieldPropertyDescriptor);
+    }
+
 
     public static boolean isBasicType(Class javaType) {
         return ClassUtils.isPrimitiveOrWrapper(javaType) || ClassUtils.isAssignable(String.class, javaType) || ClassUtils.isAssignable(Date.class, javaType);
+    }
+
+    public static boolean isBasicArrayType(Class javaType) {
+        return ClassUtils.isPrimitiveArray(javaType)
+                || ClassUtils.isPrimitiveWrapperArray(javaType)
+                || (javaType.isArray() && (
+                ClassUtils.isAssignable(String.class, javaType.getComponentType())
+                        || ClassUtils.isAssignable(Date.class, javaType.getComponentType())));
+    }
+
+
+    private static final boolean isIgnorePropertyFieldNotFound(Class clazz) {
+        ApiStrategy apiStrategy = AnnotationUtils.findAnnotation(clazz, ApiStrategy.class);
+        if (null != apiStrategy) {
+            return apiStrategy.ignorePropertyFieldNotFound();
+        }
+        return true;
     }
 
 

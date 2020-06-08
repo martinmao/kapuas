@@ -27,7 +27,7 @@ import static java.lang.annotation.ElementType.*;
  *
  * @author <a href="mailto:martinmao@icloud.com">Martin Mao</a>
  */
-@Target({TYPE, METHOD, FIELD, PARAMETER})
+@Target({METHOD, FIELD, PARAMETER})
 @Retention(RetentionPolicy.RUNTIME)
 @Documented
 public @interface ApiModel {

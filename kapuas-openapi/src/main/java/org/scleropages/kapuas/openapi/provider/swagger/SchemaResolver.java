@@ -19,9 +19,7 @@ import io.swagger.v3.oas.models.media.Schema;
 import org.springframework.core.MethodParameter;
 import org.springframework.util.Assert;
 
-import java.lang.reflect.Field;
 import java.util.Objects;
-import java.util.Optional;
 
 /**
  * @author <a href="mailto:martinmao@icloud.com">Martin Mao</a>
@@ -31,8 +29,8 @@ public interface SchemaResolver {
     static final String PROCESSING_FLAG_PREFIX = "PROCESSING_FLAG_PREFIX.";
     static final Boolean PROCESSING_FLAG = new Boolean(true);
 
-    default boolean support(Class javaType, MethodParameter methodParameter, Field field, ResolveContext resolveContext) {
-        return (!Objects.equals(resolveContext.getAttribute(PROCESSING_FLAG_PREFIX + getClass().getSimpleName()), PROCESSING_FLAG)) && supportInternal(javaType, Optional.ofNullable(methodParameter), Optional.ofNullable(field), resolveContext);
+    default boolean support(Class javaType, MethodParameter methodParameter, FieldPropertyDescriptor fieldPropertyDescriptor, ResolveContext resolveContext) {
+        return (!Objects.equals(resolveContext.getAttribute(PROCESSING_FLAG_PREFIX + getClass().getSimpleName()), PROCESSING_FLAG)) && supportInternal(javaType, methodParameter, fieldPropertyDescriptor, resolveContext);
     }
 
     /**
@@ -40,17 +38,18 @@ public interface SchemaResolver {
      *
      * @param javaType
      * @param methodParameter
-     * @param field
+     * @param fieldPropertyDescriptor
+     * @param resolveContext
      * @return
      */
-    boolean supportInternal(Class javaType, Optional<MethodParameter> methodParameter, Optional<Field> field, ResolveContext resolveContext);
+    boolean supportInternal(Class javaType, MethodParameter methodParameter, FieldPropertyDescriptor fieldPropertyDescriptor, ResolveContext resolveContext);
 
 
-    default Schema resolve(Class javaType, MethodParameter methodParameter, Field field, ResolveContext resolveContext) {
+    default Schema resolve(Class javaType, MethodParameter methodParameter, FieldPropertyDescriptor fieldPropertyDescriptor, ResolveContext resolveContext) {
         String name = PROCESSING_FLAG_PREFIX + getClass().getSimpleName();
         resolveContext.setAttribute(name, PROCESSING_FLAG);
         try {
-            return resolveInternal(javaType, Optional.ofNullable(methodParameter), Optional.ofNullable(field), resolveContext);
+            return resolveInternal(javaType, methodParameter, fieldPropertyDescriptor, resolveContext);
         } finally {
             Assert.isTrue(resolveContext.removeAttribute(name, PROCESSING_FLAG), "invalid state.");
         }
@@ -62,11 +61,11 @@ public interface SchemaResolver {
      *
      * @param javaType
      * @param methodParameter
-     * @param field
+     * @param fieldPropertyDescriptor
      * @param resolveContext
      * @return
      */
-    Schema resolveInternal(Class javaType, Optional<MethodParameter> methodParameter, Optional<Field> field, ResolveContext resolveContext);
+    Schema resolveInternal(Class javaType, MethodParameter methodParameter, FieldPropertyDescriptor fieldPropertyDescriptor, ResolveContext resolveContext);
 
     /**
      * api method. reset states(defined sub classes.)

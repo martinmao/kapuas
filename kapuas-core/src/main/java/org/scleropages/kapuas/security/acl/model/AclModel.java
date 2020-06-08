@@ -15,6 +15,7 @@
  */
 package org.scleropages.kapuas.security.acl.model;
 
+import org.scleropages.kapuas.openapi.annotation.ApiModel;
 import org.scleropages.kapuas.security.acl.Acl;
 import org.scleropages.kapuas.security.acl.AclEntry;
 import org.scleropages.kapuas.security.acl.AclPrincipal;
@@ -29,17 +30,17 @@ import java.util.Map;
  */
 public class AclModel implements Acl {
 
-    private Serializable id;
+    private Long id;
     private String resourceId;
     private String resourceType;
     private Resource resource;
     private List<AclPrincipal> owners;
     private String tag;
-    private List<AclEntry> entries;
+    private List<AclEntry> aclEntries;
     private Map<String,Object> variables;
 
 
-    public Serializable getId() {
+    public Long getId() {
         return id;
     }
 
@@ -51,10 +52,12 @@ public class AclModel implements Acl {
         return resourceType;
     }
 
+    @ApiModel(ResourceModel.class)
     public Resource getResource() {
         return resource;
     }
 
+    @ApiModel(AclPrincipalModel.class)
     public List<AclPrincipal> getOwners() {
         return owners;
     }
@@ -63,15 +66,17 @@ public class AclModel implements Acl {
         return tag;
     }
 
-    public List<AclEntry> getEntries() {
-        return entries;
+    @ApiModel(AclEntryModel.class)
+    public List<AclEntry> getAclEntries() {
+        return aclEntries;
     }
+
 
     public Map<String, Object> getVariables() {
         return variables;
     }
 
-    public void setId(Serializable id) {
+    public void setId(Long id) {
         this.id = id;
     }
 
@@ -95,8 +100,8 @@ public class AclModel implements Acl {
         this.tag = tag;
     }
 
-    public void setEntries(List<AclEntry> entries) {
-        this.entries = entries;
+    public void setAclEntries(List<AclEntry> aclEntries) {
+        this.aclEntries = aclEntries;
     }
 
     public void setVariables(Map<String, Object> variables) {
@@ -132,6 +137,6 @@ public class AclModel implements Acl {
 
     @Override
     public List<? extends AclEntry> entries() {
-        return entries;
+        return aclEntries;
     }
 }

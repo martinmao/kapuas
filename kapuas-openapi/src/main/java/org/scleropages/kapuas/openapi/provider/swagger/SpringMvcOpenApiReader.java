@@ -282,7 +282,7 @@ public class SpringMvcOpenApiReader implements OpenApiReader {
         ApiResponses apiResponses = new ApiResponses();
 
         apiResponses.addApiResponse(SUCCESS_RESPONSE_STATUS, createResponse(methodParameter, resolveContext, () -> SchemaUtil.createSchema(methodParameter, resolveContext), "Successfully.", true));
-        Supplier<Schema> errorSchemaSupplier = () -> SchemaUtil.createSchema(BizExceptionHttpView.class, true, resolveContext);
+        Supplier<Schema> errorSchemaSupplier = () -> SchemaUtil.createSchema(BizExceptionHttpView.class, resolveContext);
         apiResponses.addApiResponse(BAD_REQUEST_RESPONSE_STATUS, createResponse(methodParameter, resolveContext, errorSchemaSupplier, "Bad request.", false));
         apiResponses.addApiResponse(BIZ_STATE_VIOLATION_STATUS, createResponse(methodParameter, resolveContext, errorSchemaSupplier, "Biz state violation.", false));
         return apiResponses;
