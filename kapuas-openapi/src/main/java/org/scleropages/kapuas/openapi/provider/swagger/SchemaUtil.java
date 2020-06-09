@@ -385,9 +385,10 @@ public abstract class SchemaUtil {
             return false;
         }
         try {
-            if (!dependsGraph.putEdge(refFrom, refTo)) {
-                return true;
-            }
+            dependsGraph.putEdge(refFrom, refTo);//重复的属性类型应是允许的
+//            if (!dependsGraph.putEdge(refFrom, refTo)) {
+//                return true;
+//            }
         } catch (UnsupportedOperationException | IllegalArgumentException e) {//allowsSelfLoops=false
             return true;
         }
