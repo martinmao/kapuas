@@ -15,6 +15,7 @@
  */
 package org.scleropages.kapuas.openapi.provider.swagger;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.common.collect.Lists;
 import com.google.common.graph.GraphBuilder;
 import com.google.common.graph.Graphs;
@@ -31,6 +32,7 @@ import io.swagger.v3.oas.models.media.ObjectSchema;
 import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.oas.models.media.StringSchema;
 import org.apache.commons.lang3.ArrayUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.scleropages.core.util.GenericTypes;
 import org.scleropages.kapuas.openapi.annotation.ApiIgnore;
 import org.scleropages.kapuas.openapi.annotation.ApiModel;
@@ -58,7 +60,19 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.3.md#schema 工具类，提供java class metadata->oai schema转换.
+ * https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.3.md#schema 工具类，提供java class metadata->oai schema转换.<br>
+ *
+ *
+ * <pre>
+ *     IMPORTANT NOTICE: jdk1.8 @Repeatable(List.class)支持多注解声明 例如jsr303注解都允许重复，但当前实现不支持，需要将约束合并定义到一个groups中，否则无法正常工作
+ *     例如:
+ *
+ *     &#64;NotEmpty(groups = {CreateModel.class, UpdateModel.class, ReadAclModel.class, ReadEntriesBySpecifyResource.class})
+ *     public String getId() {
+ *         return id;
+ *     }
+ *     REMINDER: 后期会增加多注解解析的支持. spring 5.x 提供了 {@link org.springframework.core.annotation.MergedAnnotations}来简化注解合并.
+ * </pre>
  *
  * @author <a href="mailto:martinmao@icloud.com">Martin Mao</a>
  */
@@ -104,10 +118,10 @@ public abstract class SchemaUtil {
         } else if (ClassUtils.isAssignable(Collection.class, javaType)) {
             ArraySchema arraySchema = new ArraySchema();
             Class<?> elementType = null;
-            if (null != fieldPropertyDescriptor) {//从field获取集合泛型
+            if (null != fieldPropertyDescriptor) {
                 elementType = getPropertyElementConcreteType(fieldPropertyDescriptor);
             }
-            if (null == elementType && null != methodParameter) {//从方法参数获取集合泛型
+            if (null == elementType && null != methodParameter) {
                 elementType = getParameterConcreteType(methodParameter, ResolvableType.forMethodParameter(methodParameter).asCollection().resolveGeneric(0));
             }
             if (null == elementType) {
@@ -120,6 +134,22 @@ public abstract class SchemaUtil {
             }
             return arraySchema;
         } else if (ClassUtils.isAssignable(Map.class, javaType)) {
+//            ArraySchema arraySchema = new ArraySchema();
+//            ObjectSchema entrySchema=new ObjectSchema();
+//            arraySchema.items(entrySchema);
+//            arraySchema.setFormat("map");
+//            boolean resolved = false;
+//            if (null != fieldPropertyDescriptor) {
+//                Map.Entry<Class, Class> entriesType = getEntriesType(fieldPropertyDescriptor);
+//                if (null != entriesType) {
+//                    entrySchema.addProperties("key",createSchema(entriesType.getKey(), methodParameter, fieldPropertyDescriptor, ignorePropertyFieldNotFound, resolveContext, graph));
+//                    entrySchema.addProperties("value", createSchema(entriesType.getValue(), methodParameter, fieldPropertyDescriptor, ignorePropertyFieldNotFound, resolveContext, graph));
+//                    resolved = true;
+//                }
+//            }
+//            if (!resolved)
+//            logger.warn("can not resolve java.util.Map of parameter: [{}] or field: [{}] use object schema directly.", methodParameter, fieldPropertyDescriptor);
+//            return arraySchema;
             logger.warn("can not resolve java.util.Map of parameter: [{}] or field: [{}] use object schema directly.", methodParameter, fieldPropertyDescriptor);
             ObjectSchema objectSchema = new ObjectSchema();
             objectSchema.setFormat("map");
@@ -130,13 +160,6 @@ public abstract class SchemaUtil {
                     return schemaResolver.resolve(javaType, methodParameter, fieldPropertyDescriptor, resolveContext);
                 }
             }
-//            if (javaType.isInterface()) {
-//                ApiModel apiModel = AnnotationUtils.findAnnotation(javaType, ApiModel.class);
-//                if (null != apiModel) {
-//                    javaType = apiModel.value();
-//                }
-//            }
-            //otherwise resolve as pojo bean.
             return computeObjectSchemaIfAbsent(javaType, readRuleInterfaceType(javaType, methodParameter), methodParameter, ignorePropertyFieldNotFound, resolveContext, graph);
         }
     }
@@ -165,7 +188,8 @@ public abstract class SchemaUtil {
             }
             return objectSchema;
         });
-        String targetSchemaName = javaType.equals(ruleInterfaceType) ? javaType.getName() : javaType.getName() + "." + ruleInterfaceType.getSimpleName();
+        String targetSchemaName = javaType.equals(ruleInterfaceType) ? javaType.getName() : javaType.getName() + "" + ruleInterfaceType.getSimpleName();
+        targetSchemaName= StringUtils.replace(targetSchemaName,"$","");//内部类符号'$'在openapi规范中被禁止
         targetSchema.setName(targetSchemaName);
         targetSchema.setRequired(requiredProperties);
         ObjectSchema schemaRef = new ObjectSchema();
@@ -173,6 +197,14 @@ public abstract class SchemaUtil {
         return schemaRef;
     }
 
+
+    /**
+     * jdk1.8 @Repeatable(List.class)支持多注解声明 例如jsr303注解都允许重复，但当前实现不支持，需要将约束合并定义到一个groups中，否则无法正常工作
+     *
+     * @param methodParameter
+     * @param fieldPropertyDescriptor
+     * @return
+     */
     private static boolean isRequiredProperty(MethodParameter methodParameter, FieldPropertyDescriptor fieldPropertyDescriptor) {
         Class[] ignoreClasses = getIgnoreClasses(methodParameter);
         Class[] fieldRequired = null;
@@ -283,8 +315,9 @@ public abstract class SchemaUtil {
         Field field = fieldPropertyDescriptor.getPropertyField();
         PropertyDescriptor propertyDescriptor = fieldPropertyDescriptor.getPropertyDescriptor();
         Annotation annotation = null;
-        if (field != null)
+        if (field != null) {
             annotation = AnnotationUtils.findAnnotation(field, annotationClazz);
+        }
         if (annotation == null) {
             annotation = AnnotationUtils.findAnnotation(propertyDescriptor.getReadMethod(), annotationClazz);
         }
@@ -365,7 +398,7 @@ public abstract class SchemaUtil {
         return false;
     }
 
-    private static Class getParameterConcreteType(MethodParameter methodParameter, Class javaType) {
+    public static Class getParameterConcreteType(MethodParameter methodParameter, Class javaType) {
         Class parameterType = null != javaType ? javaType : methodParameter.getParameterType();
         if (parameterType == null)
             return null;
@@ -384,7 +417,7 @@ public abstract class SchemaUtil {
         return parameterType;
     }
 
-    private static Class getPropertyConcreteType(FieldPropertyDescriptor fieldPropertyDescriptor) {
+    public static Class getPropertyConcreteType(FieldPropertyDescriptor fieldPropertyDescriptor) {
         PropertyDescriptor propertyDescriptor = fieldPropertyDescriptor.getPropertyDescriptor();
         Field propertyField = fieldPropertyDescriptor.getPropertyField();
         Class<?> propertyType = null != propertyDescriptor ? propertyDescriptor.getPropertyType() : propertyField.getType();
@@ -416,8 +449,11 @@ public abstract class SchemaUtil {
         Class<?> propertyType = null != propertyDescriptor ? propertyDescriptor.getPropertyType() : propertyField.getType();
         if (propertyType.isArray()) {
             return propertyType.getComponentType();
-        } else if (ClassUtils.isAssignable(Collection.class, propertyType) && null != propertyDescriptor) {
-            Class<?> resolveGeneric = ResolvableType.forMethodReturnType(propertyDescriptor.getReadMethod()).asCollection().resolveGeneric(0);
+        } else if (ClassUtils.isAssignable(Collection.class, propertyType)) {
+            Class<?> resolveGeneric = null;
+            if (null != propertyDescriptor) {
+                resolveGeneric = ResolvableType.forMethodReturnType(propertyDescriptor.getReadMethod()).asCollection().resolveGeneric(0);
+            }
             if (null == resolveGeneric && null != propertyField)
                 resolveGeneric = ResolvableType.forField(propertyField).asCollection().resolveGeneric(0);
             if (null != resolveGeneric)
@@ -425,6 +461,46 @@ public abstract class SchemaUtil {
             return null;
         }
         throw new IllegalArgumentException("not a array or collection type: " + fieldPropertyDescriptor);
+    }
+
+
+    private static Map.Entry<Class, Class> getEntriesType(FieldPropertyDescriptor fieldPropertyDescriptor) {
+        PropertyDescriptor propertyDescriptor = fieldPropertyDescriptor.getPropertyDescriptor();
+        Field propertyField = fieldPropertyDescriptor.getPropertyField();
+        Class<?> propertyType = null != propertyDescriptor ? propertyDescriptor.getPropertyType() : propertyField.getType();
+        if (ClassUtils.isAssignable(Map.class, propertyType)) {
+            ResolvableType resolvableType = null;
+            if (null != propertyDescriptor) {
+                resolvableType = ResolvableType.forMethodReturnType(propertyDescriptor.getReadMethod()).asMap();
+            }
+            if (null == resolvableType && null != propertyField) {
+                resolvableType = ResolvableType.forField(propertyField).asMap();
+            }
+            if (null != resolvableType)
+                return createMapEntry(resolvableType);
+            else
+                return null;
+        }
+        throw new IllegalArgumentException("not an map type: " + fieldPropertyDescriptor);
+    }
+
+    private static Map.Entry createMapEntry(ResolvableType resolvableType) {
+        return new Map.Entry<Class, Class>() {
+            @Override
+            public Class getKey() {
+                return resolvableType.resolveGeneric(0);
+            }
+
+            @Override
+            public Class getValue() {
+                return resolvableType.resolveGeneric(1);
+            }
+
+            @Override
+            public Class setValue(Class value) {
+                throw new IllegalStateException("unsupported operation.");
+            }
+        };
     }
 
 
@@ -450,7 +526,7 @@ public abstract class SchemaUtil {
     }
 
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws JsonProcessingException {
 
         MutableGraph<Object> mutableGraph = GraphBuilder.directed().allowsSelfLoops(false).build();
 
@@ -487,6 +563,6 @@ public abstract class SchemaUtil {
         System.out.println(Graphs.hasCycle(mutableValueGraph.asGraph()));
         System.out.println(mutableValueGraph.hasEdgeConnecting("a", "c"));
         System.out.println(mutableValueGraph);
-
     }
+
 }

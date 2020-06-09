@@ -52,27 +52,27 @@ public class Cryptography {
 
     private List<Key> keys;
 
-    @Null(groups = {CreateModel.class})
+    @Null(groups = {Create.class})
     public Long getId() {
         return id;
     }
 
-    @NotNull(groups = {CreateModel.class})
+    @NotNull(groups = {Create.class})
     public Integer getAssociatedType() {
         return associatedType;
     }
 
-    @NotEmpty(groups = {CreateModel.class})
+    @NotEmpty(groups = {Create.class})
     public String getAssociatedId() {
         return associatedId;
     }
 
-    @NotEmpty(groups = {CreateModel.class})
+    @NotEmpty(groups = {Create.class})
     public String getName() {
         return name;
     }
 
-    @NotEmpty(groups = {CreateModel.class})
+    @NotEmpty(groups = {Create.class})
     public String getAlgorithm() {
         return algorithm;
     }
@@ -94,17 +94,17 @@ public class Cryptography {
         return initializationVectorSize;
     }
 
-    @NotEmpty(groups = {CreateModel.class})
+    @NotEmpty(groups = {Create.class})
     public String getDescription() {
         return description;
     }
 
-    @NotEmpty(groups = {CreateModel.class})
+    @NotEmpty(groups = {Create.class})
     public String getKeyAlgorithm() {
         return keyAlgorithm;
     }
 
-    @NotNull(groups = {CreateModel.class})
+    @NotNull(groups = {Create.class})
     public Integer getKeySize() {
         return keySize;
     }
@@ -166,7 +166,7 @@ public class Cryptography {
         this.keys = keys;
     }
 
-    public interface CreateModel {
+    public interface Create {
 
     }
 }

@@ -70,7 +70,7 @@ public class AuthenticationAction {
 
 
     @PostMapping("create")
-    public void create(@ApiParam @ApiIgnore({AuthenticationModel.CreateModel.class}) AuthenticationModel authentication) {
+    public void create(@ApiParam @ApiIgnore({AuthenticationModel.Create.class}) AuthenticationModel authentication) {
         authenticationManager.create(authentication);
 
     }

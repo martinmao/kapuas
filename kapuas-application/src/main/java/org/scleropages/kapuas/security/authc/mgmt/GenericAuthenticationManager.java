@@ -39,7 +39,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 
-import javax.validation.Valid;
 import java.util.Map;
 
 /**
@@ -107,7 +106,7 @@ public class GenericAuthenticationManager implements AuthenticationManager, Gene
 
     @Override
     @Transactional
-    @Validated(AuthenticationModel.CreateModel.class)
+    @Validated(AuthenticationModel.Create.class)
     @BizError("06")
     public void create(Authentication authentication) {
         AuthenticationEntity authenticationEntity = getModelMapper().mapForSave((AuthenticationModel) authentication);
@@ -130,7 +129,7 @@ public class GenericAuthenticationManager implements AuthenticationManager, Gene
         return getModelMapper().mapForRead(authenticationEntityRepository.getByPrincipal(principal));
     }
 
-    @Validated(AuthenticationModel.UpdateModel.class)
+    @Validated(AuthenticationModel.Update.class)
     @Transactional
     @BizError("09")
     public void save(Authentication model) {

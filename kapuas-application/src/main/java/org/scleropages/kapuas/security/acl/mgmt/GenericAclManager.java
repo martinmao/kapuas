@@ -109,7 +109,7 @@ public class GenericAclManager implements AclManager {
     @Override
     @Transactional(readOnly = true)
     @BizError("02")
-    public Page<AclEntry> findPrincipalEntries(@Validated(AclPrincipalModel.CreateAclModel.class) AclPrincipalModel principal, @Validated(ResourceModel.ReadEntriesBySpecifyResourceType.class) ResourceModel resourceModel,
+    public Page<AclEntry> findPrincipalEntries(@Validated(AclPrincipalModel.CreateAcl.class) AclPrincipalModel principal, @Validated(ResourceModel.ReadEntriesBySpecifyResourceType.class) ResourceModel resourceModel,
                                                PermissionModel permissionModel, Pageable pageable) {
         return findPrincipalEntries(principal, resourceModel, permissionModel, pageable, MapUtils.EMPTY_MAP);
 
@@ -118,7 +118,7 @@ public class GenericAclManager implements AclManager {
     @Override
     @Transactional(readOnly = true)
     @BizError("03")
-    public Page<AclEntry> findPrincipalEntries(@Validated(AclPrincipalModel.CreateAclModel.class) AclPrincipalModel principal, @Validated(ResourceModel.ReadEntriesBySpecifyResourceType.class) ResourceModel resourceModel, PermissionModel permissionModel, Pageable pageable, Map<String, SearchFilter> variablesSearchFilters) {
+    public Page<AclEntry> findPrincipalEntries(@Validated(AclPrincipalModel.CreateAcl.class) AclPrincipalModel principal, @Validated(ResourceModel.ReadEntriesBySpecifyResourceType.class) ResourceModel resourceModel, PermissionModel permissionModel, Pageable pageable, Map<String, SearchFilter> variablesSearchFilters) {
 
         boolean permissionProvided = null != permissionModel && StringUtils.isNotBlank(permissionModel.getName());
 
@@ -150,7 +150,7 @@ public class GenericAclManager implements AclManager {
 
     @Override
     @Transactional(readOnly = true)
-    @Validated(ResourceModel.ReadAclModel.class)
+    @Validated(ResourceModel.ReadAcl.class)
     @BizError("05")
     public Acl getAcl(ResourceModel resource) {
         PermissionEntity permissionEntity = permissionEntityRepository.getLocalPermissionEntityRepository().getFirstByResourceType(resource.getType());
@@ -193,7 +193,7 @@ public class GenericAclManager implements AclManager {
 
     @Override
     @Transactional
-    @Validated({ResourceModel.CreateModel.class})
+    @Validated({ResourceModel.Create.class})
     @BizError("09")
     public void createAcl(ResourceModel resource) {
         PermissionEntity permissionEntity = permissionEntityRepository.getLocalPermissionEntityRepository().getFirstByResourceType(resource.getType());
@@ -205,7 +205,7 @@ public class GenericAclManager implements AclManager {
 
     @Override
     @Transactional
-    @Validated(ResourceModel.UpdateModel.class)
+    @Validated(ResourceModel.Update.class)
     @BizError("10")
     public void updateAcl(ResourceModel resource) {
         PermissionEntity permissionEntity = permissionEntityRepository.getLocalPermissionEntityRepository().getFirstByResourceType(resource.getType());
@@ -222,7 +222,7 @@ public class GenericAclManager implements AclManager {
 
     @Override
     @Transactional
-    @Validated(ResourceModel.UpdateModel.class)
+    @Validated(ResourceModel.Update.class)
     @BizError("11")
     public void deleteAcl(@Valid ResourceModel resource) {
         PermissionEntity permissionEntity = permissionEntityRepository.getLocalPermissionEntityRepository().getFirstByResourceType(resource.getType());
@@ -234,8 +234,8 @@ public class GenericAclManager implements AclManager {
     @Override
     @Transactional
     @BizError("12")
-    public void createAclEntry(@Validated(ResourceModel.ReadAclModel.class) ResourceModel resource,
-                               @Validated(AclPrincipalModel.CreateAclModel.class) AclPrincipalModel grant,
+    public void createAclEntry(@Validated(ResourceModel.ReadAcl.class) ResourceModel resource,
+                               @Validated(AclPrincipalModel.CreateAcl.class) AclPrincipalModel grant,
                                PermissionModel... permission) {
         AclPrincipalEntity principalEntity = aclPrincipalEntityRepository.getByName(grant.getName());
         List<PermissionEntity> permissionEntities = permissionEntityRepository.getLocalPermissionEntityRepository().findAllByResourceType(resource.getType());
@@ -288,7 +288,7 @@ public class GenericAclManager implements AclManager {
     @Override
     @Transactional
     @BizError("13")
-    public void deleteAclEntry(@Validated(ResourceModel.ReadAclModel.class) ResourceModel resource, @Validated(AclPrincipalModel.CreateAclModel.class) AclPrincipalModel grant, PermissionModel... permission) {
+    public void deleteAclEntry(@Validated(ResourceModel.ReadAcl.class) ResourceModel resource, @Validated(AclPrincipalModel.CreateAcl.class) AclPrincipalModel grant, PermissionModel... permission) {
         AclPrincipalEntity principalEntity = aclPrincipalEntityRepository.getByName(grant.getName());
         List<PermissionEntity> permissionEntities = permissionEntityRepository.getLocalPermissionEntityRepository().findAllByResourceType(resource.getType());
         assertAclEntryArgumentsValid(resource, principalEntity, permissionEntities, permission);
@@ -639,7 +639,7 @@ public class GenericAclManager implements AclManager {
     }
 
     @Override
-    @Validated(AclPrincipalModel.CreateModel.class)
+    @Validated(AclPrincipalModel.Create.class)
     @Transactional
     @BizError("14")
     public void createAclPrincipal(AclPrincipalModel aclPrincipalModel) {
@@ -669,7 +669,7 @@ public class GenericAclManager implements AclManager {
 
     @Override
     @Transactional
-    @Validated(AclStrategy.CreateModel.class)
+    @Validated(AclStrategy.Create.class)
     @BizError("16")
     public void createAclStrategy(AclStrategy aclStrategy) {
         String resource = aclStrategy.getResource();

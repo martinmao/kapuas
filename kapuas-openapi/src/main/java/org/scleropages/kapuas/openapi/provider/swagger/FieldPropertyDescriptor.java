@@ -16,6 +16,7 @@
 package org.scleropages.kapuas.openapi.provider.swagger;
 
 import org.springframework.beans.BeanUtils;
+import org.springframework.core.ResolvableType;
 import org.springframework.util.ReflectionUtils;
 
 import java.beans.PropertyDescriptor;
@@ -53,5 +54,14 @@ public class FieldPropertyDescriptor {
                 "propertyDescriptor=" + propertyDescriptor +
                 ", propertyField=" + propertyField +
                 '}';
+    }
+
+
+    public ResolvableType createResolvableType() {
+        if (null != propertyField)
+            return ResolvableType.forField(propertyField);
+        if (null != propertyDescriptor)
+            return ResolvableType.forMethodReturnType(propertyDescriptor.getReadMethod());
+        return null;
     }
 }

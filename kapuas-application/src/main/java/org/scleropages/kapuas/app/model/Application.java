@@ -41,38 +41,38 @@ public class Application implements AuthenticationDetails {
     private String appId;
     private String appSecret;
 
-    @NotNull(groups = {UpdateModel.class})
-    @Null(groups = {CreateModel.class})
+    @NotNull(groups = {Update.class})
+    @Null(groups = {Create.class})
     public Long getId() {
         return id;
     }
 
-    @NotBlank(groups = {CreateModel.class})
+    @NotBlank(groups = {Create.class})
     public String getName() {
         return name;
     }
 
-    @NotBlank(groups = {CreateModel.class})
+    @NotBlank(groups = {Create.class})
     public String getTag() {
         return tag;
     }
 
-    @NotBlank(groups = {CreateModel.class})
+    @NotBlank(groups = {Create.class})
     public String getDescription() {
         return description;
     }
 
-    @NotBlank(groups = {CreateModel.class})
+    @NotBlank(groups = {Create.class})
     public String getContact() {
         return contact;
     }
 
-    @NotBlank(groups = {CreateModel.class})
+    @NotBlank(groups = {Create.class})
     public String getApiGateway() {
         return apiGateway;
     }
 
-    @NotBlank(groups = {CreateModel.class})
+    @NotBlank(groups = {Create.class})
     public String getContactNumber() {
         return contactNumber;
     }
@@ -148,9 +148,9 @@ public class Application implements AuthenticationDetails {
         this.appSecret = appSecret;
     }
 
-    public static interface CreateModel {
+    public static interface Create {
     }
 
-    public static interface UpdateModel {
+    public static interface Update {
     }
 }

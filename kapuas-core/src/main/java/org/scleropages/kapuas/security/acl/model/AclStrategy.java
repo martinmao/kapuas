@@ -62,11 +62,12 @@ public class AclStrategy {
         this.permissions = permissions;
     }
 
-    @NotEmpty(groups = CreateModel.class)
+    @NotEmpty(groups = Create.class)
     public String getResource() {
         return resource;
     }
 
+    @Null(groups = Read.class)
     public String getExpression() {
         return expression;
     }
@@ -80,7 +81,7 @@ public class AclStrategy {
         this.expression = expression;
     }
 
-    @Null(groups = CreateModel.class)
+    @Null(groups = Create.class)
     public PermissionModel[] getPermissions() {
         return permissions;
     }
@@ -105,7 +106,11 @@ public class AclStrategy {
         return StringUtils.split(expression, EXP_FORMAT_PERMISSION_SEPARATOR);
     }
 
-    public interface CreateModel {
+    public interface Create {
+
+    }
+
+    public interface Read {
 
     }
 }

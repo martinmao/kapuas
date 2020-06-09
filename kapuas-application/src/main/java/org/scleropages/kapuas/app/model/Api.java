@@ -33,34 +33,34 @@ public class Api {
     private String description;
     private Long applicationId;
 
-    @NotNull(groups = {UpdateModel.class})
-    @Null(groups = {CreateModel.class})
+    @NotNull(groups = {Update.class})
+    @Null(groups = {Create.class})
     public Long getId() {
         return id;
     }
 
-    @NotBlank(groups = {CreateModel.class})
+    @NotBlank(groups = {Create.class})
     public String getApiId() {
         return apiId;
     }
 
-    @NotBlank(groups = {CreateModel.class})
+    @NotBlank(groups = {Create.class})
     public String getTag() {
         return tag;
     }
 
-    @NotBlank(groups = {CreateModel.class})
+    @NotBlank(groups = {Create.class})
     public String getDocUrl() {
         return docUrl;
     }
 
-    @NotBlank(groups = {CreateModel.class})
+    @NotBlank(groups = {Create.class})
     public String getDescription() {
         return description;
     }
 
-    @Null(groups = {UpdateModel.class})
-    @NotNull(groups = {CreateModel.class})
+    @Null(groups = {Update.class})
+    @NotNull(groups = {Create.class})
     public Long getApplicationId() {
         return applicationId;
     }
@@ -89,9 +89,9 @@ public class Api {
         this.applicationId = applicationId;
     }
 
-    public static interface CreateModel {
+    public static interface Create {
     }
 
-    public static interface UpdateModel {
+    public static interface Update {
     }
 }

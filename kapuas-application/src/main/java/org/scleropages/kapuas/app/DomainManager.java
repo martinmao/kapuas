@@ -58,7 +58,7 @@ public class DomainManager implements GenericManager<Domain, Long, DomainMapper>
     private ApplicationManager applicationManager;
 
 
-    @Validated({Domain.UpdateModel.class})
+    @Validated({Domain.Update.class})
     @Transactional
     @BizError("01")
     public void save(@Valid Domain model) {
@@ -104,7 +104,7 @@ public class DomainManager implements GenericManager<Domain, Long, DomainMapper>
 
 
 
-    @Validated({Domain.CreateModel.class})
+    @Validated({Domain.Create.class})
     @Transactional
     @BizError("02")
     public void create(@Valid Domain model) {
@@ -127,7 +127,7 @@ public class DomainManager implements GenericManager<Domain, Long, DomainMapper>
         return domainEntityRepository.findPage(searchFilters, pageable).map(domainEntity -> getModelMapper().mapForRead(domainEntity));
     }
 
-    @Validated({DomainFunction.UpdateModel.class})
+    @Validated({DomainFunction.Update.class})
     @Transactional
     @BizError("04")
     public void save(@Valid DomainFunction function) {
@@ -137,7 +137,7 @@ public class DomainManager implements GenericManager<Domain, Long, DomainMapper>
         domainFunctionEntityRepository.save(functionEntity);
     }
 
-    @Validated({DomainFunction.CreateModel.class})
+    @Validated({DomainFunction.Create.class})
     @Transactional
     @BizError("05")
     public void create(@Valid DomainFunction function) {

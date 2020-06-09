@@ -18,6 +18,7 @@ package org.scleropages.kapuas.security.acl.model;
 import org.scleropages.kapuas.security.acl.AclPrincipal;
 
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.Null;
 import java.io.Serializable;
 
 /**
@@ -38,17 +39,18 @@ public class AclPrincipalModel implements AclPrincipal {
     public AclPrincipalModel() {
     }
 
+    @Null(groups = {Create.class})
     public Long getId() {
         return id;
     }
 
-    @NotBlank(groups = {CreateModel.class, CreateAclModel.class})
+    @NotBlank(groups = {Create.class, CreateAcl.class})
     public String getName() {
         return name;
     }
 
 
-    @NotBlank(groups = CreateModel.class)
+    @NotBlank(groups = Create.class)
     public String getTag() {
         return tag;
     }
@@ -76,11 +78,11 @@ public class AclPrincipalModel implements AclPrincipal {
         return tag;
     }
 
-    public interface CreateModel {
+    public interface Create {
 
     }
 
-    public interface CreateAclModel {
+    public interface CreateAcl {
 
     }
 }

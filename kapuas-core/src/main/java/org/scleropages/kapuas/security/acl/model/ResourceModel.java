@@ -15,9 +15,11 @@
  */
 package org.scleropages.kapuas.security.acl.model;
 
+import org.scleropages.crud.types.EntryList;
 import org.scleropages.kapuas.security.acl.Resource;
 
 import javax.validation.constraints.NotEmpty;
+import java.beans.Transient;
 import java.io.Serializable;
 import java.util.Map;
 
@@ -34,32 +36,30 @@ public class ResourceModel implements Resource {
 
     private Map<String, Object> variables;
     private String bizPayload;
-    private Map<String,Object> bizBody;
+    private Map<String, Object> bizBody;
 
 
-    @NotEmpty(groups = {CreateModel.class})
-    @NotEmpty(groups = {ReadAclModel.class})
-    @NotEmpty(groups = {ReadEntriesBySpecifyResource.class})
-    @NotEmpty(groups = {UpdateModel.class})
+    //just used for frontend open-api
+    private EntryList<String, Object> variableEntries;
+    private EntryList<String, Object> bizBodyEntries;
+
+
+    @NotEmpty(groups = {Create.class, Update.class, ReadAcl.class, ReadEntriesBySpecifyResource.class})
     public String getId() {
         return id;
     }
 
-    @NotEmpty(groups = {CreateModel.class})
+    @NotEmpty(groups = {Create.class})
     public String getTag() {
         return tag;
     }
 
-    @NotEmpty(groups = {CreateModel.class})
-    @NotEmpty(groups = {ReadAclModel.class})
-    @NotEmpty(groups = {ReadEntriesBySpecifyResource.class})
-    @NotEmpty(groups = {ReadEntriesBySpecifyResourceType.class})
-    @NotEmpty(groups = {UpdateModel.class})
+    @NotEmpty(groups = {Create.class, Update.class, ReadAcl.class, ReadEntriesBySpecifyResource.class, ReadEntriesBySpecifyResourceType.class})
     public String getType() {
         return type;
     }
 
-    @NotEmpty(groups = {CreateModel.class})
+    @NotEmpty(groups = {Create.class})
     public String getOwner() {
         return owner;
     }
@@ -68,16 +68,27 @@ public class ResourceModel implements Resource {
         return typeId;
     }
 
+    @Transient
     public Map<String, Object> getVariables() {
         return variables;
     }
+
 
     public String getBizPayload() {
         return bizPayload;
     }
 
+    @Transient
     public Map<String, Object> getBizBody() {
         return bizBody;
+    }
+
+    public EntryList<String, Object> getVariableEntries() {
+        return variableEntries;
+    }
+
+    public EntryList<String, Object> getBizBodyEntries() {
+        return bizBodyEntries;
     }
 
     public void setId(String id) {
@@ -102,6 +113,7 @@ public class ResourceModel implements Resource {
 
     public void setVariables(Map<String, Object> variables) {
         this.variables = variables;
+        setVariableEntries(new EntryList().fromMap(variables));
     }
 
     public void setBizPayload(String bizPayload) {
@@ -110,6 +122,17 @@ public class ResourceModel implements Resource {
 
     public void setBizBody(Map<String, Object> bizBody) {
         this.bizBody = bizBody;
+        setBizBodyEntries(new EntryList().fromMap(bizBody));
+    }
+
+    public void setVariableEntries(EntryList<String, Object> variableEntries) {
+        this.variableEntries = variableEntries;
+        setVariables(variableEntries.toMap());
+    }
+
+    public void setBizBodyEntries(EntryList<String, Object> bizBodyEntries) {
+        this.bizBodyEntries = bizBodyEntries;
+        setBizBody(bizBodyEntries.toMap());
     }
 
     @Override
@@ -127,11 +150,11 @@ public class ResourceModel implements Resource {
         return type;
     }
 
-    public interface CreateModel {
+    public interface Create {
 
     }
 
-    public interface ReadAclModel {
+    public interface ReadAcl {
 
     }
 
@@ -143,7 +166,7 @@ public class ResourceModel implements Resource {
 
     }
 
-    public interface UpdateModel {
+    public interface Update {
 
     }
 }

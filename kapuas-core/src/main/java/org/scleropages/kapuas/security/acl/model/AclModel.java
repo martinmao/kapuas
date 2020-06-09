@@ -15,6 +15,7 @@
  */
 package org.scleropages.kapuas.security.acl.model;
 
+import org.scleropages.crud.types.EntryList;
 import org.scleropages.kapuas.openapi.annotation.ApiModel;
 import org.scleropages.kapuas.security.acl.Acl;
 import org.scleropages.kapuas.security.acl.AclEntry;
@@ -37,7 +38,7 @@ public class AclModel implements Acl {
     private List<AclPrincipal> owners;
     private String tag;
     private List<AclEntry> aclEntries;
-    private Map<String,Object> variables;
+    private Map<String, Object> variables;
 
 
     public Long getId() {
@@ -139,4 +140,13 @@ public class AclModel implements Acl {
     public List<? extends AclEntry> entries() {
         return aclEntries;
     }
+
+    public static interface Query {
+    }
+
+    public static interface Detail {
+
+    }
+
+
 }

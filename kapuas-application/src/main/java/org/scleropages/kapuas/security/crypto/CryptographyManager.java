@@ -57,7 +57,7 @@ public class CryptographyManager implements GenericManager<Cryptography, Long, C
 
 
     @Transactional
-    @Validated({Cryptography.CreateModel.class})
+    @Validated({Cryptography.Create.class})
     @BizError("01")
     public void save(@Valid Cryptography model) {
         CryptographyEntity cryptographyEntity = getModelMapper().mapForSave(model);

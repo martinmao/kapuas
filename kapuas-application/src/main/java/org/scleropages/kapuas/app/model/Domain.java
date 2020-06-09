@@ -35,34 +35,34 @@ public class Domain {
     private Boolean enabled;
     private Long parentId;
 
-    @NotNull(groups = {UpdateModel.class})
-    @Null(groups = {CreateModel.class})
+    @NotNull(groups = {Update.class})
+    @Null(groups = {Create.class})
     public Long getId() {
         return id;
     }
 
-    @NotBlank(groups = {CreateModel.class})
+    @NotBlank(groups = {Create.class})
     public String getName() {
         return name;
     }
 
-    @Null(groups = {CreateModel.class})
-    @Null(groups = {UpdateModel.class})
+    @Null(groups = {Create.class})
+    @Null(groups = {Update.class})
     public String getNamespace() {
         return namespace;
     }
 
-    @NotBlank(groups = {CreateModel.class})
+    @NotBlank(groups = {Create.class})
     public String getTag() {
         return tag;
     }
 
-    @NotBlank(groups = {CreateModel.class})
+    @NotBlank(groups = {Create.class})
     public String getDescription() {
         return description;
     }
 
-    @NotBlank(groups = {CreateModel.class})
+    @NotBlank(groups = {Create.class})
     public String getDocUrl() {
         return docUrl;
     }
@@ -108,9 +108,9 @@ public class Domain {
         this.parentId = parentId;
     }
 
-    public static interface CreateModel {
+    public static interface Create {
     }
 
-    public static interface UpdateModel {
+    public static interface Update {
     }
 }

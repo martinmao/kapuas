@@ -76,7 +76,7 @@ public class ApplicationManager implements AuthenticationDetailsProvider<Applica
     private AuthenticationManager authenticationManager;
 
     @Transactional
-    @Validated({Api.CreateModel.class})
+    @Validated({Api.Create.class})
     @BizError("01")
     public void createApi(@Valid Api api) {
         ApplicationEntity applicationEntity = applicationEntityRepository.get(api.getApplicationId()).orElseThrow(() -> new BizParamViolationException("no application found by given id: " + api.getApplicationId()));
@@ -86,7 +86,7 @@ public class ApplicationManager implements AuthenticationDetailsProvider<Applica
     }
 
     @Transactional
-    @Validated({Api.UpdateModel.class})
+    @Validated({Api.Update.class})
     @BizError("02")
     public void saveApi(@Valid Api api) {
         apiEntityRepository.findById(api.getId()).ifPresent(apiEntity -> {
@@ -102,7 +102,7 @@ public class ApplicationManager implements AuthenticationDetailsProvider<Applica
     }
 
     @Transactional
-    @Validated({Application.UpdateModel.class})
+    @Validated({Application.Update.class})
     @BizError("04")
     public void save(@Valid Application application) {
         applicationEntityRepository.findById(application.getId()).ifPresent(applicationEntity -> {
@@ -115,7 +115,7 @@ public class ApplicationManager implements AuthenticationDetailsProvider<Applica
     }
 
     @Transactional
-    @Validated({Application.CreateModel.class})
+    @Validated({Application.Create.class})
     @BizError("05")
     public Application create(@Valid Application application) {
         Assert.isTrue(!applicationEntityRepository.existsByName(application.getName()), "application name already exists.");

@@ -36,13 +36,13 @@ public class DomainFunction{
     private Long apiId;
     private Long domainId;
 
-    @NotNull(groups = {UpdateModel.class})
-    @Null(groups = {CreateModel.class})
+    @NotNull(groups = {Update.class})
+    @Null(groups = {Create.class})
     public Long getId() {
         return id;
     }
 
-    @NotBlank(groups = {CreateModel.class})
+    @NotBlank(groups = {Create.class})
     public String getName() {
         return name;
     }
@@ -52,17 +52,17 @@ public class DomainFunction{
         return fullName;
     }
 
-    @NotBlank(groups = {CreateModel.class})
+    @NotBlank(groups = {Create.class})
     public String getTag() {
         return tag;
     }
 
-    @NotBlank(groups = {CreateModel.class})
+    @NotBlank(groups = {Create.class})
     public String getDescription() {
         return description;
     }
 
-    @NotBlank(groups = {CreateModel.class})
+    @NotBlank(groups = {Create.class})
     public String getDocUrl() {
         return docUrl;
     }
@@ -72,14 +72,14 @@ public class DomainFunction{
         return enabled;
     }
 
-    @NotNull(groups = {CreateModel.class})
-    @Null(groups = {UpdateModel.class})
+    @NotNull(groups = {Create.class})
+    @Null(groups = {Update.class})
     public Long getApiId() {
         return apiId;
     }
 
-    @NotNull(groups = {CreateModel.class})
-    @Null(groups = {UpdateModel.class})
+    @NotNull(groups = {Create.class})
+    @Null(groups = {Update.class})
     public Long getDomainId() {
         return domainId;
     }
@@ -121,9 +121,9 @@ public class DomainFunction{
     }
 
 
-    public static interface CreateModel {
+    public static interface Create {
     }
 
-    public static interface UpdateModel {
+    public static interface Update {
     }
 }

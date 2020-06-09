@@ -56,13 +56,13 @@ public class PageSchemaResolver implements SchemaResolver {
         copedSchema.addProperties("content", contentArray);
         Class<?> contentType = null;
         Field propertyField = null != fieldPropertyDescriptor ? fieldPropertyDescriptor.getPropertyField() : null;
-        if (null != propertyField) {
-            contentType = ResolvableType.forField(propertyField).resolveGeneric(0);
+        if (null != propertyField) {//page 作为对象属性.
+            contentType = SchemaUtil.getPropertyConcreteType(new FieldPropertyDescriptor(null, propertyField));
         }
-        if (null != methodParameter && contentType == null) {
-            contentType = ResolvableType.forMethodParameter(methodParameter).resolveGeneric(0);
+        if (null != methodParameter && methodParameter.getParameterIndex() == -1 && contentType == null) {//page作为返回值
+            contentType = SchemaUtil.getParameterConcreteType(methodParameter, ResolvableType.forMethodParameter(methodParameter).resolveGeneric(0));
         }
-        Schema contentSchema = SchemaUtil.createSchema(contentType, resolveContext);
+        Schema contentSchema = SchemaUtil.createSchema(SchemaUtil.getParameterConcreteType(methodParameter, contentType), resolveContext);
         copedSchema.setName(Page.class.getName() + contentType.getSimpleName());
         contentArray.setItems(contentSchema);
         return copedSchema;

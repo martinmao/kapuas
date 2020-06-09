@@ -57,11 +57,12 @@ public class AclAction implements GenericAction {
     private AclManager aclManager;
 
     @PostMapping("strategy")
-    public void createAclStrategy(@ApiIgnore(AclStrategy.CreateModel.class) @RequestBody AclStrategy aclStrategy) {
+    public void createAclStrategy(@ApiIgnore(AclStrategy.Create.class) @RequestBody AclStrategy aclStrategy) {
         aclManager.createAclStrategy(aclStrategy);
     }
 
     @GetMapping("strategy/{resource}")
+    @ApiIgnore(AclStrategy.Read.class)
     public AclStrategy getAclStrategy(@PathVariable String resource) {
         return aclManager.getAclStrategy(resource);
     }
@@ -72,7 +73,7 @@ public class AclAction implements GenericAction {
     }
 
     @PostMapping("principal")
-    public void createPrincipal(@RequestBody AclPrincipalModel principalModel) {
+    public void createPrincipal(@ApiIgnore(AclPrincipalModel.Create.class) @RequestBody AclPrincipalModel principalModel) {
         aclManager.createAclPrincipal(principalModel);
     }
 
@@ -83,7 +84,7 @@ public class AclAction implements GenericAction {
     }
 
     @PostMapping("resource")
-    public void createAcl(@RequestBody ResourceModel resourceModel) {
+    public void createAcl(@ApiIgnore(ResourceModel.Create.class) @RequestBody ResourceModel resourceModel) {
         aclManager.createAcl(resourceModel);
     }
 
@@ -177,6 +178,7 @@ public class AclAction implements GenericAction {
     }
 
     @GetMapping("principal_entries/{principal}/{resourceType}")
+    @ApiModel(AclEntryModel.class)
     public Page<AclEntry> readPrincipalAclEntries(HttpServletRequest request,
                                                   @PathVariable String principal, @PathVariable String resourceType,
                                                   String resourceId, String permission, String variables) {

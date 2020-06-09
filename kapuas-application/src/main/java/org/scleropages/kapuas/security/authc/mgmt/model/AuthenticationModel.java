@@ -48,25 +48,25 @@ public class AuthenticationModel implements Authentication {
         this.credentials = credentials;
     }
 
-    @NotNull(groups = {UpdateModel.class})
-    @Null(groups = {CreateModel.class})
+    @NotNull(groups = {Update.class})
+    @Null(groups = {Create.class})
     public Long getId() {
         return id;
     }
 
-    @NotEmpty(groups = {CreateModel.class})
-    @Null(groups = {UpdateModel.class})
+    @NotEmpty(groups = {Create.class})
+    @Null(groups = {Update.class})
     public String getPrincipal() {
         return principal;
     }
 
-    @NotEmpty(groups = {CreateModel.class})
-    @Null(groups = {UpdateModel.class})
+    @NotEmpty(groups = {Create.class})
+    @Null(groups = {Update.class})
     public String getCredentials() {
         return credentials;
     }
 
-    @Null(groups = {CreateModel.class, UpdateModel.class})
+    @Null(groups = {Create.class, Update.class})
     public byte[] getSecureSalt() {
         return secureSalt;
     }
@@ -79,22 +79,22 @@ public class AuthenticationModel implements Authentication {
         return associatedId;
     }
 
-    @Null(groups = {CreateModel.class, UpdateModel.class})
+    @Null(groups = {Create.class, Update.class})
     public Boolean getEnabled() {
         return enabled;
     }
 
-    @Null(groups = {CreateModel.class, UpdateModel.class})
+    @Null(groups = {Create.class, Update.class})
     public Boolean getExpired() {
         return expired;
     }
 
-    @Null(groups = {CreateModel.class, UpdateModel.class})
+    @Null(groups = {Create.class, Update.class})
     public Boolean getLocked() {
         return locked;
     }
 
-    @Null(groups = {CreateModel.class, UpdateModel.class})
+    @Null(groups = {Create.class, Update.class})
     public Boolean getCredentialsExpired() {
         return credentialsExpired;
     }
@@ -144,9 +144,9 @@ public class AuthenticationModel implements Authentication {
         this.secureSalt = secureSalt;
     }
 
-    public static interface CreateModel {
+    public static interface Create {
     }
 
-    public static interface UpdateModel {
+    public static interface Update {
     }
 }
