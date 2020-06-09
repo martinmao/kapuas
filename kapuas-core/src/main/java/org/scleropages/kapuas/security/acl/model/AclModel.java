@@ -16,12 +16,14 @@
 package org.scleropages.kapuas.security.acl.model;
 
 import org.scleropages.crud.types.EntryList;
+import org.scleropages.kapuas.openapi.annotation.ApiIgnore;
 import org.scleropages.kapuas.openapi.annotation.ApiModel;
 import org.scleropages.kapuas.security.acl.Acl;
 import org.scleropages.kapuas.security.acl.AclEntry;
 import org.scleropages.kapuas.security.acl.AclPrincipal;
 import org.scleropages.kapuas.security.acl.Resource;
 
+import java.beans.Transient;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
@@ -39,8 +41,10 @@ public class AclModel implements Acl {
     private String tag;
     private List<AclEntry> aclEntries;
     private Map<String, Object> variables;
+    private EntryList<String, Object> variableEntries;
 
 
+    @Transient
     public Long getId() {
         return id;
     }
@@ -54,11 +58,13 @@ public class AclModel implements Acl {
     }
 
     @ApiModel(ResourceModel.class)
+    @ApiIgnore({Page.class,Info.class})
     public Resource getResource() {
         return resource;
     }
 
     @ApiModel(AclPrincipalModel.class)
+    @ApiIgnore({Page.class})
     public List<AclPrincipal> getOwners() {
         return owners;
     }
@@ -68,13 +74,19 @@ public class AclModel implements Acl {
     }
 
     @ApiModel(AclEntryModel.class)
+    @ApiIgnore({Page.class, Info.class})
     public List<AclEntry> getAclEntries() {
         return aclEntries;
     }
 
-
+    @Transient
     public Map<String, Object> getVariables() {
         return variables;
+    }
+
+    @ApiIgnore({Page.class})
+    public EntryList<String, Object> getVariableEntries() {
+        return variableEntries;
     }
 
     public void setId(Long id) {
@@ -107,6 +119,12 @@ public class AclModel implements Acl {
 
     public void setVariables(Map<String, Object> variables) {
         this.variables = variables;
+        this.variableEntries = new EntryList().fromMap(variables);
+    }
+
+    public void setVariableEntries(EntryList<String, Object> variableEntries) {
+        this.variableEntries = variableEntries;
+        this.variables = variableEntries.toMap();
     }
 
     @Override
@@ -141,12 +159,10 @@ public class AclModel implements Acl {
         return aclEntries;
     }
 
-    public static interface Query {
+    public static interface Page {
     }
 
-    public static interface Detail {
+    public static interface Info {
 
     }
-
-
 }

@@ -62,7 +62,7 @@ public class PageSchemaResolver implements SchemaResolver {
         if (null != methodParameter && methodParameter.getParameterIndex() == -1 && contentType == null) {//page作为返回值
             contentType = SchemaUtil.getParameterConcreteType(methodParameter, ResolvableType.forMethodParameter(methodParameter).resolveGeneric(0));
         }
-        Schema contentSchema = SchemaUtil.createSchema(SchemaUtil.getParameterConcreteType(methodParameter, contentType), resolveContext);
+        Schema contentSchema = SchemaUtil.createSchema(SchemaUtil.getParameterConcreteType(methodParameter, contentType), methodParameter, resolveContext);
         copedSchema.setName(Page.class.getName() + contentType.getSimpleName());
         contentArray.setItems(contentSchema);
         return copedSchema;

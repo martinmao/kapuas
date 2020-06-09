@@ -20,13 +20,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.scleropages.kapuas.openapi.OpenApiContextBuilder;
 import org.scleropages.kapuas.openapi.provider.swagger.BeanComponentApiScanner;
 import org.scleropages.kapuas.openapi.provider.swagger.EntryListSchemaResolver;
+import org.scleropages.kapuas.openapi.provider.swagger.PageSchemaResolver;
 import org.scleropages.kapuas.openapi.provider.swagger.SchemaResolver;
 import org.scleropages.kapuas.openapi.provider.swagger.SpringMvcOpenApiReader;
-import org.scleropages.kapuas.openapi.provider.swagger.PageSchemaResolver;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.jackson.JacksonProperties;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
@@ -60,9 +61,10 @@ public class SpringMvcOpenApiAutoConfigure implements ApplicationListener<Contex
 
     @Bean
     @ConditionalOnMissingBean
-    public SpringMvcOpenApiReader springMvcOpenApiReader(ObjectProvider<SchemaResolver> schemaResolvers) {
+    public SpringMvcOpenApiReader springMvcOpenApiReader(ObjectProvider<SchemaResolver> schemaResolvers, JacksonProperties jacksonProperties) {
         SpringMvcOpenApiReader springMvcOpenApiReader = new SpringMvcOpenApiReader();
         schemaResolvers.orderedStream().forEachOrdered(schemaResolver -> springMvcOpenApiReader.addSchemaResolver(schemaResolver));
+        springMvcOpenApiReader.setJacksonProperties(jacksonProperties);
         return springMvcOpenApiReader;
     }
 
@@ -81,7 +83,7 @@ public class SpringMvcOpenApiAutoConfigure implements ApplicationListener<Contex
 
     @Bean
     @ConditionalOnMissingBean
-    public EntryListSchemaResolver entryListSchemaResolver(){
+    public EntryListSchemaResolver entryListSchemaResolver() {
         return new EntryListSchemaResolver();
     }
 

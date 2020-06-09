@@ -629,10 +629,10 @@ public class GenericAclManager implements AclManager {
                 List<AclVariableEntity> variableEntities = aclVariableEntityRepository.findAllByAclIdAndResourceTypeId(aclEntity.getId(), aclEntity.getResourceTypeId());
                 if (!CollectionUtils.isEmpty(variableEntities)) {
                     Map<String, Object> variables = new HashMap<>(variableEntities.size());
-                    aclModel.setVariables(variables);
                     variableEntities.forEach(variableEntity -> {
                         variables.put(variableEntity.getName(), variableEntity.getValue());
                     });
+                    aclModel.setVariables(variables);
                 }
             }
         }

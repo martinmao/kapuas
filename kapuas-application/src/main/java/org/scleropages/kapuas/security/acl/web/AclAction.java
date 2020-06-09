@@ -37,6 +37,7 @@ import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -90,6 +91,7 @@ public class AclAction implements GenericAction {
 
     @GetMapping("resource/{resourceType}")
     @ApiModel(AclModel.class)
+    @ApiIgnore({AclModel.Page.class})
     public Page<Acl> readAcl(HttpServletRequest request, @PathVariable String resourceType, @RequestParam(required = false) String variables) {
         ResourceModel model = new ResourceModel();
         model.setType(resourceType);
@@ -99,6 +101,7 @@ public class AclAction implements GenericAction {
 
     @GetMapping("resource/{resourceType}/{resourceId}")
     @ApiModel(AclModel.class)
+    @ApiIgnore({AclModel.Info.class})
     public Acl getAcl(@PathVariable String resourceType, @PathVariable String resourceId) {
         ResourceModel model = new ResourceModel();
         model.setType(resourceType);
@@ -107,8 +110,8 @@ public class AclAction implements GenericAction {
     }
 
 
-    @PostMapping("resource/{resourceType}/{resourceId}")
-    public void updateAcl(@PathVariable String resourceType, @PathVariable String resourceId, @RequestBody ResourceModel resourceModel) {
+    @PutMapping("resource/{resourceType}/{resourceId}")
+    public void updateAcl(@PathVariable String resourceType, @PathVariable String resourceId,@ApiIgnore(ResourceModel.Update.class) @RequestBody ResourceModel resourceModel) {
         resourceModel.setType(resourceType);
         resourceModel.setId(resourceId);
         aclManager.updateAcl(resourceModel);

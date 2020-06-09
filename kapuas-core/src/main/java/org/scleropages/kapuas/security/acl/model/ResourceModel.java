@@ -16,6 +16,7 @@
 package org.scleropages.kapuas.security.acl.model;
 
 import org.scleropages.crud.types.EntryList;
+import org.scleropages.kapuas.openapi.annotation.ApiIgnore;
 import org.scleropages.kapuas.security.acl.Resource;
 
 import javax.validation.constraints.NotEmpty;
@@ -32,6 +33,7 @@ public class ResourceModel implements Resource {
     private String tag;
     private String type;
     private String owner;
+    @ApiIgnore
     private Long typeId;
 
     private Map<String, Object> variables;
@@ -45,6 +47,7 @@ public class ResourceModel implements Resource {
 
 
     @NotEmpty(groups = {Create.class, Update.class, ReadAcl.class, ReadEntriesBySpecifyResource.class})
+    @ApiIgnore({Update.class})
     public String getId() {
         return id;
     }
@@ -55,6 +58,7 @@ public class ResourceModel implements Resource {
     }
 
     @NotEmpty(groups = {Create.class, Update.class, ReadAcl.class, ReadEntriesBySpecifyResource.class, ReadEntriesBySpecifyResourceType.class})
+    @ApiIgnore({Update.class})
     public String getType() {
         return type;
     }
@@ -113,7 +117,7 @@ public class ResourceModel implements Resource {
 
     public void setVariables(Map<String, Object> variables) {
         this.variables = variables;
-        setVariableEntries(new EntryList().fromMap(variables));
+        this.variableEntries = new EntryList().fromMap(variables);
     }
 
     public void setBizPayload(String bizPayload) {
@@ -122,17 +126,17 @@ public class ResourceModel implements Resource {
 
     public void setBizBody(Map<String, Object> bizBody) {
         this.bizBody = bizBody;
-        setBizBodyEntries(new EntryList().fromMap(bizBody));
+        this.bizBodyEntries = new EntryList().fromMap(bizBody);
     }
 
     public void setVariableEntries(EntryList<String, Object> variableEntries) {
         this.variableEntries = variableEntries;
-        setVariables(variableEntries.toMap());
+        this.variables = variableEntries.toMap();
     }
 
     public void setBizBodyEntries(EntryList<String, Object> bizBodyEntries) {
         this.bizBodyEntries = bizBodyEntries;
-        setBizBody(bizBodyEntries.toMap());
+        this.bizBody = bizBodyEntries.toMap();
     }
 
     @Override

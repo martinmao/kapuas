@@ -46,6 +46,7 @@ import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.util.Assert;
 import org.springframework.util.ClassUtils;
 
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Null;
@@ -84,7 +85,6 @@ public abstract class SchemaUtil {
 
     private static final Logger logger = LoggerFactory.getLogger(SchemaUtil.class);
 
-
     public static final Schema createSchema(MethodParameter methodParameter, ResolveContext resolveContext) {
         Assert.notNull(methodParameter, "methodParameter must not be null.");
         Assert.notNull(resolveContext, "resolveContext must not be null.");
@@ -96,6 +96,20 @@ public abstract class SchemaUtil {
         Assert.notNull(javaType, "javaType must not be null.");
         Assert.notNull(resolveContext, "resolveContext must not be null.");
         return createSchema(javaType, null, null, isIgnorePropertyFieldNotFound(javaType), resolveContext, createMutableGraph());
+    }
+
+    /**
+     * 该方法仅适用于方法参数（返回值）类型为接口
+     *
+     * @param implementationType 实现类
+     * @param methodParameter    方法参数
+     * @param resolveContext     解析上下文
+     * @return
+     */
+    public static final Schema createSchema(Class implementationType, MethodParameter methodParameter, ResolveContext resolveContext) {
+        Assert.notNull(implementationType, "implementationType must not be null.");
+        Assert.notNull(resolveContext, "resolveContext must not be null.");
+        return createSchema(implementationType, methodParameter, null, isIgnorePropertyFieldNotFound(implementationType), resolveContext, createMutableGraph());
     }
 
 
@@ -125,7 +139,8 @@ public abstract class SchemaUtil {
                 elementType = getParameterConcreteType(methodParameter, ResolvableType.forMethodParameter(methodParameter).asCollection().resolveGeneric(0));
             }
             if (null == elementType) {
-                logger.warn("can not resolve generic-type of java.util.Collection from parameter: [{}] or field: [{}] use object schema directly.", methodParameter, fieldPropertyDescriptor);
+                if (logger.isDebugEnabled())
+                    logger.warn("can not resolve generic-type of java.util.Collection from parameter: [{}] or field: [{}] use object schema directly.", methodParameter, fieldPropertyDescriptor);
                 ObjectSchema objectSchema = new ObjectSchema();
                 objectSchema.setFormat("object");
                 return objectSchema;
@@ -150,7 +165,8 @@ public abstract class SchemaUtil {
 //            if (!resolved)
 //            logger.warn("can not resolve java.util.Map of parameter: [{}] or field: [{}] use object schema directly.", methodParameter, fieldPropertyDescriptor);
 //            return arraySchema;
-            logger.warn("can not resolve java.util.Map of parameter: [{}] or field: [{}] use object schema directly.", methodParameter, fieldPropertyDescriptor);
+            if (logger.isDebugEnabled())
+                logger.warn("can not resolve java.util.Map of parameter: [{}] or field: [{}]. please use EntryList instead.", methodParameter, fieldPropertyDescriptor);
             ObjectSchema objectSchema = new ObjectSchema();
             objectSchema.setFormat("map");
             return objectSchema;
@@ -189,7 +205,7 @@ public abstract class SchemaUtil {
             return objectSchema;
         });
         String targetSchemaName = javaType.equals(ruleInterfaceType) ? javaType.getName() : javaType.getName() + "" + ruleInterfaceType.getSimpleName();
-        targetSchemaName= StringUtils.replace(targetSchemaName,"$","");//内部类符号'$'在openapi规范中被禁止
+        targetSchemaName = StringUtils.replace(targetSchemaName, "$", "");//内部类符号'$'在openapi规范中被禁止
         targetSchema.setName(targetSchemaName);
         targetSchema.setRequired(requiredProperties);
         ObjectSchema schemaRef = new ObjectSchema();
@@ -215,13 +231,24 @@ public abstract class SchemaUtil {
             } else {
                 fieldRequired = notNull.groups();
             }
-        } else {
+        }
+        if (null == fieldRequired) {
             NotEmpty notEmpty = findFieldAnnotation(fieldPropertyDescriptor, NotEmpty.class);
             if (null != notEmpty) {
                 if (ArrayUtils.isEmpty(notEmpty.groups())) {
                     return true;
                 } else {
                     fieldRequired = notEmpty.groups();
+                }
+            }
+        }
+        if (null == fieldRequired) {
+            NotBlank notBlank = findFieldAnnotation(fieldPropertyDescriptor, NotBlank.class);
+            if (null != notBlank) {
+                if (ArrayUtils.isEmpty(notBlank.groups())) {
+                    return true;
+                } else {
+                    fieldRequired = notBlank.groups();
                 }
             }
         }

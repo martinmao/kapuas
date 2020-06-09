@@ -19,15 +19,18 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.PrettyPrinter;
 import com.fasterxml.jackson.core.util.DefaultPrettyPrinter;
 import com.fasterxml.jackson.core.util.MinimalPrettyPrinter;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
 import io.swagger.v3.core.util.Json;
 import io.swagger.v3.core.util.Yaml;
+import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.media.Schema;
 import org.apache.commons.collections.ComparatorUtils;
 import org.scleropages.kapuas.openapi.OpenApi;
+import org.springframework.boot.autoconfigure.jackson.JacksonProperties;
 
 import java.lang.reflect.Method;
 import java.util.Collections;
@@ -62,7 +65,6 @@ public class SwaggerOpenApi implements OpenApi<OpenAPI> {
      * type class->rule interface class(User.Create.class/User.Update.class)->schema
      */
     private final Map<Class, Map<Class, Schema>> javaTypeToSchemas = Maps.newHashMap();
-
 
     public List<Schema> getAllSchemas() {
         List<Schema> schemas = Lists.newArrayList();
@@ -103,15 +105,15 @@ public class SwaggerOpenApi implements OpenApi<OpenAPI> {
 
     @Override
     public String render() {
+        ObjectMapper mapper = null;
         if (OPENAPI_RENDER_FORMAT_YAML.equalsIgnoreCase(openApiRenderFormat)) {
-            try {
-                return Yaml.mapper().writer(openApiRenderPretty ? prettyPrinter : nonePrettyPrinter).writeValueAsString(openAPI);
-            } catch (JsonProcessingException e) {
-                throw new IllegalStateException("failure to render open api for: " + id(), e);
-            }
+            mapper = Yaml.mapper();
         } else if (OPENAPI_RENDER_FORMAT_JSON.equalsIgnoreCase(openApiRenderFormat)) {
+            mapper = Json.mapper();
+        }
+        if (null != mapper) {
             try {
-                return Json.mapper().writer(openApiRenderPretty ? prettyPrinter : nonePrettyPrinter).writeValueAsString(openAPI);
+                return mapper.writer(openApiRenderPretty ? prettyPrinter : nonePrettyPrinter).writeValueAsString(openAPI);
             } catch (JsonProcessingException e) {
                 throw new IllegalStateException("failure to render open api for: " + id(), e);
             }

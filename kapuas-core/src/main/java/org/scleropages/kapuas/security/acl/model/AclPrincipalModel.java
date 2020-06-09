@@ -15,6 +15,7 @@
  */
 package org.scleropages.kapuas.security.acl.model;
 
+import org.scleropages.kapuas.openapi.annotation.ApiIgnore;
 import org.scleropages.kapuas.security.acl.AclPrincipal;
 
 import javax.validation.constraints.NotBlank;
@@ -40,6 +41,7 @@ public class AclPrincipalModel implements AclPrincipal {
     }
 
     @Null(groups = {Create.class})
+    @ApiIgnore({AclModel.Info.class})
     public Long getId() {
         return id;
     }

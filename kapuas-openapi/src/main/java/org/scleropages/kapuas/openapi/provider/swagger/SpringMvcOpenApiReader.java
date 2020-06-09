@@ -16,6 +16,7 @@
 package org.scleropages.kapuas.openapi.provider.swagger;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
@@ -36,9 +37,11 @@ import io.swagger.v3.oas.models.responses.ApiResponses;
 import io.swagger.v3.oas.models.servers.Server;
 import io.swagger.v3.oas.models.tags.Tag;
 import org.apache.commons.collections.ComparatorUtils;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
+import org.scleropages.core.util.Namings;
 import org.scleropages.crud.exception.BizExceptionHttpView;
 import org.scleropages.kapuas.openapi.OpenApi;
 import org.scleropages.kapuas.openapi.annotation.ApiIgnore;
@@ -48,6 +51,7 @@ import org.scleropages.kapuas.openapi.provider.OpenApiReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.jackson.JacksonProperties;
 import org.springframework.core.BridgeMethodResolver;
 import org.springframework.core.DefaultParameterNameDiscoverer;
 import org.springframework.core.MethodParameter;
@@ -66,6 +70,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 
 import java.lang.reflect.Method;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -122,6 +127,8 @@ public class SpringMvcOpenApiReader implements OpenApiReader {
 
     private final List<SchemaResolver> schemaResolvers = Lists.newArrayList();
 
+    private JacksonProperties jacksonProperties;
+
     @Override
     public OpenApi read(String basePackage, List<Class<?>> classes) {
         for (SchemaResolver schemaResolver : schemaResolvers) {
@@ -141,7 +148,15 @@ public class SpringMvcOpenApiReader implements OpenApiReader {
             swaggerOpenApi.nativeOpenApi().addTagsItem(tag);
             Method[] methods = ReflectionUtils.getDeclaredMethods(clazz);
 
-            Arrays.sort(methods, (o1, o2) -> ComparatorUtils.naturalComparator().compare(o1.getName(), o2.getName()));
+            Comparator comparator = ComparatorUtils.naturalComparator();
+            Arrays.sort(methods, (o1, o2) -> {
+                MergedAnnotation<RequestMapping> o1m = MergedAnnotations.from(o1).get(RequestMapping.class);
+                MergedAnnotation<RequestMapping> o2m = MergedAnnotations.from(o2).get(RequestMapping.class);
+
+                String path1 = o1m.isPresent() ? ArrayUtils.toString(o1m.getStringArray("path")) : o1.getName();
+                String path2 = o2m.isPresent() ? ArrayUtils.toString(o2m.getStringArray("path")) : o2.getName();
+                return comparator.compare(path2, path1);
+            });
             for (Method method : methods) {
                 if (ClassUtils.isUserLevelMethod(method)) {
                     if (!readableMethod(method)) {
@@ -515,18 +530,47 @@ public class SpringMvcOpenApiReader implements OpenApiReader {
 
 
     protected SwaggerOpenApi createOpenApi(String basePackage, OpenAPI openAPI) {
-        return new SwaggerOpenApi(basePackage, openAPI, openApiRenderFormat, openApiRenderPretty);
+        SwaggerOpenApi swaggerOpenApi = new SwaggerOpenApi(basePackage, openAPI, openApiRenderFormat, openApiRenderPretty);
+        return swaggerOpenApi;
     }
 
 
     protected void resolveSchemas(SwaggerOpenApi openAPI) {
         List<Schema> allSchemas = openAPI.getAllSchemas();
         Components components = new Components();
-        allSchemas.forEach(schema -> components.addSchemas(schema.getName(), schema));
+        allSchemas.forEach(schema -> {
+            components.addSchemas(schema.getName(), schema);
+            applySnakeCaseNamingStrategy(schema);
+        });
         openAPI.nativeOpenApi().setComponents(components);
+    }
+
+    protected void applySnakeCaseNamingStrategy(Schema schema) {
+        if (!useSnakeCaseName)
+            return;
+        Map<String, Schema> sourceProperties = schema.getProperties();
+        if (MapUtils.isEmpty(sourceProperties))
+            return;
+        Map<String, Object> targetProperties = Maps.newHashMap();
+        sourceProperties.forEach((propertyName, propertySchema) -> {
+            targetProperties.put(Namings.snakeCaseName(propertyName), propertySchema);
+            if (MapUtils.isNotEmpty(propertySchema.getProperties())) {
+                applySnakeCaseNamingStrategy(propertySchema);
+            }
+        });
+        schema.setProperties(targetProperties);
     }
 
     public void addSchemaResolver(SchemaResolver schemaResolver) {
         this.schemaResolvers.add(schemaResolver);
+    }
+
+    private boolean useSnakeCaseName;
+
+    public void setJacksonProperties(JacksonProperties jacksonProperties) {
+        if (StringUtils.endsWith(jacksonProperties.getPropertyNamingStrategy(), "SnakeCaseStrategy")) {
+            this.useSnakeCaseName = true;
+        }
+        this.jacksonProperties = jacksonProperties;
     }
 }
