@@ -56,11 +56,5 @@
             <groupId>org.scleropages.bukitmerah</groupId>
             <artifactId>bukitmerah-all</artifactId>
         </dependency>
-        <dependency>
-            <groupId>org.scleropages.kapuas</groupId>
-            <artifactId>kapuas-openapi</artifactId>
-            <version>${project.version}</version>
-            <scope>compile</scope>
-        </dependency>
     </dependencies>
 </project>

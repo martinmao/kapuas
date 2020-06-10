@@ -16,12 +16,13 @@
 package org.scleropages.kapuas.security.acl.model;
 
 import org.scleropages.crud.types.EntryList;
-import org.scleropages.kapuas.openapi.annotation.ApiIgnore;
-import org.scleropages.kapuas.openapi.annotation.ApiModel;
+
 import org.scleropages.kapuas.security.acl.Acl;
 import org.scleropages.kapuas.security.acl.AclEntry;
 import org.scleropages.kapuas.security.acl.AclPrincipal;
 import org.scleropages.kapuas.security.acl.Resource;
+import org.scleropages.openapi.annotation.ApiIgnore;
+import org.scleropages.openapi.annotation.ApiModel;
 
 import java.beans.Transient;
 import java.io.Serializable;

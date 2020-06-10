@@ -19,8 +19,7 @@ import org.apache.commons.collections.MapUtils;
 import org.scleropages.crud.dao.orm.SearchFilter;
 import org.scleropages.crud.types.NamedPrimitive;
 import org.scleropages.crud.web.GenericAction;
-import org.scleropages.kapuas.openapi.annotation.ApiIgnore;
-import org.scleropages.kapuas.openapi.annotation.ApiModel;
+
 import org.scleropages.kapuas.security.acl.Acl;
 import org.scleropages.kapuas.security.acl.AclEntry;
 import org.scleropages.kapuas.security.acl.AclManager;
@@ -31,6 +30,8 @@ import org.scleropages.kapuas.security.acl.model.AclPrincipalModel;
 import org.scleropages.kapuas.security.acl.model.AclStrategy;
 import org.scleropages.kapuas.security.acl.model.PermissionModel;
 import org.scleropages.kapuas.security.acl.model.ResourceModel;
+import org.scleropages.openapi.annotation.ApiIgnore;
+import org.scleropages.openapi.annotation.ApiModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.util.StringUtils;

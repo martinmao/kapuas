@@ -16,8 +16,7 @@
 package org.scleropages.kapuas.security.authc.mgmt.web;
 
 import org.scleropages.crud.web.Servlets;
-import org.scleropages.kapuas.openapi.annotation.ApiIgnore;
-import org.scleropages.kapuas.openapi.annotation.ApiParam;
+
 import org.scleropages.kapuas.security.SecurityOption;
 import org.scleropages.kapuas.security.authc.Authentication;
 import org.scleropages.kapuas.security.authc.AuthenticationManager;
@@ -26,6 +25,8 @@ import org.scleropages.kapuas.security.authc.token.client.EncodedToken;
 import org.scleropages.kapuas.security.authc.token.client.StatelessUsernamePasswordToken;
 import org.scleropages.kapuas.security.authc.token.client.UsernamePasswordToken;
 import org.scleropages.kapuas.security.authc.token.client.jwt.JwtEncodedToken;
+import org.scleropages.openapi.annotation.ApiIgnore;
+import org.scleropages.openapi.annotation.ApiParam;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;

@@ -16,8 +16,8 @@
 package org.scleropages.kapuas.security.acl.model;
 
 import org.scleropages.crud.types.EntryList;
-import org.scleropages.kapuas.openapi.annotation.ApiIgnore;
 import org.scleropages.kapuas.security.acl.Resource;
+import org.scleropages.openapi.annotation.ApiIgnore;
 
 import javax.validation.constraints.NotEmpty;
 import java.beans.Transient;

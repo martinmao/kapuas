@@ -15,8 +15,8 @@
  */
 package org.scleropages.kapuas.security.acl.model;
 
-import org.scleropages.kapuas.openapi.annotation.ApiIgnore;
 import org.scleropages.kapuas.security.acl.AclPrincipal;
+import org.scleropages.openapi.annotation.ApiIgnore;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Null;

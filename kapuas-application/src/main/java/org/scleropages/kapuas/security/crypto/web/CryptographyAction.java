@@ -16,9 +16,9 @@
 package org.scleropages.kapuas.security.crypto.web;
 
 import org.scleropages.crud.web.GenericAction;
-import org.scleropages.kapuas.openapi.annotation.ApiIgnore;
 import org.scleropages.kapuas.security.crypto.CryptographyManager;
 import org.scleropages.kapuas.security.crypto.model.Cryptography;
+import org.scleropages.openapi.annotation.ApiIgnore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.GetMapping;

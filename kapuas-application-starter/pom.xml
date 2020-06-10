@@ -16,11 +16,6 @@
             <artifactId>kapuas-application</artifactId>
             <version>${project.version}</version>
         </dependency>
-        <dependency>
-            <groupId>org.scleropages.kapuas</groupId>
-            <artifactId>kapuas-openapi-webjars</artifactId>
-            <version>${project.version}</version>
-        </dependency>
 
         <dependency>
             <groupId>com.h2database</groupId>
