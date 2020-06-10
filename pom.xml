@@ -13,6 +13,7 @@
         <module>kapuas-boot-starter</module>
         <module>kapuas-boot-starter-spring-cloud</module>
         <module>kapuas-openapi</module>
+        <module>kapuas-openapi-webjars</module>
     </modules>
     <name>Kapuas-${project.version} Parent</name>
     <description>Top project pom.xml file</description>
@@ -33,6 +34,8 @@
         <fastjson.version>1.2.68</fastjson.version>
         <swagger.version>2.1.2</swagger.version>
         <bukitmerah.version>0.0.1-SNAPSHOT</bukitmerah.version>
+        <swagger-ui.version>3.26.0</swagger-ui.version>
+        <jquery.version>3.5.1</jquery.version>
     </properties>
 
 
@@ -112,6 +115,23 @@
                 <groupId>mysql</groupId>
                 <artifactId>mysql-connector-java</artifactId>
                 <version>5.1.29</version>
+            </dependency>
+
+
+
+
+
+            <!--webjars-->
+            <dependency>
+                <groupId>org.webjars.npm</groupId>
+                <artifactId>swagger-ui-dist</artifactId>
+                <version>${swagger-ui.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.webjars</groupId>
+                <artifactId>jquery</artifactId>
+                <version>${jquery.version}</version>
             </dependency>
         </dependencies>
     </dependencyManagement>

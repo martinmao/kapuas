@@ -44,7 +44,6 @@ public class AclModel implements Acl {
     private EntryList<String, Object> variableEntries;
 
 
-    @Transient
     public Long getId() {
         return id;
     }

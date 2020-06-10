@@ -521,7 +521,7 @@ public class SpringMvcOpenApiReader implements OpenApiReader {
     }
 
     protected void postOperationCreation(Operation operation) {
-
+        operation.setSummary(StringUtils.substringAfterLast(operation.getOperationId(), "."));
     }
 
     protected void postParameterCreation(MethodParameter methodParameter, Parameter parameter, Schema schema) {

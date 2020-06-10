@@ -15,36 +15,21 @@
  */
 package org.scleropages.kapuas.openapi.web;
 
-import org.scleropages.crud.web.Views;
-import org.scleropages.kapuas.openapi.OpenApi;
-import org.scleropages.kapuas.openapi.OpenApiContextHolder;
-import org.springframework.util.Assert;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import javax.servlet.http.HttpServletResponse;
-import java.util.Set;
 
 /**
  * @author <a href="mailto:martinmao@icloud.com">Martin Mao</a>
  */
-@RequestMapping("open-api")
+@RequestMapping("api-docs")
 @RestController
-public class OpenApiAction {
+public class ApiDocAction {
 
+    private String render;
 
-    @GetMapping("ids")
-    public Set<String> ids() {
-        return OpenApiContextHolder.getOpenApiContext().ids();
+    @GetMapping
+    public void home() {
+
     }
-
-    @GetMapping("{id}")
-    public void openApi(@PathVariable String id, HttpServletResponse response) {
-        OpenApi openApi = OpenApiContextHolder.getOpenApiContext().openApi(id);
-        Assert.notNull(openApi,"no open api found by given id.");
-        Views.renderYaml(response, openApi.render());
-    }
-
 }

@@ -17,6 +17,7 @@ package org.scleropages.kapuas.security.acl.web;
 
 import org.apache.commons.collections.MapUtils;
 import org.scleropages.crud.dao.orm.SearchFilter;
+import org.scleropages.crud.types.NamedPrimitive;
 import org.scleropages.crud.web.GenericAction;
 import org.scleropages.kapuas.openapi.annotation.ApiIgnore;
 import org.scleropages.kapuas.openapi.annotation.ApiModel;
@@ -80,7 +81,7 @@ public class AclAction implements GenericAction {
 
     @GetMapping("principal")
     @ApiModel(AclPrincipalModel.class)
-    public Page<AclPrincipal> queryPrincipal(HttpServletRequest request) {
+    public Page<AclPrincipal> findPrincipal(HttpServletRequest request) {
         return aclManager.findAclPrincipals(buildSearchFilterFromRequest(request), buildPageableFromRequest(request));
     }
 
@@ -92,7 +93,7 @@ public class AclAction implements GenericAction {
     @GetMapping("resource/{resourceType}")
     @ApiModel(AclModel.class)
     @ApiIgnore({AclModel.Page.class})
-    public Page<Acl> readAcl(HttpServletRequest request, @PathVariable String resourceType, @RequestParam(required = false) String variables) {
+    public Page<Acl> findAcl(HttpServletRequest request, @PathVariable String resourceType, @RequestParam(required = false) String variables) {
         ResourceModel model = new ResourceModel();
         model.setType(resourceType);
         Map<String, Object> variablesSearchParams = StringUtils.hasText(variables) ? buildObjectFromJsonPayload(variables, Map.class) : MapUtils.EMPTY_MAP;
@@ -111,7 +112,7 @@ public class AclAction implements GenericAction {
 
 
     @PutMapping("resource/{resourceType}/{resourceId}")
-    public void updateAcl(@PathVariable String resourceType, @PathVariable String resourceId,@ApiIgnore(ResourceModel.Update.class) @RequestBody ResourceModel resourceModel) {
+    public void updateAcl(@PathVariable String resourceType, @PathVariable String resourceId, @ApiIgnore(ResourceModel.Update.class) @RequestBody ResourceModel resourceModel) {
         resourceModel.setType(resourceType);
         resourceModel.setId(resourceId);
         aclManager.updateAcl(resourceModel);
@@ -173,7 +174,7 @@ public class AclAction implements GenericAction {
 
     @GetMapping("entries/{resourceType}/{resourceId}")
     @ApiModel(AclEntryModel.class)
-    public Page<AclEntry> readAclEntries(HttpServletRequest request, @PathVariable String resourceType, @PathVariable String resourceId, String principal) {
+    public Page<AclEntry> findAclEntries(HttpServletRequest request, @PathVariable String resourceType, @PathVariable String resourceId, String principal) {
         ResourceModel resourceModel = new ResourceModel();
         resourceModel.setType(resourceType);
         resourceModel.setId(resourceId);
@@ -182,7 +183,7 @@ public class AclAction implements GenericAction {
 
     @GetMapping("principal_entries/{principal}/{resourceType}")
     @ApiModel(AclEntryModel.class)
-    public Page<AclEntry> readPrincipalAclEntries(HttpServletRequest request,
+    public Page<AclEntry> findPrincipalAclEntries(HttpServletRequest request,
                                                   @PathVariable String principal, @PathVariable String resourceType,
                                                   String resourceId, String permission, String variables) {
         ResourceModel resourceModel = new ResourceModel();
@@ -194,11 +195,12 @@ public class AclAction implements GenericAction {
     }
 
     @GetMapping("accessible/{principal}/{resourceType}/{resourceId}")
-    public Boolean isAccessible(@PathVariable String principal, @PathVariable String resourceType, @PathVariable String resourceId, @RequestParam(name = "permission", required = false) String permission) {
+    public NamedPrimitive<Boolean> isAccessible(@PathVariable String principal, @PathVariable String resourceType, @PathVariable String resourceId, @RequestParam(name = "permission", required = false) String permission) {
         ResourceModel resourceModel = new ResourceModel();
         resourceModel.setType(resourceType);
         resourceModel.setId(resourceId);
-        return aclManager.isAccessible(resourceModel, new AclPrincipalModel(principal), new PermissionModel(permission));
+        boolean accessible = aclManager.isAccessible(resourceModel, new AclPrincipalModel(principal), new PermissionModel(permission));
+        return new NamedPrimitive<>("accessible", accessible);
     }
 
     @Autowired

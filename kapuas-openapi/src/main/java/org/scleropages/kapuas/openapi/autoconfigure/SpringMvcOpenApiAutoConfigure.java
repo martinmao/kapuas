@@ -20,6 +20,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.scleropages.kapuas.openapi.OpenApiContextBuilder;
 import org.scleropages.kapuas.openapi.provider.swagger.BeanComponentApiScanner;
 import org.scleropages.kapuas.openapi.provider.swagger.EntryListSchemaResolver;
+import org.scleropages.kapuas.openapi.provider.swagger.NamedPrimitiveSchemaResolver;
 import org.scleropages.kapuas.openapi.provider.swagger.PageSchemaResolver;
 import org.scleropages.kapuas.openapi.provider.swagger.SchemaResolver;
 import org.scleropages.kapuas.openapi.provider.swagger.SpringMvcOpenApiReader;
@@ -85,6 +86,12 @@ public class SpringMvcOpenApiAutoConfigure implements ApplicationListener<Contex
     @ConditionalOnMissingBean
     public EntryListSchemaResolver entryListSchemaResolver() {
         return new EntryListSchemaResolver();
+    }
+
+    @Bean
+    @ConditionalOnMissingBean
+    public NamedPrimitiveSchemaResolver namedPrimitiveSchemaResolver() {
+        return new NamedPrimitiveSchemaResolver();
     }
 
     @Override
