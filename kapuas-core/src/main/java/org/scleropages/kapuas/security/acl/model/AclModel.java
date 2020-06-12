@@ -58,13 +58,13 @@ public class AclModel implements Acl {
     }
 
     @ApiModel(ResourceModel.class)
-    @ApiIgnore({Page.class,Info.class})
+    @ApiIgnore({PageItem.class,Info.class})
     public Resource getResource() {
         return resource;
     }
 
     @ApiModel(AclPrincipalModel.class)
-    @ApiIgnore({Page.class})
+    @ApiIgnore({PageItem.class})
     public List<AclPrincipal> getOwners() {
         return owners;
     }
@@ -74,7 +74,7 @@ public class AclModel implements Acl {
     }
 
     @ApiModel(AclEntryModel.class)
-    @ApiIgnore({Page.class, Info.class})
+    @ApiIgnore({PageItem.class, Info.class})
     public List<AclEntry> getAclEntries() {
         return aclEntries;
     }
@@ -84,7 +84,7 @@ public class AclModel implements Acl {
         return variables;
     }
 
-    @ApiIgnore({Page.class})
+    @ApiIgnore({PageItem.class})
     public EntryList<String, Object> getVariableEntries() {
         return variableEntries;
     }
@@ -159,7 +159,7 @@ public class AclModel implements Acl {
         return aclEntries;
     }
 
-    public static interface Page {
+    public static interface PageItem {
     }
 
     public static interface Info {

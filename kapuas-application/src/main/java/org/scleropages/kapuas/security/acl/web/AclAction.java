@@ -93,7 +93,7 @@ public class AclAction implements GenericAction {
 
     @GetMapping("resource/{resourceType}")
     @ApiModel(AclModel.class)
-    @ApiIgnore({AclModel.Page.class})
+    @ApiIgnore({AclModel.PageItem.class})
     public Page<Acl> findAcl(HttpServletRequest request, @PathVariable String resourceType, @RequestParam(required = false) String variables) {
         ResourceModel model = new ResourceModel();
         model.setType(resourceType);
