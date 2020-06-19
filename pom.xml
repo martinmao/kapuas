@@ -12,9 +12,12 @@
         <module>kapuas-application-starter</module>
         <module>kapuas-boot-starter</module>
         <module>kapuas-boot-starter-spring-cloud</module>
+        <module>kapuas-openapi-metadata</module>
     </modules>
     <name>Kapuas-${project.version} Parent</name>
     <description>Top project pom.xml file</description>
+
+
 
 
     <properties>

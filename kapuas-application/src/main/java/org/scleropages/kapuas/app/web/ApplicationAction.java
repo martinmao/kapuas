@@ -17,19 +17,20 @@ package org.scleropages.kapuas.app.web;
 
 import org.apache.commons.lang3.math.NumberUtils;
 import org.scleropages.crud.web.GenericAction;
+import org.scleropages.crud.web.WebSearchFilter;
 import org.scleropages.kapuas.app.ApplicationManager;
 import org.scleropages.kapuas.app.model.Api;
 import org.scleropages.kapuas.app.model.Application;
+import org.scleropages.openapi.annotation.ApiIgnore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import javax.servlet.http.HttpServletRequest;
 
 /**
  * @author <a href="mailto:martinmao@icloud.com">Martin Mao</a>
@@ -41,12 +42,12 @@ public class ApplicationAction implements GenericAction {
     private ApplicationManager applicationManager;
 
     @PostMapping
-    public Application createApplication(@RequestBody Application application) {
+    public Application createApplication(@RequestBody @ApiIgnore(Application.Create.class) Application application) {
         return applicationManager.create(application);
     }
 
     @PostMapping("update")
-    public void updateApplication(@RequestBody Application application) {
+    public void updateApplication(@RequestBody @ApiIgnore(Application.Update.class) Application application) {
         applicationManager.save(application);
     }
 
@@ -56,23 +57,23 @@ public class ApplicationAction implements GenericAction {
     }
 
     @GetMapping("page")
-    public Page<Application> findApplicationPage(HttpServletRequest request) {
-        return applicationManager.findApplicationPage(buildSearchFilterFromRequest(request), buildPageableFromRequest(request));
+    public Page<Application> findApplicationPage(WebSearchFilter searchFilter, Pageable pageable) {
+        return applicationManager.findApplicationPage(searchFilter.getSearchFilterMap(), pageable);
     }
 
     @PostMapping("api")
-    public void createApi(@RequestBody Api api) {
+    public void createApi(@RequestBody @ApiIgnore(Api.Create.class) Api api) {
         applicationManager.createApi(api);
     }
 
     @PostMapping("api/update")
-    public void updateApi(@RequestBody Api api) {
+    public void updateApi(@RequestBody @ApiIgnore(Api.Update.class) Api api) {
         applicationManager.saveApi(api);
     }
 
     @GetMapping("api")
-    public Page<Api> findApiPage(HttpServletRequest request) {
-        return applicationManager.findApiPage(buildSearchFilterFromRequest(request), buildPageableFromRequest(request));
+    public Page<Api> findApiPage(WebSearchFilter searchFilter, Pageable pageable) {
+        return applicationManager.findApiPage(searchFilter.getSearchFilterMap(), pageable);
     }
 
 

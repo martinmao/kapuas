@@ -19,7 +19,7 @@ import org.apache.commons.collections.MapUtils;
 import org.scleropages.crud.dao.orm.SearchFilter;
 import org.scleropages.crud.types.NamedPrimitive;
 import org.scleropages.crud.web.GenericAction;
-
+import org.scleropages.crud.web.WebSearchFilter;
 import org.scleropages.kapuas.security.acl.Acl;
 import org.scleropages.kapuas.security.acl.AclEntry;
 import org.scleropages.kapuas.security.acl.AclManager;
@@ -34,6 +34,7 @@ import org.scleropages.openapi.annotation.ApiIgnore;
 import org.scleropages.openapi.annotation.ApiModel;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -45,7 +46,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.util.List;
 import java.util.Map;
@@ -82,8 +82,8 @@ public class AclAction implements GenericAction {
 
     @GetMapping("principal")
     @ApiModel(AclPrincipalModel.class)
-    public Page<AclPrincipal> findPrincipal(HttpServletRequest request) {
-        return aclManager.findAclPrincipals(buildSearchFilterFromRequest(request), buildPageableFromRequest(request));
+    public Page<AclPrincipal> findPrincipal(WebSearchFilter searchFilter, Pageable pageable) {
+        return aclManager.findAclPrincipals(searchFilter.getSearchFilterMap(), pageable);
     }
 
     @PostMapping("resource")
@@ -94,11 +94,11 @@ public class AclAction implements GenericAction {
     @GetMapping("resource/{resourceType}")
     @ApiModel(AclModel.class)
     @ApiIgnore({AclModel.PageItem.class})
-    public Page<Acl> findAcl(HttpServletRequest request, @PathVariable String resourceType, @RequestParam(required = false) String variables) {
+    public Page<Acl> findAcl(@PathVariable String resourceType, Pageable pageable, @RequestParam(required = false) String variables) {
         ResourceModel model = new ResourceModel();
         model.setType(resourceType);
         Map<String, Object> variablesSearchParams = StringUtils.hasText(variables) ? buildObjectFromJsonPayload(variables, Map.class) : MapUtils.EMPTY_MAP;
-        return aclManager.findAcl(model, buildPageableFromRequest(request), SearchFilter.SearchFilterBuilder.build(variablesSearchParams));
+        return aclManager.findAcl(model, pageable, SearchFilter.SearchFilterBuilder.build(variablesSearchParams));
     }
 
     @GetMapping("resource/{resourceType}/{resourceId}")
@@ -175,24 +175,23 @@ public class AclAction implements GenericAction {
 
     @GetMapping("entries/{resourceType}/{resourceId}")
     @ApiModel(AclEntryModel.class)
-    public Page<AclEntry> findAclEntries(HttpServletRequest request, @PathVariable String resourceType, @PathVariable String resourceId, String principal) {
+    public Page<AclEntry> findAclEntries(@PathVariable String resourceType, @PathVariable String resourceId, String principal,Pageable pageable) {
         ResourceModel resourceModel = new ResourceModel();
         resourceModel.setType(resourceType);
         resourceModel.setId(resourceId);
-        return aclManager.findEntries(resourceModel, new AclPrincipalModel(principal), buildPageableFromRequest(request));
+        return aclManager.findEntries(resourceModel, new AclPrincipalModel(principal), pageable);
     }
 
     @GetMapping("principal_entries/{principal}/{resourceType}")
     @ApiModel(AclEntryModel.class)
-    public Page<AclEntry> findPrincipalAclEntries(HttpServletRequest request,
-                                                  @PathVariable String principal, @PathVariable String resourceType,
-                                                  String resourceId, String permission, String variables) {
+    public Page<AclEntry> findPrincipalAclEntries(@PathVariable String principal, @PathVariable String resourceType,
+                                                  String resourceId, String permission, String variables,Pageable pageable) {
         ResourceModel resourceModel = new ResourceModel();
         resourceModel.setType(resourceType);
         resourceModel.setId(resourceId);
         Map<String, Object> variablesSearchParams = StringUtils.hasText(variables) ? buildObjectFromJsonPayload(variables, Map.class) : MapUtils.EMPTY_MAP;
 
-        return aclManager.findPrincipalEntries(new AclPrincipalModel(principal), resourceModel, new PermissionModel(permission), buildPageableFromRequest(request), SearchFilter.SearchFilterBuilder.build(variablesSearchParams));
+        return aclManager.findPrincipalEntries(new AclPrincipalModel(principal), resourceModel, new PermissionModel(permission), pageable, SearchFilter.SearchFilterBuilder.build(variablesSearchParams));
     }
 
     @GetMapping("accessible/{principal}/{resourceType}/{resourceId}")

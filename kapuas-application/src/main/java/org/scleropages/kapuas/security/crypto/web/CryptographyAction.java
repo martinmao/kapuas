@@ -21,6 +21,7 @@ import org.scleropages.kapuas.security.crypto.model.Cryptography;
 import org.scleropages.openapi.annotation.ApiIgnore;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -52,13 +53,13 @@ public class CryptographyAction implements GenericAction {
     }
 
     @GetMapping("{associatedType}")
-    public Page<Cryptography> findPageCryptography(@PathVariable("associatedType") Integer associatedType, HttpServletRequest request) {
-        return cryptographyManager.findPage(associatedType, buildPageableFromRequest(request));
+    public Page<Cryptography> findPageCryptography(@PathVariable("associatedType") Integer associatedType, Pageable pageable) {
+        return cryptographyManager.findPage(associatedType, pageable);
     }
 
     @GetMapping("{associatedType}/{associatedId}")
-    public Page<Cryptography> findPageCryptography(@PathVariable("associatedType") Integer associatedType, @PathVariable("associatedId") String associatedId, HttpServletRequest request) {
-        return cryptographyManager.findPage(associatedType, associatedId, buildPageableFromRequest(request));
+    public Page<Cryptography> findPageCryptography(@PathVariable("associatedType") Integer associatedType, @PathVariable("associatedId") String associatedId, Pageable pageable) {
+        return cryptographyManager.findPage(associatedType, associatedId, pageable);
     }
 
 
