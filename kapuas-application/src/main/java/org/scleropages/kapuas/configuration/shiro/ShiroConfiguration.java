@@ -54,7 +54,6 @@ import java.util.List;
  */
 @Configuration
 @ConditionalOnProperty(name = "shiro.web.enabled", matchIfMissing = true)
-@EnableCaching
 @ImportResource("classpath:spring-security.xml")
 public class ShiroConfiguration implements ApplicationListener<ContextRefreshedEvent> {
 
