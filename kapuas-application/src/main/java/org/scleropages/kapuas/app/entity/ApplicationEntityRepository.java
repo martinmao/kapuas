@@ -39,6 +39,8 @@ public interface ApplicationEntityRepository extends GenericRepository<Applicati
         } else
             throw new IllegalArgumentException("id or namespace is required.");
         Assert.notNull(appInfoRecord, "no application found. ");
-        return dslRecordInto(appInfoRecord, new ApplicationEntity());
+        ApplicationEntity applicationEntity = new ApplicationEntity();
+        dslRecordInto(appInfoRecord, applicationEntity);
+        return applicationEntity;
     }
 }

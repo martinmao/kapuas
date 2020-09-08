@@ -41,7 +41,9 @@ public interface DomainEntityRepository extends GenericRepository<DomainEntity, 
         } else
             throw new IllegalArgumentException("id or namespace is required.");
         Assert.notNull(appDomainRecord, "no domain found. ");
-        return dslRecordInto(appDomainRecord, new DomainEntity());
+        DomainEntity domainEntity = new DomainEntity();
+        dslRecordInto(appDomainRecord, domainEntity);
+        return domainEntity;
     }
 
     default DomainEntity getByIdWithParentDomainEntity(Long id) {

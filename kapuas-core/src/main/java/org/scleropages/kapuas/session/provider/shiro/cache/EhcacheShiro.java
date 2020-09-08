@@ -27,6 +27,9 @@ import java.util.Collection;
 import java.util.Iterator;
 import java.util.Set;
 
+/**
+ *@author <a href="mailto:martinmao@icloud.com">Martin Mao</a>
+ */
 public class EhcacheShiro<K, V> implements Cache<K, V> {
 
     private static final Logger log = LoggerFactory.getLogger(EhcacheShiro.class);

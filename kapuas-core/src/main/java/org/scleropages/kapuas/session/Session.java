@@ -10,7 +10,7 @@ import java.util.Date;
  * {@link HttpSession}, But session management by container and implementation
  * is not associated with HTTP.<br>
  *
- * @author martin
+ * @author <a href="mailto:martinmao@icloud.com">Martin Mao</a>
  */
 public interface Session {
 
