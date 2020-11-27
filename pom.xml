@@ -109,6 +109,7 @@
                 <version>${bukitmerah.version}</version>
             </dependency>
 
+
             <dependency>
                 <groupId>mysql</groupId>
                 <artifactId>mysql-connector-java</artifactId>
@@ -236,4 +237,17 @@
             </plugins>
         </pluginManagement>
     </build>
+    <repositories>
+        <repository>
+            <id>github</id>
+            <name></name>
+            <url>https://maven.pkg.github.com/martinmao/bukitmerah</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
 </project>
