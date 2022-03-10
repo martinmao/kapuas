@@ -54,7 +54,8 @@ public interface AclManager {
     /**
      * get {@link AclPrincipal} by given search items.
      *
-     * @param aclPrincipal
+     * @param searchFilters search items.
+     * @param pageable      pageable to query.
      * @return
      */
     Page<AclPrincipal> findAclPrincipals(Map<String, SearchFilter> searchFilters, Pageable pageable);
@@ -122,7 +123,7 @@ public interface AclManager {
 
 
     /**
-     * read acl entries by specify(from principal) resource and variable search filters(used for when resource id not provided.)
+     * read acl entries by specify(from principal) resource and variable search filters(resource id not provided.)
      *
      * @param principal              grant to specify principal.
      * @param resourceModel          by resource type(type is required and id is optional)
@@ -166,6 +167,7 @@ public interface AclManager {
 
     /**
      * delete a acl by given resource.
+     *
      * @param resource
      */
     void deleteAcl(@Valid ResourceModel resource);
@@ -183,8 +185,9 @@ public interface AclManager {
 
     /**
      * delete acl entry by given resource
-     * @param resource resource associated acl must exists(type id is required.)
-     * @param grant grants principal.
+     *
+     * @param resource   resource associated acl must exists(type id is required.)
+     * @param grant      grants principal.
      * @param permission a group optional permissions.
      */
     void deleteAclEntry(@Valid ResourceModel resource, @Valid AclPrincipalModel grant, PermissionModel... permission);

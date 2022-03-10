@@ -72,7 +72,7 @@ public interface AclProvider {
      * delete a acl for specify resource.
      *
      * @param resource
-     * @param aclPrincipalEntity
+     * @param permissionEntity
      */
     void deleteAcl(ResourceModel resource, PermissionEntity permissionEntity);
 
