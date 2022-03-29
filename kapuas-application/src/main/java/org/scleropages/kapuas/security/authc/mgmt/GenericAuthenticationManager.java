@@ -23,11 +23,11 @@ import org.scleropages.crud.dao.orm.jpa.entity.EntityAware;
 import org.scleropages.crud.exception.BizError;
 import org.scleropages.kapuas.security.authc.Authentication;
 import org.scleropages.kapuas.security.authc.AuthenticationManager;
-import org.scleropages.kapuas.security.authc.mgmt.entity.AuthenticationEntity;
-import org.scleropages.kapuas.security.authc.mgmt.entity.AuthenticationEntityRepository;
-import org.scleropages.kapuas.security.authc.mgmt.model.AuthenticationMapper;
-import org.scleropages.kapuas.security.authc.mgmt.model.AuthenticationModel;
+import org.scleropages.kapuas.security.authc.entity.AuthenticationEntity;
+import org.scleropages.kapuas.security.authc.entity.mapper.AuthenticationMapper;
+import org.scleropages.kapuas.security.authc.model.AuthenticationModel;
 import org.scleropages.kapuas.security.authc.provider.Authenticator;
+import org.scleropages.kapuas.security.authc.repo.AuthenticationEntityRepository;
 import org.scleropages.kapuas.security.authc.token.client.AuthenticationToken;
 import org.scleropages.kapuas.security.authc.token.client.EncodedToken;
 import org.scleropages.kapuas.security.authc.token.client.UsernamePasswordToken;
@@ -151,7 +151,7 @@ public class GenericAuthenticationManager implements AuthenticationManager, Gene
      * @param id
      * @param entityAware
      */
-    public void awareAuthenticationEntity(Long id, AuthenticationEntityAware entityAware) {
+    public void awareAuthenticationEntity(Long id, EntityAware<AuthenticationEntity> entityAware) {
         entityAware.setEntity(authenticationEntityRepository.findById(id).get());
     }
 
@@ -235,8 +235,4 @@ public class GenericAuthenticationManager implements AuthenticationManager, Gene
     public void setAuthenticator(Authenticator authenticator) {
         this.authenticator = authenticator;
     }
-
-    interface AuthenticationEntityAware extends EntityAware<AuthenticationEntity> {
-    }
-
 }

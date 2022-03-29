@@ -16,7 +16,7 @@
 package org.scleropages.kapuas.security.authc.mgmt;
 
 import com.google.common.collect.Maps;
-import org.scleropages.kapuas.security.authc.mgmt.model.JwtTokenTemplate;
+import org.scleropages.kapuas.security.authc.model.JwtTokenTemplate;
 import org.scleropages.kapuas.security.authc.provider.Authenticated;
 import org.scleropages.kapuas.security.authc.provider.JwtProvider;
 import org.scleropages.kapuas.security.authc.token.client.jwt.JwtEncodedToken;

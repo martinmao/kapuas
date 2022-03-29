@@ -22,9 +22,9 @@ import org.scleropages.crud.GenericManager;
 import org.scleropages.crud.dao.orm.jpa.entity.EntityAware;
 import org.scleropages.crud.exception.BizError;
 import org.scleropages.kapuas.security.crypto.entity.KeyEntity;
-import org.scleropages.kapuas.security.crypto.entity.KeyEntityRepository;
+import org.scleropages.kapuas.security.crypto.entity.mapper.KeyMapper;
 import org.scleropages.kapuas.security.crypto.model.Key;
-import org.scleropages.kapuas.security.crypto.model.KeyMapper;
+import org.scleropages.kapuas.security.crypto.repo.KeyEntityRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -137,7 +137,7 @@ public class GenericKeyManager implements KeyManager, GenericManager<Key, Long, 
      * @param id
      * @param entityAware
      */
-    public void awareKeyEntity(Long id, KeyEntityAware entityAware) {
+    public void awareKeyEntity(Long id, EntityAware<KeyEntity> entityAware) {
         entityAware.setEntity(keyEntityRepository.findById(id).get());
     }
 
@@ -158,9 +158,5 @@ public class GenericKeyManager implements KeyManager, GenericManager<Key, Long, 
     @Autowired
     public void setRandomGenerator(RandomGenerator randomGenerator) {
         this.randomGenerator = randomGenerator;
-    }
-
-
-    public interface KeyEntityAware extends EntityAware<KeyEntity> {
     }
 }

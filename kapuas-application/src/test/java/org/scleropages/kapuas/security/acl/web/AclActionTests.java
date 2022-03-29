@@ -55,64 +55,64 @@ public class AclActionTests {
     public void _1_strategy() throws Exception {
 
 
-//        createStrategy("linux_files", "write=修改>read=读取>execute=执行", resultActions -> {
-//            try {
-//                resultActions.andExpect(MockMvcResultMatchers.status().isOk())
-//                        .andExpect(MockMvcResultMatchers.jsonPath("$.resource").value("linux_files"))
-//                        .andExpect(MockMvcResultMatchers.jsonPath("$.permissions.length()").value(3))
-//                        .andExpect(MockMvcResultMatchers.jsonPath("$.permissions[0].name").value("execute"))
-//                        .andExpect(MockMvcResultMatchers.jsonPath("$.permissions[0].tag").value("执行"))
-//                        .andExpect(MockMvcResultMatchers.jsonPath("$.permissions[0].extension").doesNotExist())
-//
-//                        .andExpect(MockMvcResultMatchers.jsonPath("$.permissions[1].name").value("read"))
-//                        .andExpect(MockMvcResultMatchers.jsonPath("$.permissions[1].tag").value("读取"))
-//                        .andExpect(MockMvcResultMatchers.jsonPath("$.permissions[1].extension").value("execute"))
-//
-//
-//                        .andExpect(MockMvcResultMatchers.jsonPath("$.permissions[2].name").value("write"))
-//                        .andExpect(MockMvcResultMatchers.jsonPath("$.permissions[2].tag").value("修改"))
-//                        .andExpect(MockMvcResultMatchers.jsonPath("$.permissions[2].extension").value("execute,read"));
-//            } catch (Exception e) {
-//                throw new IllegalStateException(e);
-//            }
-//        });
-//
-//
-//        createStrategy("item_category", "buying=采购,qc=品控,marketing=营销,guiding=导购,after_sales=售后", resultActions -> {
-//            try {
-//                resultActions
-//                        .andExpect(MockMvcResultMatchers.status().isOk())
-//                        .andExpect(MockMvcResultMatchers.jsonPath("$.resource").value("item_category"))
-//                        .andExpect(MockMvcResultMatchers.jsonPath("$.permissions.length()").value(5))
-//                        .andExpect(MockMvcResultMatchers.jsonPath("$.permissions[0].name").value("after_sales"))
-//                        .andExpect(MockMvcResultMatchers.jsonPath("$.permissions[0].tag").value("售后"))
-//                        .andExpect(MockMvcResultMatchers.jsonPath("$.permissions[0].extension").doesNotExist())
-//
-//                        .andExpect(MockMvcResultMatchers.status().isOk())
-//                        .andExpect(MockMvcResultMatchers.jsonPath("$.permissions[4].name").value("buying"))
-//                        .andExpect(MockMvcResultMatchers.jsonPath("$.permissions[4].tag").value("采购"))
-//                        .andExpect(MockMvcResultMatchers.jsonPath("$.permissions[4].extension").doesNotExist());
-//
-//            } catch (Exception e) {
-//                throw new IllegalStateException(e);
-//            }
-//        });
-//
-//        createStrategy("url_access", null, resultActions -> {
-//            try {
-//                resultActions
-//                        .andExpect(MockMvcResultMatchers.status().isOk())
-//                        .andExpect(MockMvcResultMatchers.jsonPath("$.resource").value("url_access"))
-//                        .andExpect(MockMvcResultMatchers.jsonPath("$.permissions").doesNotExist());
-//            } catch (Exception e) {
-//                throw new IllegalStateException(e);
-//            }
-//        });
-//
-//        for (int i = 10; i < 1000; i++) {
-//            createStrategy("url_access_" + i, null, resultActions -> {
-//            });
-//        }
+        createStrategy("linux_files", "write=修改>read=读取>execute=执行", resultActions -> {
+            try {
+                resultActions.andExpect(MockMvcResultMatchers.status().isOk())
+                        .andExpect(MockMvcResultMatchers.jsonPath("$.resource").value("linux_files"))
+                        .andExpect(MockMvcResultMatchers.jsonPath("$.permissions.length()").value(3))
+                        .andExpect(MockMvcResultMatchers.jsonPath("$.permissions[0].name").value("execute"))
+                        .andExpect(MockMvcResultMatchers.jsonPath("$.permissions[0].tag").value("执行"))
+                        .andExpect(MockMvcResultMatchers.jsonPath("$.permissions[0].extension").doesNotExist())
+
+                        .andExpect(MockMvcResultMatchers.jsonPath("$.permissions[1].name").value("read"))
+                        .andExpect(MockMvcResultMatchers.jsonPath("$.permissions[1].tag").value("读取"))
+                        .andExpect(MockMvcResultMatchers.jsonPath("$.permissions[1].extension").value("execute"))
+
+
+                        .andExpect(MockMvcResultMatchers.jsonPath("$.permissions[2].name").value("write"))
+                        .andExpect(MockMvcResultMatchers.jsonPath("$.permissions[2].tag").value("修改"))
+                        .andExpect(MockMvcResultMatchers.jsonPath("$.permissions[2].extension").value("execute,read"));
+            } catch (Exception e) {
+                throw new IllegalStateException(e);
+            }
+        });
+
+
+        createStrategy("item_category", "buying=采购,qc=品控,marketing=营销,guiding=导购,after_sales=售后", resultActions -> {
+            try {
+                resultActions
+                        .andExpect(MockMvcResultMatchers.status().isOk())
+                        .andExpect(MockMvcResultMatchers.jsonPath("$.resource").value("item_category"))
+                        .andExpect(MockMvcResultMatchers.jsonPath("$.permissions.length()").value(5))
+                        .andExpect(MockMvcResultMatchers.jsonPath("$.permissions[0].name").value("after_sales"))
+                        .andExpect(MockMvcResultMatchers.jsonPath("$.permissions[0].tag").value("售后"))
+                        .andExpect(MockMvcResultMatchers.jsonPath("$.permissions[0].extension").doesNotExist())
+
+                        .andExpect(MockMvcResultMatchers.status().isOk())
+                        .andExpect(MockMvcResultMatchers.jsonPath("$.permissions[4].name").value("buying"))
+                        .andExpect(MockMvcResultMatchers.jsonPath("$.permissions[4].tag").value("采购"))
+                        .andExpect(MockMvcResultMatchers.jsonPath("$.permissions[4].extension").doesNotExist());
+
+            } catch (Exception e) {
+                throw new IllegalStateException(e);
+            }
+        });
+
+        createStrategy("url_access", null, resultActions -> {
+            try {
+                resultActions
+                        .andExpect(MockMvcResultMatchers.status().isOk())
+                        .andExpect(MockMvcResultMatchers.jsonPath("$.resource").value("url_access"))
+                        .andExpect(MockMvcResultMatchers.jsonPath("$.permissions").doesNotExist());
+            } catch (Exception e) {
+                throw new IllegalStateException(e);
+            }
+        });
+
+        for (int i = 10; i < 1000; i++) {
+            createStrategy("url_access_" + i, null, resultActions -> {
+            });
+        }
 //
 //        long principalIdStart = System.currentTimeMillis();
 

@@ -16,12 +16,14 @@
 package org.scleropages.kapuas;
 
 import com.alibaba.druid.pool.DruidDataSource;
+import com.alibaba.druid.spring.boot.autoconfigure.DruidDataSourceAutoConfigure;
 import com.zaxxer.hikari.HikariDataSource;
 import org.scleropages.core.util.RandomGenerator;
 import org.scleropages.core.util.SecureRandomGenerator;
 import org.scleropages.crud.configure.CrudFeaturesImporter;
 import org.scleropages.crud.dao.jdbc.FrameworkRoutingDataSource;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.autoconfigure.AutoConfigureBefore;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -41,7 +43,7 @@ import javax.sql.DataSource;
 public class ApplicationConfiguration {
 
     @Configuration
-    @ConditionalOnProperty(name = "datasource-multiple.enabled")
+    @ConditionalOnProperty(name = "datasource-multiple.enabled", havingValue = "true")
     public static class DataSourcesConfiguration {
 
         @Primary

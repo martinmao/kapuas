@@ -16,11 +16,10 @@
 package org.scleropages.kapuas.security.authc.mgmt.web;
 
 import org.scleropages.crud.web.Servlets;
-
 import org.scleropages.kapuas.security.SecurityOption;
 import org.scleropages.kapuas.security.authc.Authentication;
 import org.scleropages.kapuas.security.authc.AuthenticationManager;
-import org.scleropages.kapuas.security.authc.mgmt.model.AuthenticationModel;
+import org.scleropages.kapuas.security.authc.model.AuthenticationModel;
 import org.scleropages.kapuas.security.authc.token.client.EncodedToken;
 import org.scleropages.kapuas.security.authc.token.client.StatelessUsernamePasswordToken;
 import org.scleropages.kapuas.security.authc.token.client.UsernamePasswordToken;

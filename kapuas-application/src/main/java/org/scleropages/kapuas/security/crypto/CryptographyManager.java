@@ -22,11 +22,11 @@ import org.scleropages.crud.GenericManager;
 import org.scleropages.crud.dao.orm.jpa.entity.EntityAware;
 import org.scleropages.crud.exception.BizError;
 import org.scleropages.kapuas.security.crypto.entity.CryptographyEntity;
-import org.scleropages.kapuas.security.crypto.entity.CryptographyEntityRepository;
 import org.scleropages.kapuas.security.crypto.entity.KeyEntity;
+import org.scleropages.kapuas.security.crypto.entity.mapper.CryptographyMapper;
 import org.scleropages.kapuas.security.crypto.model.Cryptography;
-import org.scleropages.kapuas.security.crypto.model.CryptographyMapper;
 import org.scleropages.kapuas.security.crypto.model.Key;
+import org.scleropages.kapuas.security.crypto.repo.CryptographyEntityRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -155,10 +155,7 @@ public class CryptographyManager implements GenericManager<Cryptography, Long, C
      * @param id
      * @param entityAware
      */
-    public void awareKeyEntity(Long id, CryptographyEntityAware entityAware) {
+    public void awareKeyEntity(Long id, EntityAware<CryptographyEntity> entityAware) {
         entityAware.setEntity(cryptographyEntityRepository.findById(id).get());
-    }
-
-    public interface CryptographyEntityAware extends EntityAware<CryptographyEntity> {
     }
 }
